@@ -12,8 +12,8 @@ namespace NFive.PluginManager
 	/// </summary>
 	public static class Program
 	{
-		public const string DefinitionFile = "plugin.yml";
-		public const string LockFile = "plugin.lock";
+		public const string DefinitionFile = "nfive.yml";
+		public const string LockFile = "nfive.lock";
 		public const string ResourceFile = "__resource.lua";
 		public const string PluginPath = "plugins";
 		public const string ConfigurationPath = "config";
@@ -29,10 +29,12 @@ namespace NFive.PluginManager
 			{
 				return Parser
 					.Default
-					.ParseArguments<Init, Install>(args)
+					.ParseArguments<Init, List, Install, Remove>(args)
 					.MapResult(
 						(Init i) => i.Main(),
+						(List l) => l.Main(),
 						(Install i) => i.Main(),
+						(Remove r) => r.Main(),
 						e => Task.FromResult(1)
 					)
 					.GetAwaiter()

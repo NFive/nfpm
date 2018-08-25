@@ -51,6 +51,8 @@
     <Compile Include="Models\Plugin\Server.cs" />
     <Compile Include="Models\Plugin\Version.cs" />
     <Compile Include="Models\Plugin\VersionRange.cs" />
+    <Compile Include="Modules\Remove.cs" />
+    <Compile Include="Modules\List.cs" />
     <Compile Include="Modules\Init.cs" />
     <Compile Include="Modules\Install.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

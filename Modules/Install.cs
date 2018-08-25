@@ -23,6 +23,7 @@ namespace NFive.PluginManager.Modules
 		[PublicAPI]
 		[Value(0, Required = false, HelpText = "plugin name")]
 		public IEnumerable<string> Plugin { get; set; } = new List<string>();
+
 		internal async Task<int> Main()
 		{
 			var definitionPath = Path.Combine(Environment.CurrentDirectory, Program.DefinitionFile);

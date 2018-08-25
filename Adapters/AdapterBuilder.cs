@@ -1,6 +1,5 @@
 ﻿using System;
 using NFive.PluginManager.Models.Plugin;
-using Repository = NFive.PluginManager.Models.Plugin.Repository;
 
 namespace NFive.PluginManager.Adapters
 {

@@ -3,9 +3,8 @@ using System.IO;
 using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
+using NFive.PluginManager.Configuration;
 using NFive.PluginManager.Models.Plugin;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 using Version = SemVer.Version;
 
 namespace NFive.PluginManager.Modules
@@ -46,10 +45,7 @@ namespace NFive.PluginManager.Modules
 
 			var path = Path.Combine(Environment.CurrentDirectory, Program.DefinitionFile);
 
-			var yml = new SerializerBuilder()
-				.WithNamingConvention(new CamelCaseNamingConvention())
-				.Build()
-				.Serialize(definition);
+			var yml = Yaml.Serialize(definition);
 
 			Console.WriteLine();
 			Console.WriteLine($"About to write to {path}:");
