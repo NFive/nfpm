@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D1C37F69-C811-4BFF-90F1-1F6401FC99E8}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>NFive.PluginManager</RootNamespace>
+    <AssemblyName>nfpm</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>NFive.PluginManager.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Adapters\AdapterBuilder.cs" />
+    <Compile Include="Adapters\GitHubAdapter.cs" />
+    <Compile Include="Adapters\IDownloadAdapter.cs" />
+    <Compile Include="Adapters\LocalAdapter.cs" />
+    <Compile Include="Configuration\NameConverter.cs" />
+    <Compile Include="Configuration\VersionConverter.cs" />
+    <Compile Include="Configuration\VersionRangeConverter.cs" />
+    <Compile Include="Extensions\DirectoryExtensions.cs" />
+    <Compile Include="Models\DefinitionGraph.cs" />
+    <Compile Include="Models\Plugin\Client.cs" />
+    <Compile Include="Models\Plugin\Definition.cs" />
+    <Compile Include="Models\Plugin\Name.cs" />
+    <Compile Include="Models\Plugin\Repository.cs" />
+    <Compile Include="Models\Plugin\Server.cs" />
+    <Compile Include="Models\Plugin\Version.cs" />
+    <Compile Include="Models\Plugin\VersionRange.cs" />
+    <Compile Include="Modules\Init.cs" />
+    <Compile Include="Modules\Install.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Configuration\Yaml.cs" />
+    <Compile Include="ResourceGenerator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Colorful.Console, Version=1.2.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Colorful.Console.1.2.9\lib\net452\Colorful.Console.dll</HintPath>
+    </Reference>
+    <Reference Include="CommandLine, Version=2.2.1.0, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>packages\CommandLineParser.2.2.1\lib\net45\CommandLine.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetZip, Version=1.11.0.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
+      <HintPath>packages\DotNetZip.1.11.0\lib\net20\DotNetZip.dll</HintPath>
+    </Reference>
+    <Reference Include="JetBrains.Annotations, Version=2018.2.1.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
+      <HintPath>packages\JetBrains.Annotations.2018.2.1\lib\net20\JetBrains.Annotations.dll</HintPath>
+    </Reference>
+    <Reference Include="Octokit, Version=0.31.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Octokit.0.31.0\lib\net45\Octokit.dll</HintPath>
+    </Reference>
+    <Reference Include="SemVer, Version=1.2.0.0, Culture=neutral, PublicKeyToken=a89bb7dc6f7a145c, processorArchitecture=MSIL">
+      <HintPath>packages\SemanticVersioning.1.2.0\lib\net45\SemVer.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="YamlDotNet, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\YamlDotNet.5.0.1\lib\net45\YamlDotNet.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
