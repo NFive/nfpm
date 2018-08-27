@@ -1,0 +1,31 @@
+version: 0.1.0.{build}
+
+image: Visual Studio 2017
+configuration: Release
+platform: Any CPU
+clone_depth: 1
+
+branches:
+  only:
+  - master
+
+cache:
+- packages -> **\packages.config
+
+test: off
+
+before_build:
+- cmd: nuget restore
+
+build:
+  verbosity: minimal
+
+after_build:
+- cmd: >-
+    nuget install ILRepack -ExcludeVersion
+
+    ILRepack\tools\ILRepack.exe --ndebug --parallel --wildcards bin\Release\nfpm.exe bin\Release\*.dll --out:bin\Release\nfpm.exe
+
+artifacts:
+- path: 'bin\Release\nfpm.exe'
+  name: 'nfpm'
