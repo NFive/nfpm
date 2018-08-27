@@ -42,5 +42,10 @@ namespace NFive.PluginManager.Models.Plugin
 
 			return Yaml.Deserialize<Definition>(File.ReadAllText(path));
 		}
+
+		public void Save(string path = Program.DefinitionFile)
+		{
+			File.WriteAllText(path, Yaml.Serialize(this));
+		}
 	}
 }

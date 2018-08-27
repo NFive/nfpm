@@ -61,7 +61,7 @@ namespace NFive.PluginManager.Adapters
 				await client.DownloadFileTaskAsync(asset.BrowserDownloadUrl, file);
 			}
 
-			using (ZipFile zip = ZipFile.Read(file))
+			using (var zip = ZipFile.Read(file))
 			{
 				zip.ExtractAll(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", this.name.Vendor, this.name.Project), ExtractExistingFileAction.OverwriteSilently);
 			}

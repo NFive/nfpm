@@ -60,6 +60,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Configuration\Yaml.cs" />
     <Compile Include="ResourceGenerator.cs" />
+    <Compile Include="ResourceString.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Colorful.Console, Version=1.2.9.0, Culture=neutral, processorArchitecture=MSIL">

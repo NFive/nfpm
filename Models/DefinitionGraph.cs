@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using NFive.PluginManager.Models.Plugin;
 using JetBrains.Annotations;
 using NFive.PluginManager.Adapters;
+using NFive.PluginManager.Configuration;
 using NFive.PluginManager.Extensions;
-using Version = NFive.PluginManager.Models.Plugin.Version;
 
 namespace NFive.PluginManager.Models
 {
@@ -16,7 +16,7 @@ namespace NFive.PluginManager.Models
 		[UsedImplicitly]
 		public List<Definition> Definitions { get; set; }
 
-		public async Task Parse(Definition definition)
+		public async Task Build(Definition definition)
 		{
 			await StageDefinition(definition);
 
@@ -41,7 +41,7 @@ namespace NFive.PluginManager.Models
 			this.Definitions = Sort(definitions);
 		}
 
-		public async Task Apply(Definition masterDefinition)
+		public async Task Apply()
 		{
 			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging"), true);
 
@@ -60,9 +60,10 @@ namespace NFive.PluginManager.Models
 
 				var dir = Path.Combine(Environment.CurrentDirectory, Program.PluginPath, definition.Name.Vendor, definition.Name.Project);
 				if (Directory.Exists(dir)) Directory.Delete(dir, true);
+				
+				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project));
 
-
-				var repo = masterDefinition.Repositories?.FirstOrDefault(r => r.Name == definition.Name); // TODO
+				Repository repo = null; // masterDefinition.Repositories?.FirstOrDefault(r => r.Name == definition.Name); // TODO
 				var adapter = new AdapterBuilder(definition.Name, repo).Adapter();
 				await adapter.Download(definition.Version);
 
@@ -76,27 +77,21 @@ namespace NFive.PluginManager.Models
 
 				new DirectoryInfo(src).Copy(dst);
 			}
+
+			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging"), true);
 		}
 
 		private async Task StageDefinition(Definition definition)
 		{
-			foreach (KeyValuePair<Name, VersionRange> dependency in definition.Dependencies ?? new Dictionary<Name, VersionRange>())
+			foreach (var dependency in definition.Dependencies ?? new Dictionary<Name, VersionRange>())
 			{
 				var repo = definition.Repositories?.FirstOrDefault(r => r.Name == dependency.Key);
 
 				var adapter = new AdapterBuilder(dependency.Key, repo).Adapter();
 
 				var versions = await adapter.GetVersions();
-				Version versionMatch = null;
 
-				foreach (var version in versions)
-				{
-					if (!dependency.Value.IsSatisfied(version)) continue;
-
-					versionMatch = version;
-					break;
-				}
-
+				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version));
 				if (versionMatch == null) throw new Exception("No matching version found");
 
 				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project));
@@ -105,6 +100,7 @@ namespace NFive.PluginManager.Models
 
 				var dependencyDefinition = Definition.Load(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project, Program.DefinitionFile));
 
+				// TODO: What should be validated?
 				if (dependencyDefinition.Name != dependency.Key) throw new Exception("Downloaded package does not match requested.");
 				if (dependencyDefinition.Version != versionMatch) throw new Exception("Downloaded package does not match requested.");
 
@@ -138,6 +134,19 @@ namespace NFive.PluginManager.Models
 
 				results.Add(node);
 			}
+		}
+
+		public static DefinitionGraph Load(string path = Program.LockFile)
+		{
+			if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
+			if (!File.Exists(path)) throw new FileNotFoundException("Unable to find the plugin lock file", path);
+
+			return Yaml.Deserialize<DefinitionGraph>(File.ReadAllText(path));
+		}
+
+		public void Save(string path = Program.LockFile)
+		{
+			File.WriteAllText(path, Yaml.Serialize(this));
 		}
 	}
 }

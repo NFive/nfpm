@@ -21,12 +21,12 @@ namespace NFive.PluginManager.Extensions
 
 			if (!Directory.Exists(dest)) Directory.CreateDirectory(dest);
 
-			foreach (FileInfo file in dir.GetFiles())
+			foreach (var file in dir.GetFiles())
 			{
 				file.CopyTo(Path.Combine(dest, file.Name), true);
 			}
 
-			foreach (DirectoryInfo subDir in dirs)
+			foreach (var subDir in dirs)
 			{
 				Copy(subDir, Path.Combine(dest, subDir.Name));
 			}

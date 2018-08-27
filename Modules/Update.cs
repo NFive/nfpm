@@ -11,11 +11,11 @@ using Console = Colorful.Console;
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
-	/// List installed NFive plugins.
+	/// Update installed NFive plugins.
 	/// </summary>
 	[UsedImplicitly]
-	[Verb("list", HelpText = "List installed NFive plugins.")]
-	internal class List
+	[Verb("update", HelpText = "Update installed NFive plugins.")]
+	internal class Update
 	{
 		internal async Task<int> Main()
 		{
@@ -54,20 +54,8 @@ namespace NFive.PluginManager.Modules
 
 				return 1;
 			}
-			
-			Console.WriteLine($"{definition.FullName}");
 
-			foreach (var graphDefinition in graph.Definitions)
-			{
-				Console.WriteLine($"+-- {graphDefinition.FullName}");
 
-				if (graphDefinition.DependencyNodes == null) break;
-
-				foreach (var graphDefinitionDependencyNode in graphDefinition.DependencyNodes)
-				{
-					Console.WriteLine($"| +-- {graphDefinitionDependencyNode.FullName}");
-				}
-			}
 
 			return await Task.FromResult(0);
 		}

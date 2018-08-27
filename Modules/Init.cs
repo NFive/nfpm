@@ -92,7 +92,7 @@ namespace NFive.PluginManager.Modules
 		{
 			Console.Write($"{description} ({(defaultValue ? "yes" : "no")}) ");
 
-			string input = Console.ReadLine()?.Trim().ToLowerInvariant();
+			var input = Console.ReadLine()?.Trim().ToLowerInvariant();
 
 			if (string.IsNullOrEmpty(input)) return defaultValue;
 

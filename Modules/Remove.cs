@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
-using NFive.PluginManager.Configuration;
 using NFive.PluginManager.Models;
 using NFive.PluginManager.Models.Plugin;
 using Console = Colorful.Console;
@@ -27,26 +25,16 @@ namespace NFive.PluginManager.Modules
 		{
 			var plugin = new Name(this.Plugin);
 
-			var definitionPath = Path.Combine(Environment.CurrentDirectory, Program.DefinitionFile);
-
-			if (!File.Exists(definitionPath))
-			{
-				Console.WriteLine($"Unable to find {definitionPath}", Color.Red);
-				Console.WriteLine("Use `nfpm init` to setup NFive in this directory");
-
-				return 1;
-			}
-
 			Definition definition;
 
 			try
 			{
-				definition = Definition.Load(definitionPath);
+				definition = Definition.Load();
 			}
-			catch (Exception ex)
+			catch (FileNotFoundException ex)
 			{
-				Console.WriteLine($"Unable to deserialize {definitionPath}:", Color.Red);
 				Console.WriteLine(ex.Message);
+				Console.WriteLine("Use `nfpm init` to setup NFive in this directory");
 
 				return 1;
 			}
@@ -69,26 +57,15 @@ namespace NFive.PluginManager.Modules
 
 			// TODO: Remove orphaned child dependencies
 
-			DefinitionGraph graph = new DefinitionGraph();
+			var graph = new DefinitionGraph();
+			await graph.Build(definition);
+			await graph.Apply();
 
-			try
-			{
-				await graph.Parse(definition); // Build and sort dependency tree
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine("Unable to build definition graph (PANIC):", Color.Red);
-				Console.WriteLine(ex.Message);
+			definition.Save();
+			graph.Save();
+			ResourceGenerator.Serialize(graph).Save();
 
-				return 1;
-			}
-
-			// Save locks
-			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, Program.DefinitionFile), Yaml.Serialize(definition));
-			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, Program.LockFile), Yaml.Serialize(graph));
-			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, Program.ResourceFile), new ResourceGenerator().Serialize(graph));
-
-			return await Task.FromResult(0);
+			return 0;
 		}
 	}
 }
