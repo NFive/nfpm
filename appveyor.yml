@@ -18,6 +18,7 @@ before_build:
 - cmd: nuget restore
 
 build:
+  project: PluginManager.sln
   verbosity: minimal
 
 after_build:
