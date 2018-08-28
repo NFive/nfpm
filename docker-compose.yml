@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  nfpm:
+    image: mono:latest
+    entrypoint: mono nfpm.exe
+    working_dir: /app
+    volumes:
+     - ./bin/Debug:/app:Z
