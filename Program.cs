@@ -29,14 +29,16 @@ namespace NFive.PluginManager
 			{
 				return Parser
 					.Default
-					.ParseArguments<Init, Search, List, Install, Remove, Update>(args)
+					.ParseArguments<Setup, Init, Search, List, Install, Remove, Update, Start>(args)
 					.MapResult(
+						(Setup s) => s.Main(),
 						(Init i) => i.Main(),
 						(Search s) => s.Main(),
 						(List l) => l.Main(),
 						(Install i) => i.Main(),
 						(Remove r) => r.Main(),
 						(Update u) => u.Main(),
+						(Start s) => s.Main(),
 						e => Task.FromResult(1)
 					)
 					.GetAwaiter()
