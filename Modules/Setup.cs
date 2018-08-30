@@ -38,16 +38,12 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine();
 
 			Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "server", "resources", "nfive"));
-
-			config.Serialize().Save(Path.Combine(Environment.CurrentDirectory, "server", "server.cfg"));
-
+			
 			var definition = new Definition
 			{
 				Name = "local/nfive-install",
 				Version = "1.0.0"
 			};
-
-			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "server", "resources", "nfive", "nfive.yml"), Yaml.Serialize(definition));
 
 			using (var client = new WebClient())
 			{
@@ -76,6 +72,9 @@ namespace NFive.PluginManager.Modules
 				Console.WriteLine("Installing NFive...");
 			}
 
+			config.Serialize().Save(Path.Combine(Environment.CurrentDirectory, "server", "server.cfg"));
+			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "server", "resources", "nfive", "nfive.yml"), Yaml.Serialize(definition));
+			
 			Console.WriteLine();
 			Console.WriteLine("Installation is complete, you can now start the server with `nfpm start`!");
 
