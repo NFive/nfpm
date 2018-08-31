@@ -43,6 +43,7 @@
     <Compile Include="Models\DefinitionGraph.cs" />
     <Compile Include="Modules\Setup.cs" />
     <Compile Include="Modules\Start.cs" />
+    <Compile Include="Modules\Scaffold.cs" />
     <Compile Include="Modules\Update.cs" />
     <Compile Include="Modules\Search.cs" />
     <Compile Include="Modules\Remove.cs" />
@@ -74,6 +75,9 @@
     </Reference>
     <Reference Include="Octokit, Version=0.31.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Octokit.0.31.0\lib\net45\Octokit.dll</HintPath>
+    </Reference>
+    <Reference Include="Scriban, Version=1.2.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Scriban.1.2.5\lib\net40\Scriban.dll</HintPath>
     </Reference>
     <Reference Include="SemVer, Version=1.2.0.0, Culture=neutral, PublicKeyToken=a89bb7dc6f7a145c, processorArchitecture=MSIL">
       <HintPath>packages\SemanticVersioning.1.2.0\lib\net45\SemVer.dll</HintPath>
