@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NFive.SDK.Plugins.Models;
-using JetBrains.Annotations;
 using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Extensions;
 using NFive.SDK.Plugins.Configuration;

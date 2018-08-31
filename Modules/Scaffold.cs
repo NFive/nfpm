@@ -44,11 +44,13 @@ namespace NFive.PluginManager.Modules
 				}
 			}
 
-			Directory.Move(Path.Combine(Environment.CurrentDirectory, "skeleton-plugin-server-master"), Path.Combine(Environment.CurrentDirectory, "plugin"));
+			var directory = $"plugin-{config.project.ToLowerInvariant()}";
+
+			Directory.Move(Path.Combine(Environment.CurrentDirectory, "skeleton-plugin-server-master"), Path.Combine(Environment.CurrentDirectory, directory));
 
 			Console.WriteLine("Applying templates...");
 
-			foreach (var file in Directory.EnumerateFiles(Path.Combine(Environment.CurrentDirectory, "plugin"), "*.tpl", SearchOption.AllDirectories))
+			foreach (var file in Directory.EnumerateFiles(Path.Combine(Environment.CurrentDirectory, directory), "*.tpl", SearchOption.AllDirectories))
 			{
 				var tpl = Template.Parse(file);
 				var filename = tpl.Render(config);
