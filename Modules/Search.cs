@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Adapters;
-using NFive.PluginManager.Models.Plugin;
+using NFive.SDK.Plugins.Models;
 using Octokit;
 using Console = Colorful.Console;
 

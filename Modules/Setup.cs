@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using CommandLine;
 using Ionic.Zip;
 using JetBrains.Annotations;
-using NFive.PluginManager.Configuration;
-using NFive.PluginManager.Models.Plugin;
+using NFive.SDK.Plugins.Configuration;
+using NFive.SDK.Plugins.Models;
 using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules

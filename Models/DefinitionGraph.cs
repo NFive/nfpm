@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NFive.PluginManager.Models.Plugin;
+using NFive.SDK.Plugins.Models;
 using JetBrains.Annotations;
 using NFive.PluginManager.Adapters;
-using NFive.PluginManager.Configuration;
 using NFive.PluginManager.Extensions;
+using NFive.SDK.Plugins.Configuration;
 
 namespace NFive.PluginManager.Models
 {
 	public class DefinitionGraph
 	{
-		[UsedImplicitly]
 		public List<Definition> Definitions { get; set; }
 
 		public async Task Build(Definition definition)

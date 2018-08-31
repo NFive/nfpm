@@ -1,5 +1,5 @@
 ﻿using System;
-using NFive.PluginManager.Models.Plugin;
+using NFive.SDK.Plugins.Models;
 
 namespace NFive.PluginManager.Adapters
 {

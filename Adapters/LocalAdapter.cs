@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using NFive.PluginManager.Extensions;
-using NFive.PluginManager.Models.Plugin;
-using Repository = NFive.PluginManager.Models.Plugin.Repository;
-using Version = NFive.PluginManager.Models.Plugin.Version;
+using NFive.SDK.Plugins.Models;
+using Repository = NFive.SDK.Plugins.Models.Repository;
+using Version = NFive.SDK.Plugins.Models.Version;
 
 namespace NFive.PluginManager.Adapters
 {

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Models;
-using NFive.PluginManager.Models.Plugin;
+using NFive.SDK.Plugins.Models;
 using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
@@ -23,7 +23,7 @@ namespace NFive.PluginManager.Modules
 
 			try
 			{
-				definition = Definition.Load();
+				definition = Definition.Load(Program.DefinitionFile);
 			}
 			catch (FileNotFoundException ex)
 			{

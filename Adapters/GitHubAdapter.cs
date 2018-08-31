@@ -5,9 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Ionic.Zip;
-using NFive.PluginManager.Models.Plugin;
+using NFive.SDK.Plugins.Models;
 using Octokit;
-using Version = NFive.PluginManager.Models.Plugin.Version;
+using Version = NFive.SDK.Plugins.Models.Version;
 
 namespace NFive.PluginManager.Adapters
 {

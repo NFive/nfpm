@@ -3,8 +3,8 @@ using System.IO;
 using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
-using NFive.PluginManager.Configuration;
-using NFive.PluginManager.Models.Plugin;
+using NFive.SDK.Plugins.Configuration;
+using NFive.SDK.Plugins.Models;
 using Version = SemVer.Version;
 
 namespace NFive.PluginManager.Modules
@@ -35,7 +35,7 @@ namespace NFive.PluginManager.Modules
 			var definition = new Definition
 			{
 				Name = name,
-				Version = new Models.Plugin.Version(version.ToString()),
+				Version = new SDK.Plugins.Models.Version(version.ToString()),
 				//Type = PluginTypes.Plugin,
 				Description = !string.IsNullOrEmpty(description) ? description : null,
 				Author = author,

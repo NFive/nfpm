@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Version = NFive.PluginManager.Models.Plugin.Version;
+using Version = NFive.SDK.Plugins.Models.Version;
 
 namespace NFive.PluginManager.Adapters
 {
