@@ -38,7 +38,7 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine();
 
 			Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "server", "resources", "nfive"));
-			
+
 			var definition = new Definition
 			{
 				Name = "local/nfive-install",
@@ -47,9 +47,9 @@ namespace NFive.PluginManager.Modules
 
 			using (var client = new WebClient())
 			{
-				Console.WriteLine("Downloading FiveM server v744...");
+				Console.WriteLine("Downloading FiveM server v752...");
 
-				var data = await client.DownloadDataTaskAsync("https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/744-36dd6e2d1a0521e195d4c2c612a3a58e6208068b/server.zip");
+				var data = await client.DownloadDataTaskAsync("https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/752-4e4578f6d9b561daf3d979aa92bc3c70f0403fe9/server.zip");
 
 				using (var stream = new MemoryStream(data))
 				using (var zip = ZipFile.Read(stream))
@@ -74,7 +74,7 @@ namespace NFive.PluginManager.Modules
 
 			config.Serialize().Save(Path.Combine(Environment.CurrentDirectory, "server", "server.cfg"));
 			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "server", "resources", "nfive", "nfive.yml"), Yaml.Serialize(definition));
-			
+
 			Console.WriteLine();
 			Console.WriteLine("Installation is complete, you can now start the server with `nfpm start`!");
 
