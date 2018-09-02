@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -32,7 +33,7 @@ namespace NFive.PluginManager.Modules
 
 			config.Hostname = ParseSimple("server name", "NFive");
 			var serverMaxPlayers = ParseSimple("server max players", "32");
-			config.Tags = ParseSimple("server tags (separate with space)", "nfive").Split(new [] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
+			config.Tags = ParseSimple("server tags (separate with space)", "nfive").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 			config.LicenseKey = ParseSimple("server license key (https://keymaster.fivem.net/)", "<skip>");
 
 			Console.WriteLine();
@@ -47,9 +48,15 @@ namespace NFive.PluginManager.Modules
 
 			using (var client = new WebClient())
 			{
-				Console.WriteLine("Downloading FiveM server v752...");
+				Console.WriteLine("Finding latest FiveM Windows server version...");
 
-				var data = await client.DownloadDataTaskAsync("https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/752-4e4578f6d9b561daf3d979aa92bc3c70f0403fe9/server.zip");
+				var yml = await client.DownloadStringTaskAsync("https://nfive.io/fivem/server-versions-windows.yml");
+				var versions = Yaml.Deserialize<List<string>>(yml);
+				var latest = versions.First();
+
+				Console.WriteLine($"Downloading FiveM server v{latest.Split(new[] { '-' }, 2)[0]}...");
+
+				var data = await client.DownloadDataTaskAsync($"https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/{latest}/server.zip");
 
 				using (var stream = new MemoryStream(data))
 				using (var zip = ZipFile.Read(stream))
