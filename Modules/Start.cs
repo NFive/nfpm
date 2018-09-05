@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
@@ -16,8 +15,12 @@ namespace NFive.PluginManager.Modules
 	{
 		internal async Task<int> Main()
 		{
-			Environment.CurrentDirectory = Path.Combine(Environment.CurrentDirectory, "server");
-			Process.Start(Path.Combine(Environment.CurrentDirectory, "run.cmd"), "+exec server.cfg");
+			var cd = Environment.CurrentDirectory;
+			Environment.CurrentDirectory = PathManager.FindServer();
+
+			Process.Start(PathManager.ServerFile, $"+set citizen_dir citizen +exec {PathManager.ConfigFile}");
+
+			Environment.CurrentDirectory = cd;
 
 			return await Task.FromResult(0);
 		}

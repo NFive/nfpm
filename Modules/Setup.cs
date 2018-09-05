@@ -22,9 +22,9 @@ namespace NFive.PluginManager.Modules
 	{
 		internal async Task<int> Main()
 		{
-			Console.WriteLine($"This utility will walk you through setting up a brand new FiveM server with NFive installed.");
+			Console.WriteLine("This utility will walk you through setting up a brand new FiveM server with NFive installed.");
 			Console.WriteLine();
-			Console.WriteLine($"If you already have FiveM server installed you should cancel and use `nfpm init`.");
+			Console.WriteLine("If you already have FiveM server installed you should cancel and use `nfpm init`.");
 			Console.WriteLine();
 			Console.WriteLine("Press ^C at any time to quit.");
 			Console.WriteLine();
@@ -38,7 +38,7 @@ namespace NFive.PluginManager.Modules
 
 			Console.WriteLine();
 
-			Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "server", "resources", "nfive"));
+			Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "resources", "nfive"));
 
 			var definition = new Definition
 			{
@@ -58,29 +58,30 @@ namespace NFive.PluginManager.Modules
 
 				var data = await client.DownloadDataTaskAsync($"https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/{latest}/server.zip");
 
+				Console.WriteLine("Installing FiveM server...");
+
 				using (var stream = new MemoryStream(data))
 				using (var zip = ZipFile.Read(stream))
 				{
-					zip.ExtractAll(Path.Combine(Environment.CurrentDirectory, "server"), ExtractExistingFileAction.OverwriteSilently);
+					zip.ExtractAll(Environment.CurrentDirectory, ExtractExistingFileAction.OverwriteSilently);
 				}
 
-				Console.WriteLine("Installing FiveM server...");
 				Console.WriteLine();
 				Console.WriteLine("Downloading NFive...");
 
 				data = await client.DownloadDataTaskAsync("https://ci.appveyor.com/api/projects/NFive/nfive/artifacts/nfive.zip");
 
+				Console.WriteLine("Installing NFive...");
+
 				using (var stream = new MemoryStream(data))
 				using (var zip = ZipFile.Read(stream))
 				{
-					zip.ExtractAll(Path.Combine(Environment.CurrentDirectory, "server", "resources", "nfive"), ExtractExistingFileAction.OverwriteSilently);
+					zip.ExtractAll(Path.Combine(Environment.CurrentDirectory, "resources", "nfive"), ExtractExistingFileAction.OverwriteSilently);
 				}
-
-				Console.WriteLine("Installing NFive...");
 			}
 
-			config.Serialize().Save(Path.Combine(Environment.CurrentDirectory, "server", "server.cfg"));
-			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "server", "resources", "nfive", "nfive.yml"), Yaml.Serialize(definition));
+			config.Serialize().Save(Path.Combine(Environment.CurrentDirectory, "server.cfg"));
+			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "resources", "nfive", "nfive.yml"), Yaml.Serialize(definition));
 
 			Console.WriteLine();
 			Console.WriteLine("Installation is complete, you can now start the server with `nfpm start`!");

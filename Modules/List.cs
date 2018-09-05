@@ -23,6 +23,8 @@ namespace NFive.PluginManager.Modules
 
 			try
 			{
+				Environment.CurrentDirectory = PathManager.FindResource();
+
 				definition = Definition.Load(Program.DefinitionFile);
 			}
 			catch (FileNotFoundException ex)
