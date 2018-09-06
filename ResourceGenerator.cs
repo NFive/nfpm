@@ -83,8 +83,8 @@ namespace NFive.PluginManager
 			foreach (var plugin in graph.Definitions.Where(d => d.Client?.Include?.Count > 0 || d.Client?.Main?.Count > 0))
 			{
 				WriteLine(ref output, $"\t-- {plugin.Name}@{plugin.Version}");
-				if (plugin.Client?.Include != null) foreach (var file in plugin.Client.Include) WriteLine(ref output, $"\t'{Path.Combine(Program.PluginPath, plugin.Name.Vendor, plugin.Name.Project, file.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))}.net.dll',");
-				if (plugin.Client?.Main != null) foreach (var file in plugin.Client.Main) WriteLine(ref output, $"\t'{Path.Combine(Program.PluginPath, plugin.Name.Vendor, plugin.Name.Project, file.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))}.net.dll',");
+				if (plugin.Client?.Include != null) foreach (var file in plugin.Client.Include) WriteLine(ref output, $"\t'{Path.Combine(Program.PluginPath, plugin.Name.Vendor, plugin.Name.Project, file.Replace(Path.DirectorySeparatorChar, '/'))}.net.dll',");
+				if (plugin.Client?.Main != null) foreach (var file in plugin.Client.Main) WriteLine(ref output, $"\t'{Path.Combine(Program.PluginPath, plugin.Name.Vendor, plugin.Name.Project, file.Replace(Path.DirectorySeparatorChar, '/'))}.net.dll',");
 				WriteLine(ref output);
 			}
 			WriteLine(ref output, "\t-- NFive");
@@ -99,7 +99,7 @@ namespace NFive.PluginManager
 			{
 				WriteLine(ref output);
 				WriteLine(ref output, $"\t-- {plugin.Name}@{plugin.Version}");
-				foreach (var file in plugin.Client.Files) WriteLine(ref output, $"\t'{Path.Combine(Program.PluginPath, plugin.Name.Vendor, plugin.Name.Project, file.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))}',");
+				foreach (var file in plugin.Client.Files) WriteLine(ref output, $"\t'{Path.Combine(Program.PluginPath, plugin.Name.Vendor, plugin.Name.Project, file.Replace(Path.DirectorySeparatorChar, '/'))}',");
 			}
 			WriteLine(ref output, "}");
 
