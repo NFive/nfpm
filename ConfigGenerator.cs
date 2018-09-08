@@ -32,16 +32,18 @@ namespace NFive.PluginManager
 			WriteLine(ref output, $"endpoint_add_udp \"{this.Endpoint}\"");
 			WriteLine(ref output);
 			WriteLine(ref output, $"sv_hostname \"{this.Hostname}\"");
-			WriteLine(ref output, $"sv_licensekey \"{this.LicenseKey}\"");
+			WriteLine(ref output);
+			WriteLine(ref output, $"sets tags \"{string.Join(", ", this.Tags)}\"");
 			WriteLine(ref output, $"sv_maxclients {this.MaxPlayers}");
+			WriteLine(ref output);
+			WriteLine(ref output, $"sv_licensekey {this.LicenseKey}");
+			WriteLine(ref output);
 			WriteLine(ref output, "sv_endpointPrivacy true");
 			WriteLine(ref output, "sv_enhancedHostSupport true");
 			WriteLine(ref output, $"sv_scriptHookAllowed {this.ScriptHookAllowed.ToString().ToLowerInvariant()}");
 			WriteLine(ref output);
 			WriteLine(ref output, $"sv_authMaxVariance {this.AuthMaxVariance}");
 			WriteLine(ref output, $"sv_authMinTrust {this.AuthMinTrust}");
-			WriteLine(ref output);
-			WriteLine(ref output, $"sets tags \"{string.Join(" ", this.Tags)}\"");
 			WriteLine(ref output);
 			WriteLine(ref output, "start nfive");
 
