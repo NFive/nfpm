@@ -34,5 +34,13 @@ namespace NFive.PluginManager
 
 			throw new DirectoryNotFoundException("Unable to locate resource in the directory tree");
 		}
+
+		public static bool IsResource()
+		{
+			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, "nfive.lock"))) return false;
+			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, "nfive.yml"))) return false;
+
+			return File.Exists(Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, $"..{Path.DirectorySeparatorChar}", $"..{Path.DirectorySeparatorChar}", ServerFile)));
+		}
 	}
 }

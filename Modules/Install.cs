@@ -128,7 +128,8 @@ namespace NFive.PluginManager.Modules
 
 			definition.Save(Program.DefinitionFile);
 			graph.Save();
-			ResourceGenerator.Serialize(graph).Save();
+
+			if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 
 			return 0;
 		}
