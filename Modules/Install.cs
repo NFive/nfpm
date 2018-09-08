@@ -66,7 +66,7 @@ namespace NFive.PluginManager.Modules
 				{
 					await graph.Apply();
 
-					ResourceGenerator.Serialize(graph).Save();
+					if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 				}
 				else
 				{
@@ -75,7 +75,8 @@ namespace NFive.PluginManager.Modules
 					await graph.Apply();
 
 					graph.Save();
-					ResourceGenerator.Serialize(graph).Save();
+
+					if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 				}
 
 				return 0;
