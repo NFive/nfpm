@@ -23,6 +23,9 @@ namespace NFive.PluginManager
 
 		public static string FindResource()
 		{
+			if (File.Exists(Path.Combine(Environment.CurrentDirectory, "nfive.lock"))) return Environment.CurrentDirectory;
+			if (File.Exists(Path.Combine(Environment.CurrentDirectory, "nfive.yml"))) return Environment.CurrentDirectory;
+
 			var server = FindServer();
 
 			var path = Path.Combine(server, "resources", "nfive");
