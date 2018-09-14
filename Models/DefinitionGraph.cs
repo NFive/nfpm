@@ -58,7 +58,7 @@ namespace NFive.PluginManager.Models
 
 				var dir = Path.Combine(Environment.CurrentDirectory, Program.PluginPath, definition.Name.Vendor, definition.Name.Project);
 				if (Directory.Exists(dir)) Directory.Delete(dir, true);
-				
+
 				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project));
 
 				Repository repo = null; // masterDefinition.Repositories?.FirstOrDefault(r => r.Name == definition.Name); // TODO
@@ -72,8 +72,20 @@ namespace NFive.PluginManager.Models
 
 				var src = Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project);
 				var dst = Path.Combine(Environment.CurrentDirectory, Program.PluginPath, definition.Name.Vendor, definition.Name.Project);
+				var configSrc = Path.Combine(src, "config");
+				var configDst = Path.Combine(Environment.CurrentDirectory, "config", definition.Name.Vendor, definition.Name.Project);
 
 				new DirectoryInfo(src).Copy(dst);
+
+				if (Directory.Exists(configSrc))
+				{
+					Directory.CreateDirectory(configDst);
+
+					foreach (var yml in Directory.EnumerateFiles(configSrc, "*.yml", SearchOption.TopDirectoryOnly))
+					{
+						File.Copy(yml, configDst, false);
+					}
+				}
 			}
 
 			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging"), true);

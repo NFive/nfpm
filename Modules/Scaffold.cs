@@ -11,12 +11,15 @@ using Console = Colorful.Console;
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
-	/// Generate the boilerplate code for a new server plugin.
+	/// Generate the boilerplate code for a new NFive plugin.
 	/// </summary>
 	[UsedImplicitly]
-	[Verb("scaffold", HelpText = "Generate the boilerplate code for a new server plugin.")]
+	[Verb("scaffold", HelpText = "Generate the boilerplate code for a new plugin.")]
 	internal class Scaffold
 	{
+		private const string Repo = "skeleton-plugin-server";
+		private const string Branch = "master";
+
 		internal async Task<int> Main()
 		{
 			var config = new
@@ -24,8 +27,14 @@ namespace NFive.PluginManager.Modules
 				org = ParseSimple("Organization", "Acme"),
 				project = ParseSimple("Project", "Foo"),
 				desc = ParseSimple("Description", "Test plugin"),
+				client = ParseSimple("Client plugin", "Yes").ToLowerInvariant() == "yes",
+				server = ParseSimple("Server plugin", "Yes").ToLowerInvariant() == "yes",
+				shared = ParseSimple("Shared library", "Yes").ToLowerInvariant() == "yes",
 				solutionguid = $"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}",
-				projectguid = $"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}"
+				projectguid = $"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}",
+				clientprojectguid = $"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}",
+				serverprojectguid = $"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}",
+				sharedprojectguid = $"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}"
 			};
 
 			Console.WriteLine("Downloading plugin skeleton...");
@@ -33,7 +42,7 @@ namespace NFive.PluginManager.Modules
 			using (var client = new WebClient())
 			{
 				ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-				var data = await client.DownloadDataTaskAsync("https://github.com/NFive/skeleton-plugin-server/archive/master.zip");
+				var data = await client.DownloadDataTaskAsync($"https://github.com/NFive/{Repo}/archive/{Branch}.zip");
 
 				Console.WriteLine("Extracting plugin skeleton...");
 
@@ -46,9 +55,35 @@ namespace NFive.PluginManager.Modules
 
 			var directory = $"plugin-{config.project.ToLowerInvariant()}";
 
-			Directory.Move(Path.Combine(Environment.CurrentDirectory, "skeleton-plugin-server-master"), Path.Combine(Environment.CurrentDirectory, directory));
+			Directory.Move(Path.Combine(Environment.CurrentDirectory, $"{Repo}-{Branch}"), Path.Combine(Environment.CurrentDirectory, directory));
 
 			Console.WriteLine("Applying templates...");
+
+			foreach (var dir in Directory.EnumerateDirectories(Path.Combine(Environment.CurrentDirectory, directory), "*{{*}}*", SearchOption.AllDirectories))
+			{
+				if (!config.server && dir.EndsWith(".Server"))
+				{
+					Directory.Delete(dir, true);
+					continue;
+				}
+
+				if (!config.client && dir.EndsWith(".Client"))
+				{
+					Directory.Delete(dir, true);
+					continue;
+				}
+
+				if (!config.shared && dir.EndsWith(".Shared"))
+				{
+					Directory.Delete(dir, true);
+					continue;
+				}
+
+				var tpl = Template.Parse(dir);
+				var dirname = tpl.Render(config);
+
+				Directory.Move(dir, dirname);
+			}
 
 			foreach (var file in Directory.EnumerateFiles(Path.Combine(Environment.CurrentDirectory, directory), "*.tpl", SearchOption.AllDirectories))
 			{
