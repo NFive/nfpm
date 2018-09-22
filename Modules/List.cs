@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Models;
+using NFive.SDK.Plugins.Configuration;
 using NFive.SDK.Plugins.Models;
 using Console = Colorful.Console;
 
@@ -25,7 +26,7 @@ namespace NFive.PluginManager.Modules
 			{
 				Environment.CurrentDirectory = PathManager.FindResource();
 
-				definition = Definition.Load(Program.DefinitionFile);
+				definition = Definition.Load(ConfigurationManager.DefinitionFile);
 			}
 			catch (FileNotFoundException ex)
 			{
@@ -63,7 +64,7 @@ namespace NFive.PluginManager.Modules
 			{
 				Console.WriteLine($"+-- {graphDefinition.FullName}");
 
-				if (graphDefinition.DependencyNodes == null) break;
+				if (graphDefinition.DependencyNodes == null) continue;
 
 				foreach (var graphDefinitionDependencyNode in graphDefinition.DependencyNodes)
 				{

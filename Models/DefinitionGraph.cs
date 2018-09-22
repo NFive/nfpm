@@ -20,7 +20,7 @@ namespace NFive.PluginManager.Models
 
 			if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, VersionRange>();
 
-			var definitions = definition.Dependencies.Select(d => Definition.Load(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", d.Key.Vendor, d.Key.Project, Program.DefinitionFile))).ToList();
+			var definitions = definition.Dependencies.Select(d => Definition.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", d.Key.Vendor, d.Key.Project, ConfigurationManager.DefinitionFile))).ToList();
 
 			foreach (var plugin in definitions.Where(d => d.Dependencies != null))
 			{
@@ -41,11 +41,11 @@ namespace NFive.PluginManager.Models
 
 		public async Task Apply()
 		{
-			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging"), true);
+			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"), true);
 
 			foreach (var definition in this.Definitions)
 			{
-				var path = Path.Combine(Environment.CurrentDirectory, Program.PluginPath, definition.Name.Vendor, definition.Name.Project, Program.DefinitionFile);
+				var path = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile);
 
 				if (File.Exists(path))
 				{
@@ -56,24 +56,24 @@ namespace NFive.PluginManager.Models
 
 				// Missing or outdated
 
-				var dir = Path.Combine(Environment.CurrentDirectory, Program.PluginPath, definition.Name.Vendor, definition.Name.Project);
+				var dir = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project);
 				if (Directory.Exists(dir)) Directory.Delete(dir, true);
 
-				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project));
+				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project));
 
 				Repository repo = null; // masterDefinition.Repositories?.FirstOrDefault(r => r.Name == definition.Name); // TODO
 				var adapter = new AdapterBuilder(definition.Name, repo).Adapter();
 				await adapter.Download(definition.Version);
 
-				var dependencyDefinition = Definition.Load(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project, Program.DefinitionFile));
+				var dependencyDefinition = Definition.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile));
 
 				if (dependencyDefinition.Name != definition.Name) throw new Exception("Downloaded package does not match requested.");
 				if (dependencyDefinition.Version != definition.Version) throw new Exception("Downloaded package does not match requested.");
 
-				var src = Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project);
-				var dst = Path.Combine(Environment.CurrentDirectory, Program.PluginPath, definition.Name.Vendor, definition.Name.Project);
-				var configSrc = Path.Combine(src, "config");
-				var configDst = Path.Combine(Environment.CurrentDirectory, "config", definition.Name.Vendor, definition.Name.Project);
+				var src = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project);
+				var dst = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project);
+				var configSrc = Path.Combine(src, ConfigurationManager.ConfigurationPath);
+				var configDst = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.ConfigurationPath, definition.Name.Vendor, definition.Name.Project);
 
 				new DirectoryInfo(src).Copy(dst);
 
@@ -88,7 +88,7 @@ namespace NFive.PluginManager.Models
 				}
 			}
 
-			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging"), true);
+			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"), true);
 		}
 
 		private async Task StageDefinition(Definition definition)
@@ -104,11 +104,11 @@ namespace NFive.PluginManager.Models
 				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version));
 				if (versionMatch == null) throw new Exception("No matching version found");
 
-				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project));
+				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project));
 
 				await adapter.Download(versionMatch);
 
-				var dependencyDefinition = Definition.Load(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project, Program.DefinitionFile));
+				var dependencyDefinition = Definition.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project, ConfigurationManager.DefinitionFile));
 
 				// TODO: What should be validated?
 				if (dependencyDefinition.Name != dependency.Key) throw new Exception("Downloaded package does not match requested.");
@@ -146,7 +146,7 @@ namespace NFive.PluginManager.Models
 			}
 		}
 
-		public static DefinitionGraph Load(string path = Program.LockFile)
+		public static DefinitionGraph Load(string path = ConfigurationManager.LockFile)
 		{
 			if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
 			if (!File.Exists(path)) throw new FileNotFoundException("Unable to find the plugin lock file", path);
@@ -154,7 +154,7 @@ namespace NFive.PluginManager.Models
 			return Yaml.Deserialize<DefinitionGraph>(File.ReadAllText(path));
 		}
 
-		public void Save(string path = Program.LockFile)
+		public void Save(string path = ConfigurationManager.LockFile)
 		{
 			File.WriteAllText(path, Yaml.Serialize(this));
 		}

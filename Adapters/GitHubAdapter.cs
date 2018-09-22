@@ -5,8 +5,10 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Ionic.Zip;
+using NFive.SDK.Plugins.Configuration;
 using NFive.SDK.Plugins.Models;
 using Octokit;
+using Octokit.Internal;
 using Version = NFive.SDK.Plugins.Models.Version;
 
 namespace NFive.PluginManager.Adapters
@@ -55,7 +57,7 @@ namespace NFive.PluginManager.Adapters
 			var release = releases.First(r => !r.Prerelease && !r.Draft && r.Assets.Any(a => a.Name.EndsWith(".zip")));
 
 			var asset = release.Assets.First(a => a.Name.EndsWith(".zip"));
-			var file = Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", this.name.Vendor, this.name.Project, asset.Name);
+			var file = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project, asset.Name);
 
 			using (var client = new WebClient())
 			{
@@ -64,7 +66,7 @@ namespace NFive.PluginManager.Adapters
 
 			using (var zip = ZipFile.Read(file))
 			{
-				zip.ExtractAll(Path.Combine(Environment.CurrentDirectory, Program.PluginPath, ".staging", this.name.Vendor, this.name.Project), ExtractExistingFileAction.OverwriteSilently);
+				zip.ExtractAll(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project), ExtractExistingFileAction.OverwriteSilently);
 			}
 
 			File.Delete(file);

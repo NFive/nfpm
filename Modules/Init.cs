@@ -18,19 +18,19 @@ namespace NFive.PluginManager.Modules
 	{
 		internal async Task<int> Main()
 		{
-			Console.WriteLine($"This utility will walk you through creating a {Program.DefinitionFile} file.");
+			Console.WriteLine($"This utility will walk you through creating a {ConfigurationManager.DefinitionFile} file.");
 			Console.WriteLine();
-			Console.WriteLine($"Use `nfpm install <plugin>` afterwards to install a plugin and{Environment.NewLine}save it as a dependency in the {Program.DefinitionFile} file.");
+			Console.WriteLine($"Use `nfpm install <plugin>` afterwards to install a plugin and{Environment.NewLine}save it as a dependency in the {ConfigurationManager.DefinitionFile} file.");
 			Console.WriteLine();
 			Console.WriteLine("Press ^C at any time to quit.");
 			Console.WriteLine();
 
 			var name = ParseName();
 			var version = ParseVersion();
-			var description = ParseSimple("description");
-			var author = ParseSimple("author");
-			var license = ParseSimple("license");
-			var website = ParseSimple("website");
+			var description = Input.String("description");
+			var author = Input.String("author");
+			var license = Input.String("license");
+			var website = Input.String("website");
 
 			var definition = new Definition
 			{
@@ -43,7 +43,7 @@ namespace NFive.PluginManager.Modules
 				Website = website
 			};
 
-			var path = Path.Combine(Environment.CurrentDirectory, Program.DefinitionFile);
+			var path = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.DefinitionFile);
 
 			var yml = Yaml.Serialize(definition);
 
@@ -53,20 +53,11 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine(yml.Trim());
 			Console.WriteLine();
 
-			var confirm = ParseYesNo("Is this OK?");
+			var confirm = Input.Bool("Is this OK?", true);
 
 			if (confirm) File.WriteAllText(path, yml);
 
 			return await Task.FromResult(0);
-		}
-
-		private static string ParseSimple(string description)
-		{
-			Console.Write($"{description}: ");
-
-			var input = Console.ReadLine()?.Trim();
-
-			return !string.IsNullOrEmpty(input) ? input : null;
 		}
 
 		private static string ParseName()
@@ -86,17 +77,6 @@ namespace NFive.PluginManager.Modules
 			var input = Console.ReadLine();
 
 			return string.IsNullOrEmpty(input) ? new Version(1, 0, 0) : new Version(input.Trim());
-		}
-
-		private static bool ParseYesNo(string description, bool defaultValue = true)
-		{
-			Console.Write($"{description} ({(defaultValue ? "yes" : "no")}) ");
-
-			var input = Console.ReadLine()?.Trim().ToLowerInvariant();
-
-			if (string.IsNullOrEmpty(input)) return defaultValue;
-
-			return input == "yes" || input == "y";
 		}
 	}
 }

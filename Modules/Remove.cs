@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Models;
+using NFive.SDK.Plugins.Configuration;
 using NFive.SDK.Plugins.Models;
 using Console = Colorful.Console;
 
@@ -31,7 +32,7 @@ namespace NFive.PluginManager.Modules
 			{
 				Environment.CurrentDirectory = PathManager.FindResource();
 
-				definition = Definition.Load(Program.DefinitionFile);
+				definition = Definition.Load(ConfigurationManager.DefinitionFile);
 			}
 			catch (FileNotFoundException ex)
 			{
@@ -43,7 +44,7 @@ namespace NFive.PluginManager.Modules
 
 			definition.Dependencies?.Remove(plugin);
 
-			var venderPath = Path.Combine(Environment.CurrentDirectory, Program.PluginPath, plugin.Vendor);
+			var venderPath = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, plugin.Vendor);
 
 			if (Directory.Exists(venderPath))
 			{
@@ -63,7 +64,7 @@ namespace NFive.PluginManager.Modules
 			await graph.Build(definition);
 			await graph.Apply();
 
-			definition.Save(Program.DefinitionFile);
+			definition.Save(ConfigurationManager.DefinitionFile);
 			graph.Save();
 			ResourceGenerator.Serialize(graph).Save();
 

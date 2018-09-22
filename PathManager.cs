@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using NFive.SDK.Plugins.Configuration;
 
 namespace NFive.PluginManager
 {
@@ -23,8 +24,8 @@ namespace NFive.PluginManager
 
 		public static string FindResource()
 		{
-			if (File.Exists(Path.Combine(Environment.CurrentDirectory, "nfive.lock"))) return Environment.CurrentDirectory;
-			if (File.Exists(Path.Combine(Environment.CurrentDirectory, "nfive.yml"))) return Environment.CurrentDirectory;
+			if (File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.LockFile))) return Environment.CurrentDirectory;
+			if (File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.DefinitionFile))) return Environment.CurrentDirectory;
 
 			var server = FindServer();
 
@@ -37,8 +38,8 @@ namespace NFive.PluginManager
 
 		public static bool IsResource()
 		{
-			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, "nfive.lock"))) return false;
-			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, "nfive.yml"))) return false;
+			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.LockFile))) return false;
+			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.DefinitionFile))) return false;
 
 			return File.Exists(Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, $"..{Path.DirectorySeparatorChar}", $"..{Path.DirectorySeparatorChar}", ServerFile)));
 		}

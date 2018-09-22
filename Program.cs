@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using CommandLine;
 using NFive.PluginManager.Modules;
@@ -12,12 +14,6 @@ namespace NFive.PluginManager
 	/// </summary>
 	public static class Program
 	{
-		public const string DefinitionFile = "nfive.yml";
-		public const string LockFile = "nfive.lock";
-		public const string ResourceFile = "__resource.lua";
-		public const string PluginPath = "plugins";
-		public const string ConfigurationPath = "config";
-
 		/// <summary>
 		/// Application entry-point.
 		/// </summary>
@@ -27,9 +23,39 @@ namespace NFive.PluginManager
 		{
 			try
 			{
+				File.Delete("nfpm.exe.old");
+			}
+			catch
+			{
+				// ignored
+			}
+
+			try
+			{
+				ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+			}
+			catch
+			{
+				// ignored
+			}
+
+			try
+			{
 				return Parser
 					.Default
-					.ParseArguments<Setup, Init, Search, List, Install, Remove, Update, Start, Scaffold>(args)
+					.ParseArguments<
+						Setup,
+						Init,
+						Search,
+						List,
+						Install,
+						Remove,
+						//Update,
+						SelfUpdate,
+						Start,
+						Scaffold,
+						Status
+					>(args)
 					.MapResult(
 						(Setup s) => s.Main(),
 						(Init i) => i.Main(),
@@ -37,9 +63,11 @@ namespace NFive.PluginManager
 						(List l) => l.Main(),
 						(Install i) => i.Main(),
 						(Remove r) => r.Main(),
-						(Update u) => u.Main(),
+						//(Update u) => u.Main(),
+						(SelfUpdate s) => s.Main(),
 						(Start s) => s.Main(),
 						(Scaffold s) => s.Main(),
+						(Status s) => s.Main(),
 						e => Task.FromResult(1)
 					)
 					.GetAwaiter()

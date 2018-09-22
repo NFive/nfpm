@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using NFive.SDK.Plugins.Configuration;
 
 namespace NFive.PluginManager
 {
@@ -14,7 +15,7 @@ namespace NFive.PluginManager
 
 		public void Save(string path = null)
 		{
-			if (path == null) path = Path.Combine(Environment.CurrentDirectory, Program.ResourceFile);
+			if (path == null) path = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.ResourceFile);
 
 			File.WriteAllText(path, this.Value);
 		}

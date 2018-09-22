@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Models;
+using NFive.SDK.Plugins.Configuration;
 using NFive.SDK.Plugins.Models;
 using Console = Colorful.Console;
 
@@ -31,7 +32,7 @@ namespace NFive.PluginManager.Modules
 			{
 				Environment.CurrentDirectory = PathManager.FindResource();
 
-				definition = Definition.Load(Program.DefinitionFile);
+				definition = Definition.Load(ConfigurationManager.DefinitionFile);
 			}
 			catch (FileNotFoundException ex)
 			{
@@ -45,6 +46,8 @@ namespace NFive.PluginManager.Modules
 
 			try
 			{
+				Console.WriteLine("Building dependency tree...");
+
 				graph = DefinitionGraph.Load();
 			}
 			catch (FileNotFoundException)
@@ -62,22 +65,33 @@ namespace NFive.PluginManager.Modules
 
 			if (!this.Plugins.Any())
 			{
+				Console.WriteLine("No new plugins to add");
+
 				if (graph != null)
 				{
+					Console.WriteLine("Applying dependencies...");
+
 					await graph.Apply();
 
 					if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 				}
 				else
 				{
+					Console.WriteLine("Building new tree...");
+
 					graph = new DefinitionGraph();
 					await graph.Build(definition);
+
+					Console.WriteLine("Applying dependencies...");
+
 					await graph.Apply();
 
 					graph.Save();
 
 					if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 				}
+
+				Console.WriteLine("Finished");
 
 				return 0;
 			}
@@ -110,27 +124,39 @@ namespace NFive.PluginManager.Modules
 						return 1;
 					}
 				}
-
+				
 				if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, VersionRange>();
 
 				if (definition.Dependencies.ContainsKey(name))
 				{
+					if (definition.Dependencies[name] == version)
+					{
+						Console.WriteLine($"Plugin \"{name}@{version}\" is already installed", Color.Yellow);
+						continue;
+					}
+
+					Console.WriteLine($"Updating plugin \"{name}\" from \"{definition.Dependencies[name]}\" to \"{version}\"");
 					definition.Dependencies[name] = version;
 				}
 				else
 				{
+					Console.WriteLine($"Adding new plugin \"{name}@{version}\"");
 					definition.Dependencies.Add(name, version);
 				}
 			}
+
+			Console.WriteLine("Applying dependencies...");
 
 			graph = new DefinitionGraph();
 			await graph.Build(definition);
 			await graph.Apply();
 
-			definition.Save(Program.DefinitionFile);
+			definition.Save(ConfigurationManager.DefinitionFile);
 			graph.Save();
 
 			if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
+
+			Console.WriteLine("Finished");
 
 			return 0;
 		}

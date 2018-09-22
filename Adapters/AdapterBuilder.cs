@@ -20,7 +20,7 @@ namespace NFive.PluginManager.Adapters
 		{
 			if (repo == null)
 			{
-				this.adapter = new GitHubAdapter(name);
+				this.adapter = new HubAdapter(name);
 
 				return;
 			}
@@ -29,6 +29,10 @@ namespace NFive.PluginManager.Adapters
 			{
 				case "local":
 					this.adapter = new LocalAdapter(name, repo);
+					break;
+
+				case "hub":
+					this.adapter = new HubAdapter(name);
 					break;
 
 				case "github":

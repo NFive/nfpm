@@ -1,16 +1,20 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using Colorful;
 using CommandLine;
 using JetBrains.Annotations;
+using NFive.PluginManager.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using NFive.PluginManager.Adapters;
-using NFive.SDK.Plugins.Models;
-using Octokit;
 using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
-	/// Searches available plugins.
+	/// Searches available NFive plugins.
 	/// </summary>
 	[UsedImplicitly]
 	[Verb("search", HelpText = "Searches available NFive plugins.")]
@@ -18,31 +22,52 @@ namespace NFive.PluginManager.Modules
 	{
 		[PublicAPI]
 		[Value(0, Required = false, HelpText = "search query")]
-		public string Query { get; set; }
+		public IEnumerable<string> Query { get; set; }
 
 		internal async Task<int> Main()
 		{
-			var gh = new GitHubClient(new ProductHeaderValue("nfpm"));
-			var results = await gh.Search.SearchRepo(new SearchRepositoriesRequest($"{this.Query} topic:nfive-plugin&sort=stars&order=desc"));
+			var results = await HubAdapter.Search(string.Join(" ", this.Query));
 
-			if (results.TotalCount < 1)
+			if (results.Count < 1)
 			{
-				Console.WriteLine($"No matches found for \"{this.Query}\"");
+				Console.WriteLine($"No matches found for \"{string.Join("\" \"", this.Query)}\"");
+
+				return 1;
 			}
-			else
+
+			var nameLength = Math.Max(Math.Min(50, results.Max(d => d.Name.Length)), 10);
+			var versionLength = Math.Max(Math.Min(20, results.Max(d => d.Versions.First().Version.ToString().Length)), 10);
+			var descriptionLength = Math.Max(Math.Min(50, results.Max(d => d.Description.Length)), 15);
+
+			Console.WriteLine($"{"NAME".PadRight(nameLength)} | {"VERSION".PadRight(versionLength)} | {"DESCRIPTION".PadRight(descriptionLength)}");
+
+			var styleSheet = new StyleSheet(Color.LightGray);
+
+			if (this.Query.Any())
 			{
-				Console.WriteLine($"{"NAME",-25} | {"VERSION",-8} | {"DESCRIPTION",-20} | {"AUTHOR",-15} | {"URL",-45}");
-
-				foreach (var repository in results.Items)
+				var colors = new[]
 				{
-					var adapter = new GitHubAdapter(new Name(repository.FullName));
-					var versions = await adapter.GetVersions();
+					Color.FromArgb(197, 15, 31),
+					Color.FromArgb(193, 156, 0),
+					Color.FromArgb(19, 161, 14),
+					Color.FromArgb(58, 150, 221),
+					Color.FromArgb(0, 55, 218),
+					Color.FromArgb(136, 23, 152)
+				};
 
-					Console.WriteLine($"{repository.Name,-25} | {versions.First(),-8} | {repository.Description,-20} | {repository.Owner.Login,-15} | {repository.HtmlUrl,-45}");
+				var i = 0;
+				foreach (var term in this.Query)
+				{
+					styleSheet.AddStyle(Regex.Escape(term), colors[i++ % colors.Length]);
 				}
 			}
 
-			return await Task.FromResult(0);
+			foreach (var repository in results)
+			{
+				Console.WriteLineStyled($"{repository.Name.Truncate(nameLength).PadRight(nameLength)} | {repository.Versions.First().Version.ToString().Truncate(versionLength).PadRight(versionLength)} | {repository.Description.Truncate(descriptionLength).PadRight(descriptionLength)}", styleSheet);
+			}
+
+			return 0;
 		}
 	}
 }

@@ -36,14 +36,20 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Adapters\AdapterBuilder.cs" />
+    <Compile Include="Adapters\HubAdapter.cs" />
     <Compile Include="Adapters\GitHubAdapter.cs" />
+    <Compile Include="Adapters\Hub\SearchResults.cs" />
     <Compile Include="Adapters\IDownloadAdapter.cs" />
     <Compile Include="Adapters\LocalAdapter.cs" />
     <Compile Include="Extensions\DirectoryExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Input.cs" />
     <Compile Include="Models\DefinitionGraph.cs" />
+    <Compile Include="Modules\SelfUpdate.cs" />
     <Compile Include="Modules\Setup.cs" />
     <Compile Include="Modules\Start.cs" />
     <Compile Include="Modules\Scaffold.cs" />
+    <Compile Include="Modules\Status.cs" />
     <Compile Include="Modules\Update.cs" />
     <Compile Include="Modules\Search.cs" />
     <Compile Include="Modules\Remove.cs" />
@@ -78,8 +84,8 @@
     <Reference Include="NFive.SDK.Core.net, Version=0.1.0.11, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\NFive.SDK.Core.0.1.0.11\lib\net452\NFive.SDK.Core.net.dll</HintPath>
     </Reference>
-    <Reference Include="NFive.SDK.Plugins, Version=0.1.0.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\NFive.SDK.Plugins.0.1.0.4\lib\net452\NFive.SDK.Plugins.dll</HintPath>
+    <Reference Include="NFive.SDK.Plugins, Version=0.1.0.5, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NFive.SDK.Plugins.0.1.0.5\lib\net452\NFive.SDK.Plugins.dll</HintPath>
     </Reference>
     <Reference Include="Octokit, Version=0.32.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Octokit.0.32.0\lib\net45\Octokit.dll</HintPath>

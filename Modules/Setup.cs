@@ -1,25 +1,53 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using CommandLine;
+﻿using CommandLine;
 using Ionic.Zip;
 using JetBrains.Annotations;
 using NFive.SDK.Plugins.Configuration;
 using NFive.SDK.Plugins.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
-	/// Update installed NFive plugins.
+	/// Install and configure a new FiveM server with NFive installed.
 	/// </summary>
 	[UsedImplicitly]
-	[Verb("setup", HelpText = "Install and configure a brand new FiveM server with NFive installed.")]
+	[Verb("setup", HelpText = "Install and configure a new FiveM server with NFive installed.")]
 	internal class Setup
 	{
+		[Option("servername", Required = false, HelpText = "Set server name.")]
+		public string ServerName { get; set; } = null;
+
+		[Option("maxplayers", Required = false, HelpText = "Set server max players.")]
+		public ushort? MaxPlayers { get; set; } = null;
+
+		[Option("tags", Required = false, HelpText = "Set server tags.")]
+		public string Tags { get; set; } = null;
+
+		[Option("licensekey", Required = false, HelpText = "Set server license key.")]
+		public string LicenseKey { get; set; } = null;
+
+		[Option("db-host", Required = false, HelpText = "Set database host.")]
+		public string DatabaseHost { get; set; } = null;
+
+		[Option("db-port", Required = false, HelpText = "Set database port.")]
+		public int? DatabasePort { get; set; } = null;
+
+		[Option("db-user", Required = false, HelpText = "Set database user.")]
+		public string DatabaseUser { get; set; } = null;
+
+		[Option("db-password", Required = false, HelpText = "Set database password.")]
+		public string DatabasePassword { get; set; } = null;
+
+		[Option("db-name", Required = false, HelpText = "Set database name.")]
+		public string DatabaseName { get; set; } = null;
+
 		internal async Task<int> Main()
 		{
 			Console.WriteLine("This utility will walk you through setting up a brand new FiveM server with NFive installed.");
@@ -29,22 +57,42 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine("Press ^C at any time to quit.");
 			Console.WriteLine();
 
-			var config = new ConfigGenerator();
+			Console.WriteLine("Server Configuration...");
 
-			config.Hostname = ParseSimple("server name", "NFive");
-			var serverMaxPlayers = ParseSimple("server max players", "32");
-			config.Tags = ParseSimple("server tags (separate with space)", "nfive").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-			config.LicenseKey = ParseSimple("server license key (https://keymaster.fivem.net/)", "<skip>");
+			var config = new ConfigGenerator
+			{
+				Hostname = string.IsNullOrWhiteSpace(this.ServerName) ? Input.String("server name", "NFive") : this.ServerName,
+				MaxPlayers = this.MaxPlayers ?? Convert.ToUInt16(Input.Int("server max players", 1, 32, 32)),
+				Tags = (string.IsNullOrWhiteSpace(this.Tags) ? Input.String("server tags (separate with space)", "nfive") : this.Tags).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
+				LicenseKey = string.IsNullOrWhiteSpace(this.LicenseKey) ? Input.String("server license key (https://keymaster.fivem.net/)", s =>
+				{
+					if (Regex.IsMatch(s, @"[\d\w]{32}")) return true;
+
+					Console.Write("Please enter a valid license key: ");
+
+					return false;
+				}).ToLowerInvariant() : this.LicenseKey
+			};
 
 			Console.WriteLine();
+			Console.WriteLine("Database Configuration...");
 
-			Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "resources", "nfive"));
-
-			var definition = new Definition
+			var dbHost = string.IsNullOrWhiteSpace(this.DatabaseHost) ? Input.String("database host", "localhost") : this.DatabaseHost;
+			var dbPort = this.DatabasePort ?? Input.Int("database port", 1, ushort.MaxValue, 3306);
+			var dbUser = string.IsNullOrWhiteSpace(this.DatabaseUser) ? Input.String("database user", "root") : this.DatabaseUser;
+			var dbPass = string.IsNullOrWhiteSpace(this.DatabasePassword) ? Regex.Replace(Input.String("database password", "<blank>"), "^<blank>$", string.Empty) : this.DatabasePassword;
+			var dbName = string.IsNullOrWhiteSpace(this.DatabaseHost) ? Input.String("database name", "fivem", s =>
 			{
-				Name = "local/nfive-install",
-				Version = "1.0.0"
-			};
+				if (Regex.IsMatch(s, "^[^\\/?%*:|\"<>.]{1,64}$")) return true;
+
+				Console.Write("Please enter a valid database name: ");
+
+				return false;
+			}) : this.DatabaseHost;
+
+			// TODO: Include stock plugins
+
+			Console.WriteLine();
 
 			using (var client = new WebClient())
 			{
@@ -69,33 +117,37 @@ namespace NFive.PluginManager.Modules
 				Console.WriteLine();
 				Console.WriteLine("Downloading NFive...");
 
-				data = await client.DownloadDataTaskAsync("https://ci.appveyor.com/api/projects/NFive/nfive/artifacts/nfive.zip");
+				data = await client.DownloadDataTaskAsync("https://ci.appveyor.com/api/projects/NFive/nfive/artifacts/nfive.zip?branch=master");
 
 				Console.WriteLine("Installing NFive...");
 
 				using (var stream = new MemoryStream(data))
 				using (var zip = ZipFile.Read(stream))
 				{
+					Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "resources", "nfive"));
 					zip.ExtractAll(Path.Combine(Environment.CurrentDirectory, "resources", "nfive"), ExtractExistingFileAction.OverwriteSilently);
 				}
 			}
 
-			config.Serialize().Save(Path.Combine(Environment.CurrentDirectory, "server.cfg"));
-			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "resources", "nfive", "nfive.yml"), Yaml.Serialize(definition));
+			config.Serialize(Path.Combine(Environment.CurrentDirectory, PathManager.ConfigFile));
+			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "resources", "nfive", ConfigurationManager.DefinitionFile), Yaml.Serialize(new Definition
+			{
+				Name = "local/nfive-install",
+				Version = "1.0.0"
+			}));
+
+			var dbYml = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "resources", "nfive", "config", "database.yml"));
+			dbYml = Regex.Replace(dbYml, "(\\s*host\\: ).+", $"${{1}}{dbHost}");
+			dbYml = Regex.Replace(dbYml, "(\\s*port\\: ).+", $"${{1}}{dbPort}");
+			dbYml = Regex.Replace(dbYml, "(\\s*database\\: ).+", $"${{1}}{dbName}");
+			dbYml = Regex.Replace(dbYml, "(\\s*user\\: ).+", $"${{1}}{dbUser}");
+			dbYml = Regex.Replace(dbYml, "(\\s*password\\: ).+", $"${{1}}{dbPass}");
+			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "resources", "nfive", "config", "database.yml"), dbYml);
 
 			Console.WriteLine();
 			Console.WriteLine("Installation is complete, you can now start the server with `nfpm start`!");
 
 			return await Task.FromResult(0);
-		}
-
-		private static string ParseSimple(string description, string defaultValue)
-		{
-			Console.Write($"{description}: ({defaultValue}) ");
-
-			var input = Console.ReadLine()?.Trim();
-
-			return !string.IsNullOrEmpty(input) ? input : defaultValue;
 		}
 	}
 }

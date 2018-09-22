@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace NFive.PluginManager
@@ -24,7 +25,7 @@ namespace NFive.PluginManager
 
 		public List<string> Tags { get; set; } = new List<string> { "nfive" };
 
-		public ResourceString Serialize()
+		public void Serialize(string path)
 		{
 			var output = new StringBuilder();
 
@@ -47,7 +48,7 @@ namespace NFive.PluginManager
 			WriteLine(ref output);
 			WriteLine(ref output, "start nfive");
 
-			return new ResourceString(output.ToString());
+			File.WriteAllText(path, output.ToString());
 		}
 
 		private static void WriteLine(ref StringBuilder builder, string line = "")
