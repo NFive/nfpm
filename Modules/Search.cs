@@ -58,7 +58,7 @@ namespace NFive.PluginManager.Modules
 				var i = 0;
 				foreach (var term in this.Query)
 				{
-					styleSheet.AddStyle(Regex.Escape(term), colors[i++ % colors.Length]);
+					styleSheet.AddStyle($"(?i){Regex.Escape(term)}", colors[i++ % colors.Length]);
 				}
 			}
 
