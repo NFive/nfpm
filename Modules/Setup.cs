@@ -98,9 +98,19 @@ namespace NFive.PluginManager.Modules
 			{
 				Console.WriteLine("Finding latest FiveM Windows server version...");
 
-				var yml = await client.DownloadStringTaskAsync("https://nfive.io/fivem/server-versions-windows.yml");
-				var versions = Yaml.Deserialize<List<string>>(yml);
-				var latest = versions.First();
+				string content = client.DownloadString("https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/");
+				Regex regex = new Regex("href\\s*=\\s*(?:\"(?<1>[^\"]*)\"|(?<1>\\S+))", RegexOptions.IgnoreCase);
+				Match match;
+				List<string> versions = new List<string>();
+				for (match = regex.Match(content); match.Success; match = match.NextMatch()) {
+					foreach (Group group in match.Groups) {
+						if (!group.ToString().Contains("href=") && !group.ToString().Contains("revoked")) {
+							string ver = group.ToString().Replace("/", "");
+							versions.Add(ver);
+						}
+					}
+				}
+				var latest = versions.Max();
 
 				Console.WriteLine($"Downloading FiveM server v{latest.Split(new[] { '-' }, 2)[0]}...");
 
