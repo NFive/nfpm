@@ -111,8 +111,8 @@ namespace NFive.PluginManager.Models
 				var dependencyDefinition = Definition.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project, ConfigurationManager.DefinitionFile));
 
 				// TODO: What should be validated?
-				if (dependencyDefinition.Name != dependency.Key) throw new Exception("Downloaded package does not match requested.");
-				if (dependencyDefinition.Version != versionMatch) throw new Exception("Downloaded package does not match requested.");
+				//if (dependencyDefinition.Name != dependency.Key) throw new Exception("Downloaded package does not match requested.");
+				//if (dependencyDefinition.Version != versionMatch) throw new Exception("Downloaded package does not match requested.");
 
 				await StageDefinition(dependencyDefinition);
 			}
