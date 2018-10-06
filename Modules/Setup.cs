@@ -98,23 +98,17 @@ namespace NFive.PluginManager.Modules
 			{
 				Console.WriteLine("Finding latest FiveM Windows server version...");
 
-				string content = client.DownloadString("https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/");
-				Regex regex = new Regex("href\\s*=\\s*(?:\"(?<1>[^\"]*)\"|(?<1>\\S+))", RegexOptions.IgnoreCase);
-				Match match;
-				List<string> versions = new List<string>();
-				for (match = regex.Match(content); match.Success; match = match.NextMatch()) {
-					foreach (Group group in match.Groups) {
-						if (!group.ToString().Contains("href=") && !group.ToString().Contains("revoked")) {
-							string ver = group.ToString().Replace("/", "");
-							versions.Add(ver);
-						}
-					}
+				var page = await client.DownloadStringTaskAsync("https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/");
+				var regex = new Regex("href=\"(\\d{3})-([^\"]*)/\"", RegexOptions.IgnoreCase);
+				var versions = new List<Tuple<string, string>>();
+				for (var match = regex.Match(page); match.Success; match = match.NextMatch()) {
+					versions.Add(new Tuple<string, string>(match.Groups[1].Value, match.Groups[2].Value));
 				}
 				var latest = versions.Max();
 
-				Console.WriteLine($"Downloading FiveM server v{latest.Split(new[] { '-' }, 2)[0]}...");
+				Console.WriteLine($"Downloading FiveM server v{latest.Item1}...");
 
-				var data = await client.DownloadDataTaskAsync($"https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/{latest}/server.zip");
+				var data = await client.DownloadDataTaskAsync($"https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/{latest.Item1}-{latest.Item2}/server.zip");
 
 				Console.WriteLine("Installing FiveM server...");
 
