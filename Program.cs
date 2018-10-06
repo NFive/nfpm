@@ -52,7 +52,7 @@ namespace NFive.PluginManager
 						Remove,
 						//Update,
 						SelfUpdate,
-						Startv2,
+						Start,
 						Scaffold,
 						Status
 					>(args)
@@ -65,7 +65,7 @@ namespace NFive.PluginManager
 						(Remove r) => r.Main(),
 						//(Update u) => u.Main(),
 						(SelfUpdate s) => s.Main(),
-						(Startv2 s) => s.Main(),
+						(Start s) => s.Main(),
 						(Scaffold s) => s.Main(),
 						(Status s) => s.Main(),
 						e => Task.FromResult(1)
