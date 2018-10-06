@@ -98,13 +98,17 @@ namespace NFive.PluginManager.Modules
 			{
 				Console.WriteLine("Finding latest FiveM Windows server version...");
 
-				var yml = await client.DownloadStringTaskAsync("https://nfive.io/fivem/server-versions-windows.yml");
-				var versions = Yaml.Deserialize<List<string>>(yml);
-				var latest = versions.First();
+				var page = await client.DownloadStringTaskAsync("https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/");
+				var regex = new Regex("href=\"(\\d{3})-([^\"]*)/\"", RegexOptions.IgnoreCase);
+				var versions = new List<Tuple<string, string>>();
+				for (var match = regex.Match(page); match.Success; match = match.NextMatch()) {
+					versions.Add(new Tuple<string, string>(match.Groups[1].Value, match.Groups[2].Value));
+				}
+				var latest = versions.Max();
 
-				Console.WriteLine($"Downloading FiveM server v{latest.Split(new[] { '-' }, 2)[0]}...");
+				Console.WriteLine($"Downloading FiveM server v{latest.Item1}...");
 
-				var data = await client.DownloadDataTaskAsync($"https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/{latest}/server.zip");
+				var data = await client.DownloadDataTaskAsync($"https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/{latest.Item1}-{latest.Item2}/server.zip");
 
 				Console.WriteLine("Installing FiveM server...");
 
