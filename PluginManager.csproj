@@ -47,9 +47,8 @@
     <Compile Include="Models\DefinitionGraph.cs" />
     <Compile Include="Modules\SelfUpdate.cs" />
     <Compile Include="Modules\Setup.cs" />
-    <Compile Include="Modules\Start.cs" />
     <Compile Include="Modules\Scaffold.cs" />
-    <Compile Include="Modules\Startv2.cs" />
+    <Compile Include="Modules\Start.cs" />
     <Compile Include="Modules\Status.cs" />
     <Compile Include="Modules\Update.cs" />
     <Compile Include="Modules\Search.cs" />
