@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Linq;
+﻿using System.Linq;
 
 namespace NFive.PluginManager.Extensions
 {
@@ -45,9 +44,7 @@ namespace NFive.PluginManager.Extensions
 
 		public static string Dehumanize(this string input)
 		{
-			var ti = CultureInfo.CurrentCulture.TextInfo;
-			var words = input.Split(' ', '_', '-').Select(w => ti.ToTitleCase(w));
-			return string.Join(string.Empty, words);
+			return string.Join(string.Empty, input.Split(' ', '_', '-').Select(w => w.First().ToString().ToUpper() + w.Substring(1)));
 		}
 	}
 }
