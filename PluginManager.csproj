@@ -45,6 +45,7 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="Models\DefinitionGraph.cs" />
+    <Compile Include="Modules\Rcon.cs" />
     <Compile Include="Modules\SelfUpdate.cs" />
     <Compile Include="Modules\Setup.cs" />
     <Compile Include="Modules\Scaffold.cs" />
@@ -60,6 +61,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ConfigGenerator.cs" />
+    <Compile Include="Rcon.cs" />
     <Compile Include="ResourceGenerator.cs" />
     <Compile Include="ResourceString.cs" />
   </ItemGroup>

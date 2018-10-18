@@ -54,6 +54,7 @@ namespace NFive.PluginManager
 						SelfUpdate,
 						Start,
 						Scaffold,
+						Modules.Rcon,
 						Status
 					>(args)
 					.MapResult(
@@ -67,6 +68,7 @@ namespace NFive.PluginManager
 						(SelfUpdate s) => s.Main(),
 						(Start s) => s.Main(),
 						(Scaffold s) => s.Main(),
+						(Modules.Rcon r) => r.Main(),
 						(Status s) => s.Main(),
 						e => Task.FromResult(1)
 					)

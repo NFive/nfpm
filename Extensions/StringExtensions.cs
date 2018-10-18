@@ -20,6 +20,13 @@ namespace NFive.PluginManager.Extensions
 			return result;
 		}
 
+		public static string TrimEnd(this string target, string trimString)
+		{
+			if (!target.EndsWith(trimString)) return target;
+
+			return target.Remove(target.LastIndexOf(trimString));
+		}
+
 		public static string Truncate(this string value, int length, string truncationString = "...")
 		{
 			if (value == null)
