@@ -29,7 +29,10 @@ namespace NFive.PluginManager.Modules
 		[Option("password", Required = false, HelpText = "Remote server password, if unset will be prompted.")]
 		public string Password { get; set; }
 
-		[Value(0, Required = false, HelpText = "Command to run on the remote server, if unset will use stdin.")]
+		[Option('t', "timeout", Required = false, Default = 5, HelpText = "Connection timeout in seconds.")]
+		public int Timeout { get; set; }
+
+		[Value(0, Required = false, HelpText = "Command to run on the remote server, if unset will be interactive.")]
 		public string Command { get; set; }
 
 		internal async Task<int> Main()
@@ -64,7 +67,7 @@ namespace NFive.PluginManager.Modules
 
 		private async Task<bool> RunCommand(string command)
 		{
-			var response = await this.rcon.Command(command);
+			var response = await this.rcon.Command(command, TimeSpan.FromSeconds(Math.Max(this.Timeout, 1)));
 
 			var lines = response
 				.Split('\n')

@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NFive.PluginManager
@@ -47,6 +48,25 @@ namespace NFive.PluginManager
 		{
 			await this.Send(command);
 			return await this.Receive();
+		}
+
+		public async Task<string> Command(string command, TimeSpan timeout)
+		{
+			var task = Command(command);
+
+			using (var timeoutCancellationTokenSource = new CancellationTokenSource())
+			{
+				var completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
+
+				if (completedTask == task)
+				{
+					timeoutCancellationTokenSource.Cancel();
+
+					return await task;
+				}
+
+				throw new TimeoutException("The command has timed out.");
+			}
 		}
 
 		public void Dispose()
