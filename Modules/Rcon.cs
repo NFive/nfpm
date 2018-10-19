@@ -32,6 +32,9 @@ namespace NFive.PluginManager.Modules
 		[Option('t', "timeout", Required = false, Default = 5, HelpText = "Connection timeout in seconds.")]
 		public int Timeout { get; set; }
 
+		[Option('q', "quiet", Required = false, HelpText = "Less verbose output.")]
+		public bool Quiet { get; set; } = false;
+
 		[Value(0, Required = false, HelpText = "Command to run on the remote server, if unset will be interactive.")]
 		public string Command { get; set; }
 
@@ -45,7 +48,7 @@ namespace NFive.PluginManager.Modules
 				Console.CursorLeft = 0;
 			}
 
-			Console.WriteLine($"Connecting to {this.Host}:{this.Port}...", Color.Green);
+			if (!this.Quiet) Console.WriteLine($"Connecting to {this.Host}:{this.Port}...", Color.Green);
 
 			this.rcon = new PluginManager.Rcon(Dns.GetHostEntry(this.Host).AddressList.First(a => a.AddressFamily == AddressFamily.InterNetwork), this.Port, this.Password);
 
