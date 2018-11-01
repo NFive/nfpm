@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using NFive.PluginManager.Extensions;
+using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
-using NFive.SDK.Plugins.Models;
-using Repository = NFive.SDK.Plugins.Models.Repository;
-using Version = NFive.SDK.Plugins.Models.Version;
+using Version = NFive.SDK.Core.Plugins.Version;
+using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Adapters
 {
@@ -42,11 +42,11 @@ namespace NFive.PluginManager.Adapters
 
 			if (!File.Exists(path)) throw new FileNotFoundException("Unable to find definition file", path);
 
-			var definition = Definition.Load(path);
+			var definition = Plugin.Load(path);
 
-			if (definition.Version == null) return new List<Version> { new Version("latest") }; // TODO: Default version?
+			if (definition.Version == null) return new List<Version> { new Models.Version("latest") }; // TODO: Default version?
 
-			return await Task.FromResult(new List<Version> { definition.Version });
+			return await Task.FromResult(new List<Version> { (Version)definition.Version });
 		}
 
 		/// <inheritdoc />

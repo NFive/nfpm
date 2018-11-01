@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Version = NFive.SDK.Plugins.Models.Version;
+using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Adapters.Hub
 {

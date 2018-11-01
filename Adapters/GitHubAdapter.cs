@@ -5,11 +5,10 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Ionic.Zip;
+using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
-using NFive.SDK.Plugins.Models;
 using Octokit;
-using Octokit.Internal;
-using Version = NFive.SDK.Plugins.Models.Version;
+using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Adapters
 {
@@ -41,7 +40,7 @@ namespace NFive.PluginManager.Adapters
 
 			return releases
 				.Where(r => !r.Prerelease && !r.Draft && r.Assets.Any(a => a.Name.EndsWith(".zip")))
-				.Select(r => new Version(r.TagName))
+				.Select(r => new Models.Version(r.TagName))
 				.OrderBy(v => v.ToString());
 		}
 

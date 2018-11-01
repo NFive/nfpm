@@ -1,10 +1,10 @@
-﻿using System;
+﻿using NFive.PluginManager.Models;
+using NFive.SDK.Plugins.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using NFive.PluginManager.Models;
-using NFive.SDK.Plugins.Configuration;
 
 namespace NFive.PluginManager
 {
@@ -55,7 +55,9 @@ namespace NFive.PluginManager
 			"System.ComponentModel.DataAnnotations.dll",
 
 			"NFive.SDK.Core.net.dll",
-			"NFive.SDK.Client.net.dll"
+			"NFive.SDK.Client.net.dll",
+
+			"index.html"
 		};
 
 		/// <summary>
@@ -81,7 +83,7 @@ namespace NFive.PluginManager
 			WriteLine(ref output);
 
 			WriteLine(ref output, "client_scripts {");
-			foreach (var plugin in graph.Definitions.Where(d => d.Client?.Include?.Count > 0 || d.Client?.Main?.Count > 0))
+			foreach (var plugin in graph.Plugins.Where(d => d.Client?.Include?.Count > 0 || d.Client?.Main?.Count > 0))
 			{
 				WriteLine(ref output, $"\t-- {plugin.Name}@{plugin.Version}");
 				if (plugin.Client?.Include != null) foreach (var file in plugin.Client.Include) WriteLine(ref output, $"\t'{Path.Combine(ConfigurationManager.PluginPath, plugin.Name.Vendor, plugin.Name.Project, file).Replace(Path.DirectorySeparatorChar, '/')}.net.dll',");
@@ -96,7 +98,7 @@ namespace NFive.PluginManager
 			WriteLine(ref output, "files {");
 			WriteLine(ref output, "\t-- NFive");
 			foreach (var file in DefaultClientFiles) WriteLine(ref output, $"\t'{file}',");
-			foreach (var plugin in graph.Definitions.Where(d => d.Client?.Files?.Count > 0))
+			foreach (var plugin in graph.Plugins.Where(d => d.Client?.Files?.Count > 0 || d.Client?.Overlays?.Count > 0))
 			{
 				WriteLine(ref output);
 				WriteLine(ref output, $"\t-- {plugin.Name}@{plugin.Version}");
@@ -104,21 +106,17 @@ namespace NFive.PluginManager
 			}
 			WriteLine(ref output, "}");
 
-			var loadscreen = graph.Definitions.FirstOrDefault(d => d.Client?.Loadscreen != null);
+			var loadscreen = graph.Plugins.FirstOrDefault(d => d.Client?.LoadingScreen != null);
 			if (loadscreen != null)
 			{
 				WriteLine(ref output);
 				WriteLine(ref output, $"-- {loadscreen.Name}@{loadscreen.Version}");
-				WriteLine(ref output, "loadscreen", Path.Combine(ConfigurationManager.PluginPath, loadscreen.Name.Vendor, loadscreen.Name.Project, loadscreen.Client.Loadscreen).Replace(Path.DirectorySeparatorChar, '/'));
+				WriteLine(ref output, "loadscreen", Path.Combine(ConfigurationManager.PluginPath, loadscreen.Name.Vendor, loadscreen.Name.Project, loadscreen.Client.LoadingScreen).Replace(Path.DirectorySeparatorChar, '/'));
 			}
 
-			var ui = graph.Definitions.FirstOrDefault(d => d.Client?.Ui != null);
-			if (ui != null)
-			{
-				WriteLine(ref output);
-				WriteLine(ref output, $"-- {ui.Name}@{ui.Version}");
-				WriteLine(ref output, "ui_page", Path.Combine(ConfigurationManager.PluginPath, ui.Name.Vendor, ui.Name.Project, ui.Client.Ui).Replace(Path.DirectorySeparatorChar, '/'));
-			}
+			WriteLine(ref output);
+			WriteLine(ref output, $"-- NFive");
+			WriteLine(ref output, "ui_page", "index.html");
 
 			return new ResourceString(output.ToString());
 		}

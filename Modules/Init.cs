@@ -3,9 +3,9 @@ using System.IO;
 using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
+using NFive.SDK.Plugins;
 using NFive.SDK.Plugins.Configuration;
-using NFive.SDK.Plugins.Models;
-using Version = SemVer.Version;
+using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Modules
 {
@@ -32,10 +32,10 @@ namespace NFive.PluginManager.Modules
 			var license = Input.String("license");
 			var website = Input.String("website");
 
-			var definition = new Definition
+			var definition = new Plugin
 			{
 				Name = name,
-				Version = new SDK.Plugins.Models.Version(version.ToString()),
+				Version = new Models.Version(version.ToString()),
 				//Type = PluginTypes.Plugin,
 				Description = !string.IsNullOrEmpty(description) ? description : null,
 				Author = author,
@@ -76,7 +76,7 @@ namespace NFive.PluginManager.Modules
 
 			var input = Console.ReadLine();
 
-			return string.IsNullOrEmpty(input) ? new Version(1, 0, 0) : new Version(input.Trim());
+			return string.IsNullOrEmpty(input) ? new Models.Version("1.0.0") : new Models.Version(input.Trim());
 		}
 	}
 }

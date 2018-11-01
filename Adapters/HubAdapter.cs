@@ -3,14 +3,14 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NFive.PluginManager.Adapters.Hub;
 using NFive.SDK.Plugins.Configuration;
-using NFive.SDK.Plugins.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Version = NFive.SDK.Plugins.Models.Version;
+using NFive.SDK.Core.Plugins;
+using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Adapters
 {

@@ -4,10 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
-using NFive.PluginManager.Models;
+using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
-using NFive.SDK.Plugins.Models;
 using Console = Colorful.Console;
+using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
+using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Modules
 {
@@ -26,13 +27,13 @@ namespace NFive.PluginManager.Modules
 		{
 			var plugin = new Name(this.Plugin);
 
-			Definition definition;
+			Plugin definition;
 
 			try
 			{
 				Environment.CurrentDirectory = PathManager.FindResource();
 
-				definition = Definition.Load(ConfigurationManager.DefinitionFile);
+				definition = NFive.SDK.Plugins.Plugin.Load(ConfigurationManager.DefinitionFile);
 			}
 			catch (FileNotFoundException ex)
 			{

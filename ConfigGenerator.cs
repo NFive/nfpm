@@ -15,6 +15,8 @@ namespace NFive.PluginManager
 
 		public string LicenseKey { get; set; } = null;
 
+		public string RconPassword { get; set; } = null;
+
 		public ushort MaxPlayers { get; set; } = 32;
 
 		public bool ScriptHookAllowed { get; set; } = false;
@@ -33,6 +35,7 @@ namespace NFive.PluginManager
 			WriteLine(ref output, $"endpoint_add_udp \"{this.Endpoint}\"");
 			WriteLine(ref output);
 			WriteLine(ref output, $"sv_hostname \"{this.Hostname}\"");
+			WriteLine(ref output, $"rcon_password \"{this.RconPassword}\"");
 			WriteLine(ref output);
 			WriteLine(ref output, $"sets tags \"{string.Join(", ", this.Tags)}\"");
 			WriteLine(ref output, $"sv_maxclients {this.MaxPlayers}");

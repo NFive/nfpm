@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Models;
+using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
-using NFive.SDK.Plugins.Models;
 using Console = Colorful.Console;
+using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Modules
 {
@@ -26,13 +27,13 @@ namespace NFive.PluginManager.Modules
 
 		internal async Task<int> Main()
 		{
-			Definition definition;
+			Plugin definition;
 
 			try
 			{
 				Environment.CurrentDirectory = PathManager.FindResource();
 
-				definition = Definition.Load(ConfigurationManager.DefinitionFile);
+				definition = Plugin.Load(ConfigurationManager.DefinitionFile);
 			}
 			catch (FileNotFoundException ex)
 			{
@@ -86,7 +87,7 @@ namespace NFive.PluginManager.Modules
 
 					await graph.Apply();
 
-					graph.Save();
+					graph.Save(ConfigurationManager.LockFile);
 
 					if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 				}
@@ -100,7 +101,7 @@ namespace NFive.PluginManager.Modules
 			{
 				var parts = plugin.Split(new[] { '@' }, 2);
 				Name name;
-				var version = new VersionRange("*");
+				var version = new Models.VersionRange("*");
 
 				try
 				{
@@ -116,7 +117,7 @@ namespace NFive.PluginManager.Modules
 				{
 					try
 					{
-						version = new VersionRange(parts[1]);
+						version = new Models.VersionRange(parts[1]);
 					}
 					catch (Exception ex)
 					{
@@ -125,7 +126,7 @@ namespace NFive.PluginManager.Modules
 					}
 				}
 				
-				if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, VersionRange>();
+				if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
 
 				if (definition.Dependencies.ContainsKey(name))
 				{
@@ -152,7 +153,7 @@ namespace NFive.PluginManager.Modules
 			await graph.Apply();
 
 			definition.Save(ConfigurationManager.DefinitionFile);
-			graph.Save();
+			graph.Save(ConfigurationManager.LockFile);
 
 			if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 

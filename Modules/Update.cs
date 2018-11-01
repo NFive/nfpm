@@ -4,9 +4,8 @@ using System.IO;
 using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
-using NFive.PluginManager.Models;
+using NFive.SDK.Plugins;
 using NFive.SDK.Plugins.Configuration;
-using NFive.SDK.Plugins.Models;
 using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
@@ -20,13 +19,13 @@ namespace NFive.PluginManager.Modules
 	{
 		internal async Task<int> Main()
 		{
-			Definition definition;
+			Plugin plugin;
 
 			try
 			{
 				Environment.CurrentDirectory = PathManager.FindResource();
 
-				definition = Definition.Load(ConfigurationManager.DefinitionFile);
+				plugin = Plugin.Load(ConfigurationManager.DefinitionFile);
 			}
 			catch (FileNotFoundException ex)
 			{

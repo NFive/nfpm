@@ -2,7 +2,6 @@
 using Ionic.Zip;
 using JetBrains.Annotations;
 using NFive.SDK.Plugins.Configuration;
-using NFive.SDK.Plugins.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +9,9 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NFive.SDK.Plugins;
 using Console = Colorful.Console;
+using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Modules
 {
@@ -32,6 +33,9 @@ namespace NFive.PluginManager.Modules
 
 		[Option("licensekey", Required = false, HelpText = "Set server license key.")]
 		public string LicenseKey { get; set; } = null;
+
+		[Option("rcon-password", Required = false, HelpText = "Set RCON password.")]
+		public string RconPassword { get; set; } = null;
 
 		[Option("db-host", Required = false, HelpText = "Set database host.")]
 		public string DatabaseHost { get; set; } = null;
@@ -71,7 +75,8 @@ namespace NFive.PluginManager.Modules
 					Console.Write("Please enter a valid license key: ");
 
 					return false;
-				}).ToLowerInvariant() : this.LicenseKey
+				}).ToLowerInvariant() : this.LicenseKey,
+				RconPassword = string.IsNullOrWhiteSpace(this.RconPassword) ? Regex.Replace(Input.String("RCON password", "<disabled>"), "^<disabled>$", string.Empty) : this.RconPassword
 			};
 
 			Console.WriteLine();
@@ -118,6 +123,8 @@ namespace NFive.PluginManager.Modules
 					zip.ExtractAll(Environment.CurrentDirectory, ExtractExistingFileAction.OverwriteSilently);
 				}
 
+				File.WriteAllText(Path.Combine(Environment.NewLine, "version"), latest.Item1);
+
 				Console.WriteLine();
 				Console.WriteLine("Downloading NFive...");
 
@@ -134,10 +141,10 @@ namespace NFive.PluginManager.Modules
 			}
 
 			config.Serialize(Path.Combine(Environment.CurrentDirectory, PathManager.ConfigFile));
-			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "resources", "nfive", ConfigurationManager.DefinitionFile), Yaml.Serialize(new Definition
+			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "resources", "nfive", ConfigurationManager.DefinitionFile), Yaml.Serialize(new Plugin
 			{
 				Name = "local/nfive-install",
-				Version = "1.0.0"
+				Version = new Models.Version("1.0.0")
 			}));
 
 			var dbYml = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "resources", "nfive", "config", "database.yml"));

@@ -1,55 +1,54 @@
-﻿using System;
+﻿using NFive.PluginManager.Adapters;
+using NFive.PluginManager.Extensions;
+using NFive.SDK.Plugins.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NFive.SDK.Plugins.Models;
-using NFive.PluginManager.Adapters;
-using NFive.PluginManager.Extensions;
-using NFive.SDK.Plugins.Configuration;
+using NFive.SDK.Core.Plugins;
+using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Models
 {
-	public class DefinitionGraph
+	public class DefinitionGraph : SDK.Plugins.DefinitionGraph
 	{
-		public List<Definition> Definitions { get; set; }
-
-		public async Task Build(Definition definition)
+		public async Task Build(Plugin definition)
 		{
 			await StageDefinition(definition);
 
-			if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, VersionRange>();
+			if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
 
-			var definitions = definition.Dependencies.Select(d => Definition.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", d.Key.Vendor, d.Key.Project, ConfigurationManager.DefinitionFile))).ToList();
+			var plugins = definition.Dependencies.Select(d => Plugin.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", d.Key.Vendor, d.Key.Project, ConfigurationManager.DefinitionFile))).ToList();
 
-			foreach (var plugin in definitions.Where(d => d.Dependencies != null))
+			foreach (var plugin in plugins.Where(d => d.Dependencies != null))
 			{
 				foreach (var dependency in plugin.Dependencies)
 				{
-					var dependencyPlugin = definitions.FirstOrDefault(p => p.Name.ToString() == dependency.Key.ToString());
+					var dependencyPlugin = plugins.FirstOrDefault(p => p.Name.ToString() == dependency.Key.ToString());
 					if (dependencyPlugin == null) throw new Exception($"Unable to find dependency {dependency.Key}@{dependency.Value} required by {plugin.Name}@{plugin.Version}"); // TODO: DependencyException
-					if (!dependency.Value.IsSatisfied(dependencyPlugin.Version)) throw new Exception($"{plugin.Name}@{plugin.Version} requires {dependencyPlugin.Name}@{dependency.Value} but {dependencyPlugin.Name}@{dependencyPlugin.Version} was found");
+					if (!dependency.Value.IsSatisfied(dependencyPlugin.Version.ToString())) throw new Exception($"{plugin.Name}@{plugin.Version} requires {dependencyPlugin.Name}@{dependency.Value} but {dependencyPlugin.Name}@{dependencyPlugin.Version} was found");
 
 					if (plugin.Server == null) plugin.Server = new Server();
-					if (plugin.DependencyNodes == null) plugin.DependencyNodes = new List<Definition>();
+					if (plugin.DependencyNodes == null) plugin.DependencyNodes = new List<Plugin>();
 					plugin.DependencyNodes.Add(dependencyPlugin);
 				}
 			}
 
-			this.Definitions = Sort(definitions);
+			this.Plugins = Sort(plugins);
 		}
 
 		public async Task Apply()
 		{
 			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"), true);
 
-			foreach (var definition in this.Definitions)
+			foreach (var definition in this.Plugins)
 			{
 				var path = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile);
 
 				if (File.Exists(path))
 				{
-					var loadedDefinition = Definition.Load(path);
+					var loadedDefinition = Plugin.Load(path);
 
 					if (loadedDefinition.Name == definition.Name && loadedDefinition.Version == definition.Version) continue;
 				}
@@ -65,7 +64,7 @@ namespace NFive.PluginManager.Models
 				var adapter = new AdapterBuilder(definition.Name, repo).Adapter();
 				await adapter.Download(definition.Version);
 
-				var dependencyDefinition = Definition.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile));
+				var dependencyDefinition = Plugin.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile));
 
 				if (dependencyDefinition.Name != definition.Name) throw new Exception("Downloaded package does not match requested.");
 				if (dependencyDefinition.Version != definition.Version) throw new Exception("Downloaded package does not match requested.");
@@ -91,9 +90,9 @@ namespace NFive.PluginManager.Models
 			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"), true);
 		}
 
-		private async Task StageDefinition(Definition definition)
+		private async Task StageDefinition(Plugin definition)
 		{
-			foreach (var dependency in definition.Dependencies ?? new Dictionary<Name, VersionRange>())
+			foreach (var dependency in definition.Dependencies ?? new Dictionary<Name, SDK.Core.Plugins.VersionRange>())
 			{
 				var repo = definition.Repositories?.FirstOrDefault(r => r.Name == dependency.Key);
 
@@ -101,14 +100,14 @@ namespace NFive.PluginManager.Models
 
 				var versions = await adapter.GetVersions();
 
-				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version));
+				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version.ToString()));
 				if (versionMatch == null) throw new Exception("No matching version found");
 
 				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project));
 
 				await adapter.Download(versionMatch);
 
-				var dependencyDefinition = Definition.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project, ConfigurationManager.DefinitionFile));
+				var dependencyDefinition = Plugin.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project, ConfigurationManager.DefinitionFile));
 
 				// TODO: What should be validated?
 				//if (dependencyDefinition.Name != dependency.Key) throw new Exception("Downloaded package does not match requested.");
@@ -118,16 +117,16 @@ namespace NFive.PluginManager.Models
 			}
 		}
 
-		private static List<Definition> Sort(List<Definition> definitions)
+		private static List<Plugin> Sort(List<Plugin> plugins)
 		{
-			var results = new List<Definition>();
+			var results = new List<Plugin>();
 
-			Visit(definitions, results, new List<Definition>(), new List<Definition>());
+			Visit(plugins, results, new List<Plugin>(), new List<Plugin>());
 
 			return results;
 		}
 
-		private static void Visit(IEnumerable<Definition> graph, ICollection<Definition> results, ICollection<Definition> dead, ICollection<Definition> pending)
+		private static void Visit(IEnumerable<Plugin> graph, ICollection<Plugin> results, ICollection<Plugin> dead, ICollection<Plugin> pending)
 		{
 			foreach (var node in graph)
 			{
@@ -136,7 +135,7 @@ namespace NFive.PluginManager.Models
 				if (pending.Contains(node)) throw new Exception($"Cycle detected (node {node.Name})");
 				pending.Add(node);
 
-				Visit(node.DependencyNodes ?? new List<Definition>(), results, dead, pending);
+				Visit(node.DependencyNodes ?? new List<Plugin>(), results, dead, pending);
 
 				if (pending.Contains(node)) pending.Remove(node);
 
@@ -146,7 +145,7 @@ namespace NFive.PluginManager.Models
 			}
 		}
 
-		public static DefinitionGraph Load(string path = ConfigurationManager.LockFile)
+		public new static DefinitionGraph Load(string path = ConfigurationManager.LockFile)
 		{
 			if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
 			if (!File.Exists(path)) throw new FileNotFoundException("Unable to find the plugin lock file", path);
@@ -154,7 +153,7 @@ namespace NFive.PluginManager.Models
 			return Yaml.Deserialize<DefinitionGraph>(File.ReadAllText(path));
 		}
 
-		public void Save(string path = ConfigurationManager.LockFile)
+		public new void Save(string path = ConfigurationManager.LockFile)
 		{
 			File.WriteAllText(path, Yaml.Serialize(this));
 		}
