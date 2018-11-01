@@ -141,10 +141,15 @@ namespace NFive.PluginManager.Modules
 			}
 
 			config.Serialize(Path.Combine(Environment.CurrentDirectory, PathManager.ConfigFile));
-			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "resources", "nfive", ConfigurationManager.DefinitionFile), Yaml.Serialize(new Plugin
+			File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "resources", "nfive", ConfigurationManager.DefinitionFile), Yaml.Serialize(new 
 			{
 				Name = "local/nfive-install",
-				Version = new Models.Version("1.0.0")
+				Version = new Version
+				{
+					Major = 1,
+					Minor = 0,
+					Patch = 0
+				}
 			}));
 
 			var dbYml = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "resources", "nfive", "config", "database.yml"));

@@ -12,5 +12,9 @@
 			this.PreRelease = version.PreRelease;
 			this.Build = version.Build;
 		}
+
+		public static implicit operator Version(string value) => new Version(value);
+
+		public static implicit operator string(Version value) => value.ToString();
 	}
 }

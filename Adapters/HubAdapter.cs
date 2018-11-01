@@ -51,7 +51,7 @@ namespace NFive.PluginManager.Adapters
 		public async Task Download(Version version)
 		{
 			var releases = await GetReleases();
-			var release = releases.First(r => r.Version == version);
+			var release = releases.First(r => r.Version.ToString() == version.ToString());
 			var file = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project, Path.GetFileName(release.DownloadUrl));
 
 			using (var client = new WebClient())

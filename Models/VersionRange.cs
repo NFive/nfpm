@@ -6,5 +6,9 @@
 		{
 			this.Value = new SemVer.Range(input).ToString();
 		}
+
+		public static implicit operator VersionRange(string value) => new VersionRange(value);
+
+		public static implicit operator string(VersionRange value) => value.Value;
 	}
 }
