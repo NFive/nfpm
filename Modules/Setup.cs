@@ -123,7 +123,7 @@ namespace NFive.PluginManager.Modules
 					zip.ExtractAll(Environment.CurrentDirectory, ExtractExistingFileAction.OverwriteSilently);
 				}
 
-				File.WriteAllText(Path.Combine(Environment.NewLine, "version"), latest.Item1);
+				File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "version"), latest.Item1);
 
 				Console.WriteLine();
 				Console.WriteLine("Downloading NFive...");
