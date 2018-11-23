@@ -86,7 +86,7 @@ namespace NFive.PluginManager.Modules
 			var dbPort = this.DatabasePort ?? Input.Int("database port", 1, ushort.MaxValue, 3306);
 			var dbUser = string.IsNullOrWhiteSpace(this.DatabaseUser) ? Input.String("database user", "root") : this.DatabaseUser;
 			var dbPass = string.IsNullOrWhiteSpace(this.DatabasePassword) ? Regex.Replace(Input.String("database password", "<blank>"), "^<blank>$", string.Empty) : this.DatabasePassword;
-			var dbName = string.IsNullOrWhiteSpace(this.DatabaseHost) ? Input.String("database name", "fivem", s =>
+			var dbName = string.IsNullOrWhiteSpace(this.DatabaseName) ? Input.String("database name", "fivem", s =>
 			{
 				if (Regex.IsMatch(s, "^[^\\/?%*:|\"<>.]{1,64}$")) return true;
 
