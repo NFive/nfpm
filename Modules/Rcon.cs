@@ -56,14 +56,14 @@ namespace NFive.PluginManager.Modules
 			{
 				while (true)
 				{
-					if (await this.RunCommand(Input.String("#")))
+					if (await RunCommand(Input.String("#")))
 					{
 						return 1;
 					}
 				}
 			}
 
-			await this.RunCommand(this.Command);
+			await RunCommand(this.Command);
 
 			return 0;
 		}

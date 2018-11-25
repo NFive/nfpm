@@ -23,6 +23,7 @@ namespace NFive.PluginManager
 		{
 			try
 			{
+				// Remove old copy of self after an update
 				File.Delete("nfpm.exe.old");
 			}
 			catch
@@ -32,6 +33,7 @@ namespace NFive.PluginManager
 
 			try
 			{
+				// Required to connect to github.com, default TLS 1.1 won't do
 				ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 			}
 			catch

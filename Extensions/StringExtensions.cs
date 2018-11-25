@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace NFive.PluginManager.Extensions
 {
@@ -24,7 +25,7 @@ namespace NFive.PluginManager.Extensions
 		{
 			if (!target.EndsWith(trimString)) return target;
 
-			return target.Remove(target.LastIndexOf(trimString));
+			return target.Remove(target.LastIndexOf(trimString, StringComparison.CurrentCulture));
 		}
 
 		public static string Truncate(this string value, int length, string truncationString = "...")

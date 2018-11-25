@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using Version = NFive.PluginManager.Models.Version;
 
 namespace NFive.PluginManager.Adapters.Hub
 {
+	[PublicAPI]
 	public class HubSearchResults
 	{
 		public List<HubSearchResult> Results { get; set; }
 		public HubPagination Count { get; set; }
 	}
 
+	[PublicAPI]
 	public class HubSearchResult
 	{
 		public string Name { get; set; }
@@ -23,6 +26,7 @@ namespace NFive.PluginManager.Adapters.Hub
 		public DateTime Scraped { get; set; }
 	}
 
+	[PublicAPI]
 	public class HubProject
 	{
 		public string Name { get; set; }
@@ -36,12 +40,14 @@ namespace NFive.PluginManager.Adapters.Hub
 		public DateTime Scraped { get; set; }
 	}
 
+	[PublicAPI]
 	public class HubShortVersion
 	{
 		public Version Version { get; set; }
 		public string DownloadUrl { get; set; }
 	}
 
+	[PublicAPI]
 	public class HubPagination
 	{
 		public ulong Total { get; set; }

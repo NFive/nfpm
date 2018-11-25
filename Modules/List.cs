@@ -4,8 +4,6 @@ using System.IO;
 using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
-using NFive.SDK.Core.Plugins;
-using NFive.SDK.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using Console = Colorful.Console;
 using Plugin = NFive.SDK.Plugins.Plugin;

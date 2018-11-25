@@ -46,8 +46,8 @@ namespace NFive.PluginManager
 
 		public async Task<string> Command(string command)
 		{
-			await this.Send(command);
-			return await this.Receive();
+			await Send(command);
+			return await Receive();
 		}
 
 		public async Task<string> Command(string command, TimeSpan timeout)

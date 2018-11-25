@@ -1,6 +1,5 @@
 ﻿using System;
 using Console = Colorful.Console;
-using Version = SemVer.Version;
 
 namespace NFive.PluginManager
 {
@@ -54,31 +53,6 @@ namespace NFive.PluginManager
 				input = String($"Please enter an integer between {min} and {max} (inclusive)", @default?.ToString());
 			}
 
-			return value;
-		}
-
-
-
-		public static Version ReadVersion(string prompt)
-		{
-			Console.WriteLine(prompt);
-
-			var input = Console.ReadLine();
-			Version value = null;
-
-			while (value == null)
-			{
-				try
-				{
-					value = new Version(input);
-				}
-				catch (Exception)
-				{
-					Console.WriteLine("Please enter an version number");
-					value = null;
-				}
-			}
-			
 			return value;
 		}
 	}

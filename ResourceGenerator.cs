@@ -115,7 +115,7 @@ namespace NFive.PluginManager
 			}
 
 			WriteLine(ref output);
-			WriteLine(ref output, $"-- NFive");
+			WriteLine(ref output, "-- NFive");
 			WriteLine(ref output, "ui_page", "index.html");
 
 			return new ResourceString(output.ToString());

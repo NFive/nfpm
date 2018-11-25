@@ -46,7 +46,7 @@ namespace NFive.PluginManager.Adapters
 
 			if (definition.Version == null) return new List<Version> { new Models.Version("latest") }; // TODO: Default version?
 
-			return await Task.FromResult(new List<Version> { (Version)definition.Version });
+			return await Task.FromResult(new List<Version> { definition.Version });
 		}
 
 		/// <inheritdoc />
