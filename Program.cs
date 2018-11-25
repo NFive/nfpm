@@ -19,7 +19,7 @@ namespace NFive.PluginManager
 		/// </summary>
 		/// <param name="args">The application arguments.</param>
 		/// <returns>Exit status code.</returns>
-		public static int Main(string[] args)
+		public static async Task<int> Main(string[] args)
 		{
 			try
 			{
@@ -41,7 +41,7 @@ namespace NFive.PluginManager
 
 			try
 			{
-				return Parser
+				return await Parser
 					.Default
 					.ParseArguments<
 						Setup,
@@ -71,9 +71,7 @@ namespace NFive.PluginManager
 						(Modules.Rcon r) => r.Main(),
 						(Status s) => s.Main(),
 						e => Task.FromResult(1)
-					)
-					.GetAwaiter()
-					.GetResult();
+					);
 			}
 			catch (Exception ex)
 			{
