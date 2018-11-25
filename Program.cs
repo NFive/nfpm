@@ -45,7 +45,6 @@ namespace NFive.PluginManager
 					.Default
 					.ParseArguments<
 						Setup,
-						Init,
 						Search,
 						List,
 						Install,
@@ -59,7 +58,6 @@ namespace NFive.PluginManager
 					>(args)
 					.MapResult(
 						(Setup s) => s.Main(),
-						(Init i) => i.Main(),
 						(Search s) => s.Main(),
 						(List l) => l.Main(),
 						(Install i) => i.Main(),

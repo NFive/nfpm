@@ -60,7 +60,6 @@
     <Compile Include="Modules\Search.cs" />
     <Compile Include="Modules\Remove.cs" />
     <Compile Include="Modules\List.cs" />
-    <Compile Include="Modules\Init.cs" />
     <Compile Include="Modules\Install.cs" />
     <Compile Include="PathManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
