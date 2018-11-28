@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 
 namespace NFive.PluginManager.Extensions
 {
@@ -17,18 +19,20 @@ namespace NFive.PluginManager.Extensions
 		{
 			if (!dir.Exists) throw new DirectoryNotFoundException($"Source directory does not exist or could not be found: {dir.FullName}");
 
-			var dirs = dir.GetDirectories();
+			var files = Directory.EnumerateFiles(dir.FullName, "*", SearchOption.AllDirectories).Select(f => f.TrimStart(dir.FullName + Path.DirectorySeparatorChar)).ToArray();
 
-			if (!Directory.Exists(dest)) Directory.CreateDirectory(dest);
-
-			foreach (var file in dir.GetFiles())
+			foreach (var file in files)
 			{
-				file.CopyTo(Path.Combine(dest, file.Name), true);
-			}
+				try
+				{
+					Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(dest, file)) ?? throw new InvalidOperationException());
 
-			foreach (var subDir in dirs)
-			{
-				Copy(subDir, Path.Combine(dest, subDir.Name));
+					File.Copy(Path.Combine(dir.FullName, file), Path.Combine(dest, file), true);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(ex.Message);
+				}
 			}
 		}
 	}

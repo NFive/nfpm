@@ -1,12 +1,14 @@
 ﻿using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Extensions;
+using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NFive.SDK.Core.Plugins;
+using Console = Colorful.Console;
 using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Models
@@ -40,7 +42,7 @@ namespace NFive.PluginManager.Models
 
 		public async Task Apply(Plugin baseDefinition)
 		{
-			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"), true);
+			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) DeleteDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"));
 
 			foreach (var definition in this.Plugins)
 			{
@@ -56,11 +58,11 @@ namespace NFive.PluginManager.Models
 				// Missing or outdated
 
 				var dir = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project);
-				if (Directory.Exists(dir)) Directory.Delete(dir, true);
+				if (Directory.Exists(dir)) DeleteDirectory(dir);
 
 				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project));
 
-				Repository repo = baseDefinition.Repositories?.FirstOrDefault(r => r.Name == definition.Name); // TODO
+				var repo = baseDefinition.Repositories?.FirstOrDefault(r => r.Name == definition.Name);
 				var adapter = new AdapterBuilder(definition.Name, repo).Adapter();
 				await adapter.Download(definition.Version);
 
@@ -82,12 +84,19 @@ namespace NFive.PluginManager.Models
 
 					foreach (var yml in Directory.EnumerateFiles(configSrc, "*.yml", SearchOption.TopDirectoryOnly))
 					{
-						File.Copy(yml, configDst, false);
+						try
+						{
+							File.Copy(yml, Path.Combine(configDst, Path.GetFileName(yml)), false);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex.Message, Color.Yellow);
+						}
 					}
 				}
 			}
 
-			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"), true);
+			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) DeleteDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"));
 		}
 
 		private async Task StageDefinition(Plugin definition)
@@ -156,6 +165,29 @@ namespace NFive.PluginManager.Models
 		public new void Save(string path = ConfigurationManager.LockFile)
 		{
 			File.WriteAllText(path, Yaml.Serialize(this));
+		}
+
+		private static void NormalizeAttributes(string directoryPath)
+		{
+			foreach (var file in Directory.GetFiles(directoryPath)) File.SetAttributes(file, FileAttributes.Normal);
+
+			foreach (var directory in Directory.GetDirectories(directoryPath)) NormalizeAttributes(directory);
+
+			File.SetAttributes(directoryPath, FileAttributes.Normal);
+		}
+
+		private static void DeleteDirectory(string directoryPath)
+		{
+			try
+			{
+				NormalizeAttributes(directoryPath);
+
+				Directory.Delete(directoryPath, true);
+			}
+			catch (Exception ex)
+			{
+				if (!new[] { typeof(IOException), typeof(UnauthorizedAccessException) }.Any(e => e.IsInstanceOfType(ex))) throw;
+			}
 		}
 	}
 }
