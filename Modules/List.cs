@@ -31,7 +31,7 @@ namespace NFive.PluginManager.Modules
 			catch (FileNotFoundException ex)
 			{
 				Console.WriteLine(ex.Message);
-				Console.WriteLine("Use `nfpm init` to setup NFive in this directory");
+				Console.WriteLine("Use `nfpm setup` to setup NFive in this directory");
 
 				return 1;
 			}

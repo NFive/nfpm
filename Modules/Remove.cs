@@ -13,7 +13,7 @@ using Plugin = NFive.SDK.Plugins.Plugin;
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
-	/// Uninstalls a plugin.
+	/// Uninstall a NFive plugin.
 	/// </summary>
 	[UsedImplicitly]
 	[Verb("remove", HelpText = "Uninstall a NFive plugin.")]
@@ -38,7 +38,7 @@ namespace NFive.PluginManager.Modules
 			catch (FileNotFoundException ex)
 			{
 				Console.WriteLine(ex.Message);
-				Console.WriteLine("Use `nfpm init` to setup NFive in this directory");
+				Console.WriteLine("Use `nfpm setup` to setup NFive in this directory");
 
 				return 1;
 			}

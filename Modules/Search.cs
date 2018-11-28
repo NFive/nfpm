@@ -37,7 +37,7 @@ namespace NFive.PluginManager.Modules
 
 			var nameLength = Math.Max(Math.Min(50, results.Max(d => d.Name.Length)), 10);
 			var versionLength = Math.Max(Math.Min(20, results.Max(d => d.Versions.First().Version.ToString().Length)), 10);
-			var descriptionLength = Math.Max(Math.Min(50, results.Max(d => d.Description.Length)), 15);
+			var descriptionLength = Math.Max(Math.Min(50, results.Max(d => (d.Description ?? string.Empty).Length)), 15);
 
 			Console.WriteLine($"{"NAME".PadRight(nameLength)} | {"VERSION".PadRight(versionLength)} | {"DESCRIPTION".PadRight(descriptionLength)}");
 
@@ -64,7 +64,7 @@ namespace NFive.PluginManager.Modules
 
 			foreach (var repository in results)
 			{
-				Console.WriteLineStyled($"{repository.Name.Truncate(nameLength).PadRight(nameLength)} | {repository.Versions.First().Version.ToString().Truncate(versionLength).PadRight(versionLength)} | {repository.Description.Truncate(descriptionLength).PadRight(descriptionLength)}", styleSheet);
+				Console.WriteLineStyled($"{repository.Name.Truncate(nameLength).PadRight(nameLength)} | {repository.Versions.First().Version.ToString().Truncate(versionLength).PadRight(versionLength)} | {repository.Description?.Truncate(descriptionLength).PadRight(descriptionLength)}", styleSheet);
 			}
 
 			return 0;

@@ -32,7 +32,7 @@ namespace NFive.PluginManager.Modules
 			}
 			catch (Exception) { }
 
-			Console.WriteLine($"server: {server ?? "NOT FOUND"}");
+			Console.WriteLine($"Server: {server ?? "NOT FOUND"}");
 			
 			string resource = null;
 			try
@@ -41,7 +41,7 @@ namespace NFive.PluginManager.Modules
 			}
 			catch (Exception) { }
 
-			Console.WriteLine($"resource: {resource ?? "NOT FOUND"}");
+			Console.WriteLine($"Resource: {resource ?? "NOT FOUND"}");
 			
 			bool current = false;
 			try
@@ -50,7 +50,7 @@ namespace NFive.PluginManager.Modules
 			}
 			catch (Exception) { }
 
-			Console.WriteLine($"current: {current}");
+			Console.WriteLine($"IsResource: {current}");
 
 			return await Task.FromResult(0);
 		}
