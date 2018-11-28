@@ -72,7 +72,7 @@ namespace NFive.PluginManager.Modules
 				{
 					Console.WriteLine("Applying dependencies...");
 
-					await graph.Apply();
+					await graph.Apply(definition);
 
 					if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 				}
@@ -85,7 +85,7 @@ namespace NFive.PluginManager.Modules
 
 					Console.WriteLine("Applying dependencies...");
 
-					await graph.Apply();
+					await graph.Apply(definition);
 
 					graph.Save(ConfigurationManager.LockFile);
 
@@ -150,7 +150,7 @@ namespace NFive.PluginManager.Modules
 
 			graph = new DefinitionGraph();
 			await graph.Build(definition);
-			await graph.Apply();
+			await graph.Apply(definition);
 
 			definition.Save(ConfigurationManager.DefinitionFile);
 			graph.Save(ConfigurationManager.LockFile);

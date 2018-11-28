@@ -63,7 +63,7 @@ namespace NFive.PluginManager.Modules
 
 			var graph = new DefinitionGraph();
 			await graph.Build(definition);
-			await graph.Apply();
+			await graph.Apply(definition);
 
 			definition.Save(ConfigurationManager.DefinitionFile);
 			graph.Save();

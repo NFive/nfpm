@@ -25,7 +25,7 @@ namespace NFive.PluginManager.Models
 			{
 				foreach (var dependency in plugin.Dependencies)
 				{
-					var dependencyPlugin = plugins.FirstOrDefault(p => p.Name.ToString() == dependency.Key.ToString());
+					var dependencyPlugin = plugins.FirstOrDefault(p => p.Name == dependency.Key);
 					if (dependencyPlugin == null) throw new Exception($"Unable to find dependency {dependency.Key}@{dependency.Value} required by {plugin.Name}@{plugin.Version}"); // TODO: DependencyException
 					if (!dependency.Value.IsSatisfied(dependencyPlugin.Version.ToString())) throw new Exception($"{plugin.Name}@{plugin.Version} requires {dependencyPlugin.Name}@{dependency.Value} but {dependencyPlugin.Name}@{dependencyPlugin.Version} was found");
 
@@ -38,7 +38,7 @@ namespace NFive.PluginManager.Models
 			this.Plugins = Sort(plugins);
 		}
 
-		public async Task Apply()
+		public async Task Apply(Plugin baseDefinition)
 		{
 			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) Directory.Delete(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"), true);
 
@@ -60,7 +60,7 @@ namespace NFive.PluginManager.Models
 
 				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project));
 
-				Repository repo = null; // masterDefinition.Repositories?.FirstOrDefault(r => r.Name == definition.Name); // TODO
+				Repository repo = baseDefinition.Repositories?.FirstOrDefault(r => r.Name == definition.Name); // TODO
 				var adapter = new AdapterBuilder(definition.Name, repo).Adapter();
 				await adapter.Download(definition.Version);
 
@@ -94,7 +94,7 @@ namespace NFive.PluginManager.Models
 		{
 			foreach (var dependency in definition.Dependencies ?? new Dictionary<Name, SDK.Core.Plugins.VersionRange>())
 			{
-				var repo = definition.Repositories?.FirstOrDefault(r => r.Name == dependency.Key);
+				var repo = definition.Repositories?.FirstOrDefault(r => r.Name.ToString() == dependency.Key.ToString());
 
 				var adapter = new AdapterBuilder(dependency.Key, repo).Adapter();
 

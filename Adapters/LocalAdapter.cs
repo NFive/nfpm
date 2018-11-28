@@ -38,7 +38,7 @@ namespace NFive.PluginManager.Adapters
 		/// <exception cref="T:System.IO.FileNotFoundException">Unable to find definition file</exception>
 		public async Task<IEnumerable<Version>> GetVersions()
 		{
-			var path = Path.Combine(Environment.CurrentDirectory, this.repo.Path, ConfigurationManager.DefinitionFile);
+			var path = Path.Combine(Path.GetFullPath(this.repo.Path), ConfigurationManager.DefinitionFile);
 
 			if (!File.Exists(path)) throw new FileNotFoundException("Unable to find definition file", path);
 
@@ -56,7 +56,7 @@ namespace NFive.PluginManager.Adapters
 		/// <param name="version">The version to download.</param>
 		public async Task Download(Version version)
 		{
-			var src = Path.Combine(Environment.CurrentDirectory, this.repo.Path);
+			var src = Path.Combine(Path.GetFullPath(this.repo.Path), this.repo.Path);
 			var dst = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project);
 
 			new DirectoryInfo(src).Copy(dst);
