@@ -118,7 +118,7 @@ namespace NFive.PluginManager.Modules
 					Console.Write("Please enter a valid database name: ");
 
 					return false;
-				}) : this.DatabaseHost;
+				}) : this.DatabaseName;
 
 				if (!this.FiveM.HasValue) Console.WriteLine();
 
