@@ -69,9 +69,7 @@ namespace NFive.PluginManager.Modules
 			var desc = string.IsNullOrWhiteSpace(this.Description) ? Input.String("Description", "NFive Plugin") : this.Description.Trim();
 			var client = this.Client ?? Input.Bool("Generate client plugin", true);
 			var server = this.Server ?? Input.Bool("Generate server plugin", true);
-			var shared = false;
-
-			if (server && client) shared = this.Shared ?? Input.Bool("Generate shared library", true);
+			var shared = this.Shared ?? Input.Bool("Generate shared library", true);
 
 			var config = new
 			{
