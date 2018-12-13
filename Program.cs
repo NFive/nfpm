@@ -19,6 +19,7 @@ namespace NFive.PluginManager
 		/// </summary>
 		/// <param name="args">The application arguments.</param>
 		/// <returns>Exit status code.</returns>
+		[STAThread]
 		public static async Task<int> Main(string[] args)
 		{
 			try
@@ -56,7 +57,8 @@ namespace NFive.PluginManager
 						Start,
 						Scaffold,
 						Modules.Rcon,
-						Status
+						Status,
+						Migrate
 					>(args)
 					.MapResult(
 						(Setup s) => s.Main(),
@@ -70,6 +72,7 @@ namespace NFive.PluginManager
 						(Scaffold s) => s.Main(),
 						(Modules.Rcon r) => r.Main(),
 						(Status s) => s.Main(),
+						(Migrate s) => s.Main(),
 						e => Task.FromResult(1)
 					);
 			}
