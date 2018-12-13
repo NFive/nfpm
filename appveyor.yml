@@ -32,7 +32,7 @@ after_build:
 - cmd: >-
     nuget install ILRepack -ExcludeVersion
 
-    # Temporary hack
+    rem Temporary hack
     nuget install Google.Protobuf -Version 3.5.1 -ExcludeVersion
     copy Google.Protobuf\lib\net45\Google.Protobuf.dll bin\Release\Google.Protobuf.dll
 
