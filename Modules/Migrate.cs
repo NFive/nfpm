@@ -48,14 +48,14 @@ namespace NFive.PluginManager.Modules
 				return 1;
 			}
 
-			this.Sln = File.Exists(this.Sln) ? this.Sln : Directory.EnumerateFiles(Environment.CurrentDirectory, "*.sln", SearchOption.TopDirectoryOnly).FirstOrDefault();
+			if (!File.Exists(this.Sln)) this.Sln = Directory.EnumerateFiles(Environment.CurrentDirectory, "*.sln", SearchOption.TopDirectoryOnly).FirstOrDefault();
 			if (this.Sln == null || !File.Exists(this.Sln)) this.Sln = Input.String("Visual Studio SLN solution file");
 
 			var dte = (DTE)Activator.CreateInstance(Type.GetTypeFromProgID(DteProgId, true), true);
 			dte.SuppressUI = true;
 			dte.UserControl = false;
-			//dte.MainWindow.Visible = false;
-			dte.MainWindow.Activate();
+			dte.MainWindow.Visible = false;
+			//dte.MainWindow.Activate();
 
 			try
 			{
