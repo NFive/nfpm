@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
@@ -99,7 +100,26 @@ namespace NFive.PluginManager.Modules
 
 			foreach (var plugin in this.Plugins)
 			{
-				var parts = plugin.Split(new[] { '@' }, 2);
+				var input = plugin;
+
+				if (Directory.Exists(plugin) && File.Exists(Path.Combine(plugin, ConfigurationManager.DefinitionFile)))
+				{
+					var path = Path.GetFullPath(plugin);
+
+					var pluginDef = Plugin.Load(Path.Combine(path, ConfigurationManager.DefinitionFile));
+
+					if (definition.Repositories == null) definition.Repositories = new List<Repository>();
+					definition.Repositories.Add(new Repository
+					{
+						Name = pluginDef.Name,
+						Type = "local",
+						Path = path
+					});
+
+					input = pluginDef.Name;
+				}
+
+				var parts = input.Split(new[] { '@' }, 2);
 				Name name;
 				var version = new Models.VersionRange("*");
 
