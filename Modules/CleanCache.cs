@@ -16,7 +16,9 @@ namespace NFive.PluginManager.Modules
 	{
 		internal async Task<int> Main()
 		{
-			Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache"), true);
+			var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache");
+
+			if (Directory.Exists(path)) Directory.Delete(path, true);
 
 			Console.WriteLine("Cache directory emptied.");
 
