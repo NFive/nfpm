@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using NFive.PluginManager.Extensions;
 using NFive.SDK.Core.Plugins;
 using Version = NFive.SDK.Core.Plugins.Version;
 
@@ -50,9 +51,19 @@ namespace NFive.PluginManager.Adapters
 		/// <param name="version">The version to download.</param>
 		public async Task Download(Version version)
 		{
+			var cacheDir = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", this.name.Vendor, this.name.Project, version.ToString()));
+			var targetDir = new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project));
+
+			if (cacheDir.Exists)
+			{
+				cacheDir.Copy(targetDir.FullName);
+
+				return;
+			}
+			
 			var releases = await GetReleases();
 			var release = releases.First(r => r.Version.ToString() == version.ToString());
-			var file = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project, Path.GetFileName(release.DownloadUrl));
+			var file = Path.Combine(targetDir.FullName, Path.GetFileName(release.DownloadUrl));
 
 			using (var client = new WebClient())
 			{
@@ -61,10 +72,12 @@ namespace NFive.PluginManager.Adapters
 
 			using (var zip = ZipFile.Read(file))
 			{
-				zip.ExtractAll(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project), ExtractExistingFileAction.OverwriteSilently);
+				zip.ExtractAll(targetDir.FullName, ExtractExistingFileAction.OverwriteSilently);
 			}
 
 			File.Delete(file);
+
+			targetDir.Copy(cacheDir.FullName);
 		}
 
 		public async Task<List<HubShortVersion>> GetReleases()
