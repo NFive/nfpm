@@ -48,7 +48,7 @@ namespace NFive.PluginManager.Models
 			{
 				var path = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile);
 
-				if (File.Exists(path))
+				if (File.Exists(path)) // TODO: Test this ever occurs
 				{
 					var loadedDefinition = Plugin.Load(path);
 
