@@ -1,12 +1,12 @@
-﻿using System;
+﻿using NFive.SDK.Core.Plugins;
+using NFive.SDK.Plugins.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using NFive.PluginManager.Extensions;
-using NFive.SDK.Core.Plugins;
-using NFive.SDK.Plugins.Configuration;
-using Version = NFive.SDK.Core.Plugins.Version;
 using Plugin = NFive.SDK.Plugins.Plugin;
+using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Adapters
 {
@@ -59,7 +59,74 @@ namespace NFive.PluginManager.Adapters
 			var src = Path.Combine(Path.GetFullPath(this.repo.Path), this.repo.Path);
 			var dst = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project);
 
-			new DirectoryInfo(src).Copy(dst);
+			var path = Path.Combine(Path.GetFullPath(this.repo.Path), ConfigurationManager.DefinitionFile);
+			if (!File.Exists(path)) throw new FileNotFoundException("Unable to find definition file", path);
+
+			var definition = Plugin.Load(path);
+
+			var stockFiles = new List<string>
+			{
+				"nfive.yml",
+				"nfive.lock",
+				"README.md",
+				"README",
+				"LICENSE.md",
+				"LICENSE"
+			};
+
+			var files = new List<string>();
+
+			if (definition.Client != null)
+			{
+				if (definition.Client.Main != null && definition.Client.Main.Any())
+				{
+					files.AddRange(definition.Client.Main.Select(f => $"{f}.net.dll"));
+				}
+
+				if (definition.Client.Include != null && definition.Client.Include.Any())
+				{
+					files.AddRange(definition.Client.Include.Select(f => $"{f}.net.dll"));
+				}
+
+				if (definition.Client.Files != null && definition.Client.Files.Any())
+				{
+					files.AddRange(definition.Client.Files);
+				}
+
+				if (definition.Client.Overlays != null && definition.Client.Overlays.Any())
+				{
+					files.AddRange(definition.Client.Overlays);
+				}
+			}
+
+			if (definition.Server != null)
+			{
+				if (definition.Server.Main != null && definition.Server.Main.Any())
+				{
+					files.AddRange(definition.Server.Main.Select(f => $"{f}.net.dll"));
+				}
+
+				if (definition.Server.Include != null && definition.Server.Include.Any())
+				{
+					files.AddRange(definition.Server.Include.Select(f => $"{f}.net.dll"));
+				}
+			}
+
+			files = files.Distinct().ToList();
+
+			foreach (var file in stockFiles)
+			{
+				if (!File.Exists(Path.Combine(src, file))) continue;
+
+				File.Copy(Path.Combine(src, file), Path.Combine(dst, file), true);
+			}
+
+			foreach (var file in files)
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(dst, file).Replace(Path.DirectorySeparatorChar, '/')));
+
+				File.Copy(Path.Combine(src, file).Replace(Path.DirectorySeparatorChar, '/'), Path.Combine(dst, file).Replace(Path.DirectorySeparatorChar, '/'), true);
+			}
 
 			await Task.FromResult(0);
 		}
