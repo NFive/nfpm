@@ -167,10 +167,26 @@ namespace NFive.PluginManager.Modules
 
 				var latest = versions.Max();
 
-				Console.WriteLine($"Downloading FiveM server v{latest.Item1}...");
+				var cacheFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", $"fivem_server_{latest.Item1}.zip");
 
-				var data = await client.DownloadDataTaskAsync($"https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/{latest.Item1}-{latest.Item2}/server.zip");
+				byte[] data;
 
+				if (File.Exists(cacheFile))
+				{
+					Console.WriteLine($"Reading FiveM server v{latest.Item1} from cache...");
+
+					data = File.ReadAllBytes(cacheFile);
+				}
+				else
+				{
+					Console.WriteLine($"Downloading FiveM server v{latest.Item1}...");
+
+					data = await client.DownloadDataTaskAsync($"https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/{latest.Item1}-{latest.Item2}/server.zip");
+
+					Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
+					File.WriteAllBytes(cacheFile, data);
+				}
+				
 				Console.WriteLine("Installing FiveM server...");
 
 				Directory.CreateDirectory(path);
