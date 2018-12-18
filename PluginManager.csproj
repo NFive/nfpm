@@ -70,6 +70,7 @@
     <Compile Include="Rcon.cs" />
     <Compile Include="ResourceGenerator.cs" />
     <Compile Include="ResourceString.cs" />
+    <Compile Include="Utilities\VisualStudio.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Colorful.Console, Version=1.2.9.0, Culture=neutral, processorArchitecture=MSIL">
