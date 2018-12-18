@@ -141,7 +141,25 @@ namespace NFive.PluginManager.Modules
 						var type = asm.DefinedTypes.FirstOrDefault(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == typeof(EFContext<>));
 
 						if (type == default) continue;
-						
+
+
+
+
+						var props = type
+							.GetProperties()
+							.Where(p => p.CanRead && p.CanWrite && p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+
+
+							.Where(p => p.PropertyType.GenericTypeArguments.Any(t => t.Namespace.StartsWith("NFive.SDK.")))
+							
+							//.SelectMany(p => p.PropertyType.GenericTypeArguments)
+							//.Where(t => t.Namespace.StartsWith("NFive.SDK."))
+							.Select(t => $"dbo.{t.Name}")
+							.ToList();
+
+
+
+
 						var migrationsPath = "Migrations";
 
 						if (!Directory.Exists(Path.Combine(projectPath, migrationsPath))) throw new Exception("Migrations dir"); // TODO: Input
@@ -157,7 +175,7 @@ namespace NFive.PluginManager.Modules
 						{
 							AutomaticMigrationDataLossAllowed = false,
 							AutomaticMigrationsEnabled = false,
-							CodeGenerator = new NFiveMigrationCodeGenerator(),
+							CodeGenerator = new NFiveMigrationCodeGenerator(props),
 							ContextType = type,
 							ContextKey = @namespace,
 							MigrationsAssembly = asm,
@@ -267,6 +285,12 @@ namespace NFive.PluginManager.Modules
 			protected string targetModel;
 			protected string @namespace;
 			protected string className;
+			protected List<string> excludedModels;
+
+			public NFiveMigrationCodeGenerator(List<string>  excludedModels)
+			{
+				this.excludedModels = excludedModels;
+			}
 
 			public override ScaffoldedMigration Generate(string migrationId, IEnumerable<MigrationOperation> operations, string sourceModel, string targetModel, string @namespace, string className)
 			{
@@ -344,7 +368,7 @@ namespace NFive.PluginManager.Modules
 				base.WriteClassEnd(@namespace, writer);
 			}
 
-			private static IEnumerable<MigrationOperation> FilterMigrationOperations(List<MigrationOperation> operations)
+			private IEnumerable<MigrationOperation> FilterMigrationOperations(List<MigrationOperation> operations)
 			{
 				var dropTable = operations.OfType<DropTableOperation>().ToList();
 				var dropColumns = operations.WhereIn<DropColumnOperation>(dropTable, (op, op2) => op2.Name == op.Table);
@@ -357,6 +381,9 @@ namespace NFive.PluginManager.Modules
 				var addForeignKey = operations.WhereIn<AddForeignKeyOperation>(dropForeignKey, (op, op2) => op2.Name == op.Name && op2.DependentTable == op.DependentTable && op2.PrincipalTable == op.PrincipalTable);
 				var createIndex = operations.WhereIn<CreateIndexOperation>(dropIndex, (op, op2) => op.Table == op2.Table && op.Columns.ItemsEqual(op2.Columns as object));
 				var addPrimaryKey = operations.WhereIn<AddPrimaryKeyOperation>(dropPrimaryKey, (op, op2) => op.Table == op2.Table && op.Columns.ItemsEqual(op2.Columns as object));
+
+				var t = operations.OfType<CreateTableOperation>().Where(op => !this.excludedModels.Contains($"{op.Name}")).ToList();
+
 
 				var exceptions = new IEnumerable<MigrationOperation>[]
 				{
@@ -372,24 +399,13 @@ namespace NFive.PluginManager.Modules
 					createIndex,
 					addPrimaryKey,
 
-					operations.OfType<CreateTableOperation>().Where(op => op.Name == "dbo.Users").ToList(),
-					operations.OfType<CreateTableOperation>().Where(op => op.Name == "dbo.Sessions").ToList(),
-					
-					operations.OfType<AddForeignKeyOperation>().Where(op => op.DependentTable == "dbo.Users").ToList(),
-					operations.OfType<AddForeignKeyOperation>().Where(op => op.DependentTable == "dbo.Sessions").ToList(),
+					operations.OfType<CreateTableOperation>().Where(op => this.excludedModels.Contains($"{op.Name}")).ToList(),
+					operations.OfType<AddForeignKeyOperation>().Where(op => this.excludedModels.Contains($"{op.DependentTable}")).ToList(),
+					operations.OfType<CreateIndexOperation>().Where(op => this.excludedModels.Contains($"{op.Table}")).ToList(),
 
-					operations.OfType<CreateIndexOperation>().Where(op => op.Table == "dbo.Users").ToList(),
-					operations.OfType<CreateIndexOperation>().Where(op => op.Table == "dbo.Sessions").ToList(),
-
-
-					operations.OfType<DropTableOperation>().Where(op => op.Name == "dbo.Users").ToList(),
-					operations.OfType<DropTableOperation>().Where(op => op.Name == "dbo.Sessions").ToList(),
-
-					operations.OfType<DropForeignKeyOperation>().Where(op => op.DependentTable == "dbo.Users").ToList(),
-					operations.OfType<DropForeignKeyOperation>().Where(op => op.DependentTable == "dbo.Sessions").ToList(),
-
-					operations.OfType<DropIndexOperation>().Where(op => op.Table == "dbo.Users").ToList(),
-					operations.OfType<DropIndexOperation>().Where(op => op.Table == "dbo.Sessions").ToList()
+					operations.OfType<DropTableOperation>().Where(op => this.excludedModels.Contains($"{op.Name}")).ToList(),
+					operations.OfType<DropForeignKeyOperation>().Where(op => this.excludedModels.Contains($"{op.DependentTable}")).ToList(),
+					operations.OfType<DropIndexOperation>().Where(op => this.excludedModels.Contains($"{op.Table}")).ToList(),
 				}.SelectMany(o => o).ToList();
 
 				var filteredOperations = operations.Except(exceptions);
