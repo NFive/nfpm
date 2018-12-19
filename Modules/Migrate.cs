@@ -3,6 +3,8 @@ using EnvDTE;
 using EnvDTE100;
 using EnvDTE80;
 using JetBrains.Annotations;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 using NFive.PluginManager.Utilities;
 using NFive.SDK.Server;
 using NFive.SDK.Server.Storage;
@@ -14,24 +16,23 @@ using System.Data.Entity.Migrations;
 using System.Data.Entity.Migrations.Design;
 using System.Data.Entity.Migrations.Model;
 using System.Data.Entity.Migrations.Utilities;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Console = Colorful.Console;
+using ServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;
 
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
-	/// Run or create a NFive database migration.
+	/// Create a NFive database migration.
 	/// </summary>
 	[UsedImplicitly]
-	[Verb("migrate", HelpText = "Run or create a NFive database migration.")]
-	internal partial class Migrate
+	[Verb("migrate", HelpText = "Create a NFive database migration.")]
+	internal class Migrate
 	{
-		private const string DteProgId = "VisualStudio.DTE.15.0";
-		private const string DatabaseProvider = "MySql.Data.MySqlClient";
-
 		[Option("name", Required = true, HelpText = "Migration name.")]
 		public string Name { get; set; } = null;
 
@@ -41,6 +42,7 @@ namespace NFive.PluginManager.Modules
 		[Option("sln", Required = false, HelpText = "Visual Studio SLN solution file.")]
 		public string Sln { get; set; } = null;
 
+		[SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
 		internal async Task<int> Main()
 		{
 			try
@@ -60,16 +62,25 @@ namespace NFive.PluginManager.Modules
 
 			Console.WriteLine("DEBUG: Connecting to Visual Studio...");
 
-			var dte = VisualStudio.GetInstances().FirstOrDefault(env => env.Solution.FileName == this.Sln) ?? (DTE2)Activator.CreateInstance(Type.GetTypeFromProgID(DteProgId, true), true); // TODO: VS version
+			var dte = VisualStudio.GetInstances().FirstOrDefault(env => env.Solution.FileName == this.Sln) ?? (DTE2)Activator.CreateInstance(Type.GetTypeFromProgID("VisualStudio.DTE", true), true); // TODO: VS version
 
 			Console.WriteLine("DEBUG: Opening solution...");
 
-			// ReSharper disable once SuspiciousTypeConversion.Global
-			var solution = (Solution4)dte.Solution;
+			var solution = Retry.Do(() => (Solution4)dte.Solution);
 
-			if (!solution.IsOpen) solution.Open(this.Sln);
+			if (!Retry.Do(() => solution.IsOpen))
+			{
+				using (var serviceProvider = new ServiceProvider((Microsoft.VisualStudio.OLE.Interop.IServiceProvider)dte))
+				using (var solutionEventsListener = new SolutionEventsListener(serviceProvider))
+				{
+					var formClosed = new AsyncEventHandler();
+					solutionEventsListener.AfterSolutionLoaded += formClosed.Handler;
 
-			// TODO: Check saved, dirty
+					Retry.Do(() => solution.Open(this.Sln));
+
+					await Task.WhenAny(formClosed.Event, Task.Delay(TimeSpan.FromSeconds(30)));
+				}
+			}
 
 			Console.WriteLine("DEBUG: Building solution...");
 
@@ -77,10 +88,16 @@ namespace NFive.PluginManager.Modules
 
 			Console.WriteLine("DEBUG: Searching projects...");
 
-			foreach (var project in solution.Projects.Cast<Project>().Where(p => !string.IsNullOrWhiteSpace(p.FullName)))
+			var pp = Retry.Do(() => solution.Projects.Cast<Project>().ToList());
+
+			var ppp = Retry.Do(() => pp.Where(p => !string.IsNullOrWhiteSpace(p.FullName)).ToList());
+
+			foreach (var project in ppp)
 			{
-				var projectPath = Path.GetDirectoryName(project.FullName);
-				var outputPath = Path.Combine(projectPath, project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString(), project.Properties.Item("OutputFileName").Value.ToString());
+				Console.WriteLine($"DEBUG: Analyzing project {Retry.Do(() => project.Name)}...");
+
+				var projectPath = Path.GetDirectoryName(Retry.Do(() => project.FullName));
+				var outputPath = Path.GetFullPath(Path.Combine(projectPath, Retry.Do(() => project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString()), Retry.Do(() => project.Properties.Item("OutputFileName").Value.ToString())));
 
 				Assembly asm = Assembly.Load(File.ReadAllBytes(outputPath));
 				if (asm.GetCustomAttribute<ServerPluginAttribute>() == null) continue;
@@ -88,6 +105,9 @@ namespace NFive.PluginManager.Modules
 				var contextType = asm.DefinedTypes.FirstOrDefault(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == typeof(EFContext<>));
 				if (contextType == default) continue;
 
+				Console.WriteLine($"\tDEBUG: Loaded {outputPath}");
+
+				Console.WriteLine($"\tDEBUG: Found DB context: {contextType.Name}");
 
 				var props = contextType
 					.GetProperties()
@@ -99,6 +119,7 @@ namespace NFive.PluginManager.Modules
 						p.PropertyType.GenericTypeArguments.Any(t => t.Namespace.StartsWith("NFive.SDK."))) // TODO
 					.Select(t => $"dbo.{t.Name}"); // TODO
 
+				Console.WriteLine($"\tDEBUG: Excluding tables: {string.Join(", ", props)}");
 
 				var migrationsPath = "Migrations";
 
@@ -111,6 +132,8 @@ namespace NFive.PluginManager.Modules
 					throw new Exception($"A migration named \"{this.Name}\" already exists at \"{@namespace}.{this.Name}\""); // TODO: Input
 				}
 
+				Console.WriteLine($"\tDEBUG: Generating migration...");
+
 				var migrationsConfiguration = new DbMigrationsConfiguration
 				{
 					AutomaticMigrationDataLossAllowed = false,
@@ -121,7 +144,7 @@ namespace NFive.PluginManager.Modules
 					MigrationsAssembly = asm,
 					MigrationsDirectory = migrationsPath,
 					MigrationsNamespace = @namespace,
-					TargetDatabase = new DbConnectionInfo(this.Database, DatabaseProvider),
+					TargetDatabase = new DbConnectionInfo(this.Database, "MySql.Data.MySqlClient"),
 				};
 
 				var ms = new MigrationScaffolder(migrationsConfiguration);
@@ -131,15 +154,81 @@ namespace NFive.PluginManager.Modules
 
 				File.WriteAllText(Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}"), src.UserCode);
 
+				Console.WriteLine($"Updating project...");
+
 				project.ProjectItems.AddFromFile(Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}"));
 				project.Save();
 			}
+
+			Console.WriteLine("DEBUG: Building solution...");
 
 			solution.SolutionBuild.Build(true);
 
 			Console.WriteLine("Done");
 
 			return await Task.FromResult(0);
+		}
+
+
+		public static class Retry
+		{
+			public static void Do(Action action, uint retryIntervalMs = 1000, int maxAttemptCount = 3)
+			{
+				Do<object>(() =>
+				{
+					action();
+
+					return null;
+				}, TimeSpan.FromMilliseconds(retryIntervalMs), maxAttemptCount);
+			}
+
+			public static void Do(Action action, TimeSpan retryInterval, int maxAttemptCount = 3)
+			{
+				Do<object>(() =>
+				{
+					action();
+
+					return null;
+				}, retryInterval, maxAttemptCount);
+			}
+
+			public static T Do<T>(Func<T> action, uint retryIntervalMs = 1000, int maxAttemptCount = 3)
+			{
+				return Do(action, TimeSpan.FromMilliseconds(retryIntervalMs), maxAttemptCount);
+			}
+
+			public static T Do<T>(Func<T> action, TimeSpan retryInterval, int maxAttemptCount = 3)
+			{
+				var exceptions = new List<Exception>();
+
+				for (var attempted = 0; attempted < maxAttemptCount; attempted++)
+				{
+					try
+					{
+						if (attempted > 0) System.Threading.Thread.Sleep(retryInterval);
+
+						return action();
+					}
+					catch (Exception ex)
+					{
+						exceptions.Add(ex);
+
+						System.Threading.Thread.Sleep(100);
+					}
+				}
+
+				throw new AggregateException(exceptions);
+			}
+		}
+
+
+		public class AsyncEventHandler
+		{
+			private readonly TaskCompletionSource<EventArgs> tcs = new TaskCompletionSource<EventArgs>();
+
+			public EventHandler Handler => (s, a) => this.tcs.SetResult(a);
+
+			public Task<EventArgs> Event => this.tcs.Task;
 		}
 
 
@@ -234,6 +323,65 @@ namespace NFive.PluginManager.Modules
 				};
 
 				return operations.Except(exceptions.SelectMany(o => o));
+			}
+		}
+
+		/// <inheritdoc cref="IVsSolutionEvents" />
+		public class SolutionEventsListener : IVsSolutionEvents, IDisposable
+		{
+			private IVsSolution solution;
+			private uint handle;
+
+			public event EventHandler AfterSolutionLoaded;
+			public event EventHandler BeforeSolutionClosed;
+
+			public SolutionEventsListener(IServiceProvider serviceProvider)
+			{
+				this.solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+				this.solution?.AdviseSolutionEvents(this, out this.handle);
+			}
+
+			int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) => VSConstants.S_OK;
+
+			int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy) => VSConstants.S_OK;
+
+			int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+			{
+				this.AfterSolutionLoaded?.Invoke(this.solution, EventArgs.Empty);
+
+				return VSConstants.S_OK;
+			}
+
+			int IVsSolutionEvents.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel) => VSConstants.S_OK;
+
+			int IVsSolutionEvents.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) => VSConstants.S_OK;
+
+			int IVsSolutionEvents.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel) => VSConstants.S_OK;
+
+			int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy) => VSConstants.S_OK;
+
+			int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel) => VSConstants.S_OK;
+
+			int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
+			{
+				this.BeforeSolutionClosed?.Invoke(this.solution, EventArgs.Empty);
+
+				return VSConstants.S_OK;
+			}
+
+			int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved) => VSConstants.S_OK;
+
+			public void Dispose()
+			{
+				if (this.solution == null || this.handle == 0) return;
+
+				GC.SuppressFinalize(this);
+
+				this.solution.UnadviseSolutionEvents(this.handle);
+				this.AfterSolutionLoaded = null;
+				this.BeforeSolutionClosed = null;
+				this.handle = 0;
+				this.solution = null;
 			}
 		}
 	}
