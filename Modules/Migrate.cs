@@ -13,6 +13,7 @@ using System.Data.Entity.Migrations.Design;
 using System.Data.Entity.Migrations.Model;
 using System.Data.Entity.Migrations.Utilities;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -55,114 +56,143 @@ namespace NFive.PluginManager.Modules
 				return 1;
 			}
 
-			if (!File.Exists(this.Sln)) this.Sln = Directory.EnumerateFiles(Environment.CurrentDirectory, "*.sln", SearchOption.TopDirectoryOnly).FirstOrDefault();
-			if (this.Sln == null || !File.Exists(this.Sln)) this.Sln = Input.String("Visual Studio SLN solution file");
+			DTE dte = null;
 
-			Console.WriteLine("DEBUG: Connecting to Visual Studio...");
-
-			var dte = VisualStudio.GetInstances().FirstOrDefault(env => env.Solution.FileName == this.Sln);
-
-			if (dte == default)
+			try
 			{
-				dte = (DTE)Activator.CreateInstance(Type.GetTypeFromProgID("VisualStudio.DTE", true), true);
+				if (!File.Exists(this.Sln)) this.Sln = Directory.EnumerateFiles(Environment.CurrentDirectory, "*.sln", SearchOption.TopDirectoryOnly).FirstOrDefault();
+				if (this.Sln == null || !File.Exists(this.Sln)) this.Sln = Input.String("Visual Studio SLN solution file");
 
-				this.existingInstance = false;
-			}
+				Console.Write("Searching for existing Visual Studio instance...");
 
-			Console.WriteLine("DEBUG: Opening solution...");
+				dte = VisualStudio.GetInstances().FirstOrDefault(env => env.Solution.FileName == this.Sln);
 
-			var solution = Retry.Do(() => dte.Solution);
-
-			if (!Retry.Do(() => solution.IsOpen)) Retry.Do(() => solution.Open(this.Sln));
-
-			Console.WriteLine("DEBUG: Building solution...");
-
-			solution.SolutionBuild.Build(true); // Required to load DLL
-
-			Console.WriteLine("DEBUG: Searching projects...");
-
-			var pp = Retry.Do(() => solution.Projects.Cast<Project>().ToList());
-
-			var ppp = Retry.Do(() => pp.Where(p => !string.IsNullOrWhiteSpace(p.FullName)).ToList());
-
-			foreach (var project in ppp)
-			{
-				Console.WriteLine($"DEBUG: Analyzing project {Retry.Do(() => project.Name)}...");
-
-				var projectPath = Path.GetDirectoryName(Retry.Do(() => project.FullName)) ?? string.Empty;
-				var outputPath = Path.GetFullPath(Path.Combine(projectPath, Retry.Do(() => project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString()), Retry.Do(() => project.Properties.Item("OutputFileName").Value.ToString())));
-
-				var asm = Assembly.Load(File.ReadAllBytes(outputPath));
-				if (asm.GetCustomAttribute<ServerPluginAttribute>() == null) continue;
-
-				var contextType = asm.DefinedTypes.FirstOrDefault(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == typeof(EFContext<>));
-				if (contextType == default) continue;
-
-				Console.WriteLine($"\tDEBUG: Loaded {outputPath}");
-
-				Console.WriteLine($"\tDEBUG: Found DB context: {contextType.Name}");
-
-				var props = contextType
-					.GetProperties()
-					.Where(p =>
-						p.CanRead &&
-						p.CanWrite &&
-						p.PropertyType.IsGenericType &&
-						p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>) &&
-						p.PropertyType.GenericTypeArguments.Any(t => !string.IsNullOrEmpty(t.Namespace) && t.Namespace.StartsWith("NFive.SDK."))) // TODO
-					.Select(t => $"dbo.{t.Name}") // TODO
-					.ToArray();
-
-				Console.WriteLine($"\tDEBUG: Excluding tables: {string.Join(", ", props)}");
-
-				var migrationsPath = "Migrations";
-
-				if (!Directory.Exists(Path.Combine(projectPath, migrationsPath))) migrationsPath = Input.String("Migration source code folder", "Migrations"); // TODO: Validate
-
-				var @namespace = $"{project.Properties.Item("RootNamespace").Value}.{migrationsPath}";
-
-				if (asm.DefinedTypes.Any(t => t.BaseType != null && t.BaseType == typeof(DbMigration) && t.Namespace == @namespace && t.Name == this.Name))
+				if (dte != default)
 				{
-					throw new Exception($"A migration named \"{this.Name}\" already exists at \"{@namespace}.{this.Name}\"");
+					Console.WriteLine(" found");
+				}
+				else
+				{
+					Console.WriteLine(" not found");
+					Console.WriteLine("Starting new Visual Studio instance...");
+
+					dte = (DTE)Activator.CreateInstance(Type.GetTypeFromProgID("VisualStudio.DTE", true), true);
+
+					this.existingInstance = false;
 				}
 
-				Console.WriteLine("\tDEBUG: Generating migration...");
+				Console.WriteLine("Opening solution");
 
-				var migrationsConfiguration = new DbMigrationsConfiguration
+				var solution = Retry.Do(() => dte.Solution);
+
+				if (!Retry.Do(() => solution.IsOpen)) Retry.Do(() => solution.Open(this.Sln));
+
+				Console.WriteLine("Building solution");
+
+				solution.SolutionBuild.Build(true);
+
+				Console.WriteLine("Searching for projects");
+
+				var pp = Retry.Do(() => solution.Projects.Cast<Project>().ToList());
+
+				var ppp = Retry.Do(() => pp.Where(p => !string.IsNullOrWhiteSpace(p.FullName)).ToList());
+
+				foreach (var project in ppp)
 				{
-					AutomaticMigrationDataLossAllowed = false,
-					AutomaticMigrationsEnabled = false,
-					CodeGenerator = new NFiveMigrationCodeGenerator(props),
-					ContextType = contextType,
-					ContextKey = @namespace,
-					MigrationsAssembly = asm,
-					MigrationsDirectory = migrationsPath,
-					MigrationsNamespace = @namespace,
-					TargetDatabase = new DbConnectionInfo(this.Database, "MySql.Data.MySqlClient"),
-				};
+					Console.WriteLine($"  Analyzing project {Retry.Do(() => project.Name)}...");
 
-				var ms = new MigrationScaffolder(migrationsConfiguration);
-				var src = ms.Scaffold(this.Name, false);
+					var projectPath = Path.GetDirectoryName(Retry.Do(() => project.FullName)) ?? string.Empty;
+					var outputPath = Path.GetFullPath(Path.Combine(projectPath, Retry.Do(() => project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString()), Retry.Do(() => project.Properties.Item("OutputFileName").Value.ToString())));
 
-				Console.WriteLine($"Writing migration: {Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}")}");
+					var asm = Assembly.Load(File.ReadAllBytes(outputPath));
+					if (asm.GetCustomAttribute<ServerPluginAttribute>() == null) continue;
 
-				File.WriteAllText(Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}"), src.UserCode);
+					var contextType = asm.DefinedTypes.FirstOrDefault(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == typeof(EFContext<>));
+					if (contextType == default) continue;
 
-				Console.WriteLine("Updating project...");
+					Console.WriteLine($"    Loaded {outputPath}");
 
-				project.ProjectItems.AddFromFile(Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}"));
-				project.Save();
+					Console.WriteLine($"    Found DB context: {contextType.Name}");
+
+					var props = contextType
+						.GetProperties()
+						.Where(p =>
+							p.CanRead &&
+							p.CanWrite &&
+							p.PropertyType.IsGenericType &&
+							p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>) &&
+							p.PropertyType.GenericTypeArguments.Any(t => !string.IsNullOrEmpty(t.Namespace) && t.Namespace.StartsWith("NFive.SDK."))) // TODO
+						.Select(t => $"dbo.{t.Name}") // TODO
+						.ToArray();
+
+					Console.WriteLine($"    Excluding tables: {string.Join(", ", props)}");
+
+					var migrationsPath = "Migrations";
+
+					if (!Directory.Exists(Path.Combine(projectPath, migrationsPath))) migrationsPath = Input.String("Migration source code folder", "Migrations"); // TODO: Validate
+
+					var @namespace = $"{project.Properties.Item("RootNamespace").Value}.{migrationsPath}";
+
+					if (asm.DefinedTypes.Any(t => t.BaseType != null && t.BaseType == typeof(DbMigration) && t.Namespace == @namespace && t.Name == this.Name))
+					{
+						throw new Exception($"A migration named \"{this.Name}\" already exists at \"{@namespace}.{this.Name}\", please use another migration name.");
+					}
+
+					Console.WriteLine("    Generating migration...");
+
+					var migrationsConfiguration = new DbMigrationsConfiguration
+					{
+						AutomaticMigrationDataLossAllowed = false,
+						AutomaticMigrationsEnabled = false,
+						CodeGenerator = new NFiveMigrationCodeGenerator(props),
+						ContextType = contextType,
+						ContextKey = @namespace,
+						MigrationsAssembly = asm,
+						MigrationsDirectory = migrationsPath,
+						MigrationsNamespace = @namespace,
+						TargetDatabase = new DbConnectionInfo(this.Database, "MySql.Data.MySqlClient"),
+					};
+
+					var ms = new MigrationScaffolder(migrationsConfiguration);
+					var src = ms.Scaffold(this.Name, false);
+
+					var file = Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}");
+
+					Console.WriteLine($"    Writing migration: {file}");
+
+					File.WriteAllText(file, src.UserCode);
+
+					Console.WriteLine("    Updating project...");
+
+					project.ProjectItems.AddFromFile(file);
+					project.Save();
+				}
+
+				Console.WriteLine("Building solution...");
+
+				solution.SolutionBuild.Build(true);
+
+				if (!this.existingInstance)
+				{
+					Console.WriteLine("Quitting Visual Studio instance");
+
+					dte.Quit();
+				}
+
+				Console.WriteLine("Done");
+
+				return await Task.FromResult(0);
 			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message, Color.Red);
 
-			Console.WriteLine("DEBUG: Building solution...");
-
-			solution.SolutionBuild.Build(true);
-
-			if (!this.existingInstance) dte.Quit();
-
-			Console.WriteLine("Done");
-
-			return await Task.FromResult(0);
+				return 1;
+			}
+			finally
+			{
+				if (!this.existingInstance) dte.Quit();
+			}
 		}
 
 		/// <inheritdoc />
