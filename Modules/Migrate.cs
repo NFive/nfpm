@@ -1,10 +1,6 @@
 ﻿using CommandLine;
 using EnvDTE;
-using EnvDTE100;
-using EnvDTE80;
 using JetBrains.Annotations;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
 using NFive.PluginManager.Utilities;
 using NFive.SDK.Server;
 using NFive.SDK.Server.Storage;
@@ -22,7 +18,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Console = Colorful.Console;
-using ServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;
 
 namespace NFive.PluginManager.Modules
 {
@@ -69,28 +64,16 @@ namespace NFive.PluginManager.Modules
 
 			if (dte == default)
 			{
-				dte = (DTE2)Activator.CreateInstance(Type.GetTypeFromProgID("VisualStudio.DTE", true), true);
+				dte = (DTE)Activator.CreateInstance(Type.GetTypeFromProgID("VisualStudio.DTE", true), true);
 
 				this.existingInstance = false;
 			}
 
 			Console.WriteLine("DEBUG: Opening solution...");
 
-			var solution = Retry.Do(() => (Solution4)dte.Solution);
+			var solution = Retry.Do(() => dte.Solution);
 
-			if (!Retry.Do(() => solution.IsOpen))
-			{
-				using (var serviceProvider = new ServiceProvider((Microsoft.VisualStudio.OLE.Interop.IServiceProvider)dte))
-				using (var solutionEventsListener = new SolutionEventsListener(serviceProvider))
-				{
-					var formClosed = new AsyncEventHandler();
-					solutionEventsListener.AfterSolutionLoaded += formClosed.Handler;
-
-					Retry.Do(() => solution.Open(this.Sln));
-
-					await Task.WhenAny(formClosed.Event, Task.Delay(TimeSpan.FromSeconds(30)));
-				}
-			}
+			if (!Retry.Do(() => solution.IsOpen)) Retry.Do(() => solution.Open(this.Sln));
 
 			Console.WriteLine("DEBUG: Building solution...");
 
@@ -106,10 +89,10 @@ namespace NFive.PluginManager.Modules
 			{
 				Console.WriteLine($"DEBUG: Analyzing project {Retry.Do(() => project.Name)}...");
 
-				var projectPath = Path.GetDirectoryName(Retry.Do(() => project.FullName));
+				var projectPath = Path.GetDirectoryName(Retry.Do(() => project.FullName)) ?? string.Empty;
 				var outputPath = Path.GetFullPath(Path.Combine(projectPath, Retry.Do(() => project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString()), Retry.Do(() => project.Properties.Item("OutputFileName").Value.ToString())));
 
-				Assembly asm = Assembly.Load(File.ReadAllBytes(outputPath));
+				var asm = Assembly.Load(File.ReadAllBytes(outputPath));
 				if (asm.GetCustomAttribute<ServerPluginAttribute>() == null) continue;
 
 				var contextType = asm.DefinedTypes.FirstOrDefault(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == typeof(EFContext<>));
@@ -134,7 +117,7 @@ namespace NFive.PluginManager.Modules
 
 				var migrationsPath = "Migrations";
 
-				if (!Directory.Exists(Path.Combine(projectPath ?? string.Empty, migrationsPath))) migrationsPath = Input.String("Migration source code folder", "Migrations"); // TODO: Validate
+				if (!Directory.Exists(Path.Combine(projectPath, migrationsPath))) migrationsPath = Input.String("Migration source code folder", "Migrations"); // TODO: Validate
 
 				var @namespace = $"{project.Properties.Item("RootNamespace").Value}.{migrationsPath}";
 
@@ -161,13 +144,13 @@ namespace NFive.PluginManager.Modules
 				var ms = new MigrationScaffolder(migrationsConfiguration);
 				var src = ms.Scaffold(this.Name, false);
 
-				Console.WriteLine($"Writing migration: {Path.Combine(projectPath ?? string.Empty, migrationsPath, $"{src.MigrationId}.{src.Language}")}");
+				Console.WriteLine($"Writing migration: {Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}")}");
 
-				File.WriteAllText(Path.Combine(projectPath ?? string.Empty, migrationsPath, $"{src.MigrationId}.{src.Language}"), src.UserCode);
+				File.WriteAllText(Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}"), src.UserCode);
 
 				Console.WriteLine("Updating project...");
 
-				project.ProjectItems.AddFromFile(Path.Combine(projectPath ?? string.Empty, migrationsPath, $"{src.MigrationId}.{src.Language}"));
+				project.ProjectItems.AddFromFile(Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}"));
 				project.Save();
 			}
 
@@ -273,65 +256,6 @@ namespace NFive.PluginManager.Modules
 				};
 
 				return operations.Except(exceptions.SelectMany(o => o));
-			}
-		}
-
-		/// <inheritdoc cref="IVsSolutionEvents" />
-		public class SolutionEventsListener : IVsSolutionEvents, IDisposable
-		{
-			private IVsSolution solution;
-			private uint handle;
-
-			public event EventHandler AfterSolutionLoaded;
-			public event EventHandler BeforeSolutionClosed;
-
-			public SolutionEventsListener(IServiceProvider serviceProvider)
-			{
-				this.solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
-				this.solution?.AdviseSolutionEvents(this, out this.handle);
-			}
-
-			int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) => VSConstants.S_OK;
-
-			int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy) => VSConstants.S_OK;
-
-			int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
-			{
-				this.AfterSolutionLoaded?.Invoke(this.solution, EventArgs.Empty);
-
-				return VSConstants.S_OK;
-			}
-
-			int IVsSolutionEvents.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel) => VSConstants.S_OK;
-
-			int IVsSolutionEvents.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) => VSConstants.S_OK;
-
-			int IVsSolutionEvents.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel) => VSConstants.S_OK;
-
-			int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy) => VSConstants.S_OK;
-
-			int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel) => VSConstants.S_OK;
-
-			int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
-			{
-				this.BeforeSolutionClosed?.Invoke(this.solution, EventArgs.Empty);
-
-				return VSConstants.S_OK;
-			}
-
-			int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved) => VSConstants.S_OK;
-
-			public void Dispose()
-			{
-				if (this.solution == null || this.handle == 0) return;
-
-				GC.SuppressFinalize(this);
-
-				this.solution.UnadviseSolutionEvents(this.handle);
-				this.AfterSolutionLoaded = null;
-				this.BeforeSolutionClosed = null;
-				this.handle = 0;
-				this.solution = null;
 			}
 		}
 	}

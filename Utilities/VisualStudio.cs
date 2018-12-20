@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
-using EnvDTE80;
+using EnvDTE;
 
 namespace NFive.PluginManager.Utilities
 {
@@ -16,7 +16,7 @@ namespace NFive.PluginManager.Utilities
 		// ReSharper disable once IdentifierTypo
 		private static extern int GetRunningObjectTable(int reserved, out IRunningObjectTable prot);
 
-		public static IEnumerable<DTE2> GetInstances()
+		public static IEnumerable<DTE> GetInstances()
 		{
 			if (GetRunningObjectTable(0, out var rot) != 0) yield break;
 
@@ -34,7 +34,7 @@ namespace NFive.PluginManager.Utilities
 
 				rot.GetObject(moniker[0], out var obj);
 
-				yield return (DTE2)obj;
+				yield return (DTE)obj;
 			}
 		}
 	}
