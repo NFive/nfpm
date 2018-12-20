@@ -33,6 +33,8 @@ namespace NFive.PluginManager.Modules
 	[Verb("migrate", HelpText = "Create a NFive database migration.")]
 	internal class Migrate
 	{
+		private bool existingInstance = true;
+
 		[Option("name", Required = true, HelpText = "Migration name.")]
 		public string Name { get; set; } = null;
 
@@ -40,9 +42,10 @@ namespace NFive.PluginManager.Modules
 		public string Database { get; set; } = null;
 
 		[Option("sln", Required = false, HelpText = "Visual Studio SLN solution file.")]
-		public string Sln { get; set; } = null;
+		public string Sln { get; set; }
 
 		[SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
+		[SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
 		internal async Task<int> Main()
 		{
 			try
@@ -62,7 +65,14 @@ namespace NFive.PluginManager.Modules
 
 			Console.WriteLine("DEBUG: Connecting to Visual Studio...");
 
-			var dte = VisualStudio.GetInstances().FirstOrDefault(env => env.Solution.FileName == this.Sln) ?? (DTE2)Activator.CreateInstance(Type.GetTypeFromProgID("VisualStudio.DTE", true), true); // TODO: VS version
+			var dte = VisualStudio.GetInstances().FirstOrDefault(env => env.Solution.FileName == this.Sln);
+
+			if (dte == default)
+			{
+				dte = (DTE2)Activator.CreateInstance(Type.GetTypeFromProgID("VisualStudio.DTE", true), true);
+
+				this.existingInstance = false;
+			}
 
 			Console.WriteLine("DEBUG: Opening solution...");
 
@@ -116,23 +126,24 @@ namespace NFive.PluginManager.Modules
 						p.CanWrite &&
 						p.PropertyType.IsGenericType &&
 						p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>) &&
-						p.PropertyType.GenericTypeArguments.Any(t => t.Namespace.StartsWith("NFive.SDK."))) // TODO
-					.Select(t => $"dbo.{t.Name}"); // TODO
+						p.PropertyType.GenericTypeArguments.Any(t => !string.IsNullOrEmpty(t.Namespace) && t.Namespace.StartsWith("NFive.SDK."))) // TODO
+					.Select(t => $"dbo.{t.Name}") // TODO
+					.ToArray();
 
 				Console.WriteLine($"\tDEBUG: Excluding tables: {string.Join(", ", props)}");
 
 				var migrationsPath = "Migrations";
 
-				if (!Directory.Exists(Path.Combine(projectPath, migrationsPath))) throw new Exception("Migrations dir"); // TODO: Input
+				if (!Directory.Exists(Path.Combine(projectPath ?? string.Empty, migrationsPath))) migrationsPath = Input.String("Migration source code folder", "Migrations"); // TODO: Validate
 
 				var @namespace = $"{project.Properties.Item("RootNamespace").Value}.{migrationsPath}";
 
 				if (asm.DefinedTypes.Any(t => t.BaseType != null && t.BaseType == typeof(DbMigration) && t.Namespace == @namespace && t.Name == this.Name))
 				{
-					throw new Exception($"A migration named \"{this.Name}\" already exists at \"{@namespace}.{this.Name}\""); // TODO: Input
+					throw new Exception($"A migration named \"{this.Name}\" already exists at \"{@namespace}.{this.Name}\"");
 				}
 
-				Console.WriteLine($"\tDEBUG: Generating migration...");
+				Console.WriteLine("\tDEBUG: Generating migration...");
 
 				var migrationsConfiguration = new DbMigrationsConfiguration
 				{
@@ -150,13 +161,13 @@ namespace NFive.PluginManager.Modules
 				var ms = new MigrationScaffolder(migrationsConfiguration);
 				var src = ms.Scaffold(this.Name, false);
 
-				Console.WriteLine($"Writing migration: {Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}")}");
+				Console.WriteLine($"Writing migration: {Path.Combine(projectPath ?? string.Empty, migrationsPath, $"{src.MigrationId}.{src.Language}")}");
 
-				File.WriteAllText(Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}"), src.UserCode);
+				File.WriteAllText(Path.Combine(projectPath ?? string.Empty, migrationsPath, $"{src.MigrationId}.{src.Language}"), src.UserCode);
 
-				Console.WriteLine($"Updating project...");
+				Console.WriteLine("Updating project...");
 
-				project.ProjectItems.AddFromFile(Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}"));
+				project.ProjectItems.AddFromFile(Path.Combine(projectPath ?? string.Empty, migrationsPath, $"{src.MigrationId}.{src.Language}"));
 				project.Save();
 			}
 
@@ -164,73 +175,12 @@ namespace NFive.PluginManager.Modules
 
 			solution.SolutionBuild.Build(true);
 
+			if (!this.existingInstance) dte.Quit();
+
 			Console.WriteLine("Done");
 
 			return await Task.FromResult(0);
 		}
-
-
-		public static class Retry
-		{
-			public static void Do(Action action, uint retryIntervalMs = 1000, int maxAttemptCount = 3)
-			{
-				Do<object>(() =>
-				{
-					action();
-
-					return null;
-				}, TimeSpan.FromMilliseconds(retryIntervalMs), maxAttemptCount);
-			}
-
-			public static void Do(Action action, TimeSpan retryInterval, int maxAttemptCount = 3)
-			{
-				Do<object>(() =>
-				{
-					action();
-
-					return null;
-				}, retryInterval, maxAttemptCount);
-			}
-
-			public static T Do<T>(Func<T> action, uint retryIntervalMs = 1000, int maxAttemptCount = 3)
-			{
-				return Do(action, TimeSpan.FromMilliseconds(retryIntervalMs), maxAttemptCount);
-			}
-
-			public static T Do<T>(Func<T> action, TimeSpan retryInterval, int maxAttemptCount = 3)
-			{
-				var exceptions = new List<Exception>();
-
-				for (var attempted = 0; attempted < maxAttemptCount; attempted++)
-				{
-					try
-					{
-						if (attempted > 0) System.Threading.Thread.Sleep(retryInterval);
-
-						return action();
-					}
-					catch (Exception ex)
-					{
-						exceptions.Add(ex);
-
-						System.Threading.Thread.Sleep(100);
-					}
-				}
-
-				throw new AggregateException(exceptions);
-			}
-		}
-
-
-		public class AsyncEventHandler
-		{
-			private readonly TaskCompletionSource<EventArgs> tcs = new TaskCompletionSource<EventArgs>();
-
-			public EventHandler Handler => (s, a) => this.tcs.SetResult(a);
-
-			public Task<EventArgs> Event => this.tcs.Task;
-		}
-
 
 		/// <inheritdoc />
 		public class NFiveMigrationCodeGenerator : CSharpMigrationCodeGenerator
