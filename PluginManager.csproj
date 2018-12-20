@@ -50,8 +50,10 @@
     <Compile Include="Models\DefinitionGraph.cs" />
     <Compile Include="Models\VersionRange.cs" />
     <Compile Include="Models\Version.cs" />
+    <Compile Include="Utilities\AsyncEventHandler.cs" />
     <Compile Include="Modules\Rcon.cs" />
     <Compile Include="Modules\CleanCache.cs" />
+    <Compile Include="Utilities\Retry.cs" />
     <Compile Include="Modules\SelfUpdate.cs" />
     <Compile Include="Modules\Setup.cs" />
     <Compile Include="Modules\Scaffold.cs" />
@@ -70,6 +72,7 @@
     <Compile Include="Rcon.cs" />
     <Compile Include="ResourceGenerator.cs" />
     <Compile Include="ResourceString.cs" />
+    <Compile Include="Utilities\VisualStudio.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Colorful.Console, Version=1.2.9.0, Culture=neutral, processorArchitecture=MSIL">
@@ -87,10 +90,9 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <SpecificVersion>False</SpecificVersion>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-      <HintPath>C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\PublicAssemblies\envdte.dll</HintPath>
+    <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>packages\EnvDTE.8.0.2\lib\net10\EnvDTE.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="Google.Protobuf, Version=3.5.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
       <HintPath>packages\Google.Protobuf.3.5.1\lib\net45\Google.Protobuf.dll</HintPath>
@@ -109,8 +111,8 @@
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NFive.SDK.Client.net, Version=0.1.0.17, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\NFive.SDK.Client.0.1.0.17\lib\net452\NFive.SDK.Client.net.dll</HintPath>
+    <Reference Include="NFive.SDK.Client.net, Version=0.1.0.18, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NFive.SDK.Client.0.1.0.18\lib\net452\NFive.SDK.Client.net.dll</HintPath>
     </Reference>
     <Reference Include="NFive.SDK.Core.net, Version=0.1.0.22, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\NFive.SDK.Core.0.1.0.22\lib\net452\NFive.SDK.Core.net.dll</HintPath>
@@ -124,8 +126,8 @@
     <Reference Include="Octokit, Version=0.32.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Octokit.0.32.0\lib\net45\Octokit.dll</HintPath>
     </Reference>
-    <Reference Include="Scriban, Version=1.2.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Scriban.1.2.7\lib\net40\Scriban.dll</HintPath>
+    <Reference Include="Scriban, Version=1.2.8.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Scriban.1.2.8\lib\net40\Scriban.dll</HintPath>
     </Reference>
     <Reference Include="SemVer, Version=1.2.0.0, Culture=neutral, PublicKeyToken=a89bb7dc6f7a145c, processorArchitecture=MSIL">
       <HintPath>packages\SemanticVersioning.1.2.0\lib\net45\SemVer.dll</HintPath>

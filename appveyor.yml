@@ -1,25 +1,42 @@
-version: 0.1.0.{build}
+version: "{build}"
 
 image: Visual Studio 2017
 configuration: Release
 platform: Any CPU
 clone_depth: 1
 
-branches:
-  only:
-  - master
-
 cache:
 - packages -> **\packages.config
 
-test: off
+install:
+- ps: >-
+    $env:BUILD_VERSION = Select-String -Path Properties\AssemblyInfo.cs -Pattern 'AssemblyFileVersion\(\"(.*)\"\)' | %{ $_.Matches[0].Groups[1].Value }
+
+    If ($env:APPVEYOR_REPO_TAG -eq $true) {
+      $env:BUILD_VERSION = $env:APPVEYOR_REPO_TAG_NAME.TrimStart("v")
+    }
+
+    $env:BUILD_VERSION_FILE = "$env:BUILD_VERSION.$env:APPVEYOR_BUILD_NUMBER"
+
+    $version = $env:BUILD_VERSION -split '-'
+
+    $env:BUILD_VERSION_FRIENDLY = $version[0] -replace "(\.0)$"
+
+    If ($version[1]) {
+      $env:BUILD_VERSION_FILE = "$($version[0]).$env:APPVEYOR_BUILD_NUMBER-$($version[1])"
+
+      $end = (Get-Culture).TextInfo.ToTitleCase($version[1].Replace("rc", "RC"))
+      $env:BUILD_VERSION_FRIENDLY += " " + $end -replace "([a-z]+)(\d+)",'$1 $2'
+    }
+
+    Update-AppveyorBuild -Version $env:BUILD_VERSION_FILE
 
 assembly_info:
   patch: true
   file: Properties\AssemblyInfo.cs
-  assembly_version: "{version}"
-  assembly_file_version: "{version}"
-  assembly_informational_version: "{version}"
+  assembly_version: $(BUILD_VERSION)
+  assembly_file_version: $(BUILD_VERSION_FILE)
+  assembly_informational_version: $(BUILD_VERSION_FRIENDLY)
 
 before_build:
 - cmd: nuget restore
@@ -32,8 +49,16 @@ after_build:
 - cmd: >-
     nuget install ILRepack -ExcludeVersion
 
-    ILRepack\tools\ILRepack.exe --ndebug --parallel --wildcards bin\Release\nfpm.exe bin\Release\*.dll --out:bin\Release\nfpm.exe
+    ILRepack\tools\ILRepack.exe --ndebug --parallel --wildcards bin\Release\nfpm.exe bin\Release\*.dll --out:nfpm.exe
 
 artifacts:
-- path: 'bin\Release\nfpm.exe'
-  name: 'nfpm'
+- path: nfpm.exe
+
+deploy:
+  release: $(APPVEYOR_REPO_TAG_NAME)
+  provider: GitHub
+  auth_token:
+    secure: 11Aj9GejhzBxJlpQAwmcgJKINliGVNQ/mWTTFZCylmKiwglzys7hWxRZiRfT7INp
+  on:
+    branch: master
+    APPVEYOR_REPO_TAG: true
