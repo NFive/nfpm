@@ -40,7 +40,7 @@ namespace NFive.PluginManager.Modules
 		[Option("shared", Required = false, HelpText = "Generate shared plugin library.")]
 		public bool? Shared { get; set; } = null;
 
-		[Value(0, Default = "NFive/skeleton-plugin-server", Required = false, HelpText = "Location of skeleton files, can be a local or remote zip file, local directory or Github short link (user/repo#branch).")]
+		[Value(0, Default = "NFive/skeleton-plugin-default", Required = false, HelpText = "Location of skeleton files, can be a local or remote zip file, local directory or Github short link (user/repo#branch).")]
 		public string Source { get; set; }
 
 		internal async Task<int> Main()
