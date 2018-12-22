@@ -29,6 +29,8 @@ install:
       $env:BUILD_VERSION_FRIENDLY += " " + $end -replace "([a-z]+)(\d+)",'$1 $2'
     }
 
+    $env:BUILD_VERSION_FRIENDLY += " Build $env:APPVEYOR_BUILD_NUMBER"
+
     Update-AppveyorBuild -Version $env:BUILD_VERSION_FILE
 
 assembly_info:
