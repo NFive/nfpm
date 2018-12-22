@@ -33,5 +33,10 @@ namespace NFive.PluginManager.Modules
 
 			return await Task.FromResult(0);
 		}
+
+		internal static void Cleanup()
+		{
+			File.Delete($"{Path.GetFullPath(Process.GetCurrentProcess().MainModule.FileName)}.old");
+		}
 	}
 }

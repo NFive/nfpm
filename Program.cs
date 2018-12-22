@@ -25,7 +25,7 @@ namespace NFive.PluginManager
 			try
 			{
 				// Remove old copy of self after an update
-				File.Delete("nfpm.exe.old");
+				SelfUpdate.Cleanup();
 			}
 			catch
 			{
