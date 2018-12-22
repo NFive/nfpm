@@ -55,6 +55,19 @@ namespace NFive.PluginManager.Modules
 
 				return 1;
 			}
+			
+			AppDomain.CurrentDomain.AssemblyResolve += (object sender, ResolveEventArgs args) =>
+			{
+				var fileName = args.Name.Substring(0, args.Name.IndexOf(",", StringComparison.InvariantCultureIgnoreCase)) + ".dll";
+
+				if (File.Exists(fileName)) return Assembly.LoadFrom(fileName);
+
+				var path = Directory.EnumerateFiles("plugins", "*.dll", SearchOption.AllDirectories).FirstOrDefault(f => Path.GetFileName(f) == fileName);
+
+				if (string.IsNullOrEmpty(path)) throw new FileLoadException(args.Name);
+
+				return Assembly.LoadFrom(path);
+			};
 
 			DTE dte = null;
 
