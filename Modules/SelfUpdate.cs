@@ -23,7 +23,7 @@ namespace NFive.PluginManager.Modules
 
 			using (var client = new WebClient())
 			{
-				var data = await client.DownloadDataTaskAsync("https://ci.appveyor.com/api/projects/NFive/nfpm/artifacts/bin/Release/nfpm.exe?branch=master");
+				var data = await client.DownloadDataTaskAsync("https://ci.appveyor.com/api/projects/NFive/nfpm/artifacts/nfpm.exe?branch=master");
 
 				File.Delete($"{file}.old");
 				File.Move(file, $"{file}.old");
