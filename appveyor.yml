@@ -47,14 +47,8 @@ build:
   project: PluginManager.sln
   verbosity: minimal
 
-after_build:
-- cmd: >-
-    nuget install ILRepack -ExcludeVersion
-
-    ILRepack\tools\ILRepack.exe --ndebug --parallel --wildcards bin\Release\nfpm.exe bin\Release\*.dll --out:nfpm.exe
-
 artifacts:
-- path: nfpm.exe
+- path: bin\Release\nfpm.exe
 
 deploy:
   release: $(APPVEYOR_REPO_TAG_NAME)

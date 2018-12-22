@@ -55,9 +55,11 @@ namespace NFive.PluginManager.Modules
 
 				return 1;
 			}
-			
+
 			AppDomain.CurrentDomain.AssemblyResolve += (object sender, ResolveEventArgs args) =>
 			{
+				if (args.Name.Contains(".resources")) return null;
+
 				var fileName = args.Name.Substring(0, args.Name.IndexOf(",", StringComparison.InvariantCultureIgnoreCase)) + ".dll";
 
 				if (File.Exists(fileName)) return Assembly.Load(File.ReadAllBytes(fileName));
