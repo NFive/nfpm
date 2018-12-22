@@ -60,13 +60,13 @@ namespace NFive.PluginManager.Modules
 			{
 				var fileName = args.Name.Substring(0, args.Name.IndexOf(",", StringComparison.InvariantCultureIgnoreCase)) + ".dll";
 
-				if (File.Exists(fileName)) return Assembly.LoadFrom(fileName);
+				if (File.Exists(fileName)) return Assembly.Load(File.ReadAllBytes(fileName));
 
 				var path = Directory.EnumerateFiles("plugins", "*.dll", SearchOption.AllDirectories).FirstOrDefault(f => Path.GetFileName(f) == fileName);
 
 				if (string.IsNullOrEmpty(path)) throw new FileLoadException(args.Name);
 
-				return Assembly.LoadFrom(path);
+				return Assembly.Load(File.ReadAllBytes(path));
 			};
 
 			DTE dte = null;
