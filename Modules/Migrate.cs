@@ -198,6 +198,13 @@ namespace NFive.PluginManager.Modules
 
 				return await Task.FromResult(0);
 			}
+			catch (ReflectionTypeLoadException ex)
+			{
+				Console.WriteLine(ex.Message, Color.Red);
+				Console.WriteLine(string.Join(Environment.NewLine, ex.LoaderExceptions.Select(e => e.Message)), Color.Red);
+
+				return 1;
+			}
 			catch (Exception ex)
 			{
 				Console.WriteLine(ex.Message, Color.Red);
