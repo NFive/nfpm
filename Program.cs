@@ -1,10 +1,9 @@
-﻿using System;
+﻿using CommandLine;
+using NFive.PluginManager.Modules;
+using System;
 using System.Drawing;
-using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using CommandLine;
-using NFive.PluginManager.Modules;
 using Console = Colorful.Console;
 
 namespace NFive.PluginManager
@@ -14,6 +13,15 @@ namespace NFive.PluginManager
 	/// </summary>
 	public static class Program
 	{
+		/// <summary>
+		/// Initializes the <see cref="Program"/> class.
+		/// </summary>
+		static Program()
+		{
+			// Load embedded resources
+			CosturaUtility.Initialize();
+		}
+
 		/// <summary>
 		/// Application entry-point.
 		/// </summary>
