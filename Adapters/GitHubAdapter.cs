@@ -1,13 +1,13 @@
-﻿using System;
+using Ionic.Zip;
+using NFive.SDK.Core.Plugins;
+using NFive.SDK.Plugins.Configuration;
+using Octokit;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Ionic.Zip;
-using NFive.SDK.Core.Plugins;
-using NFive.SDK.Plugins.Configuration;
-using Octokit;
 using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Adapters

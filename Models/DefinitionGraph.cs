@@ -1,4 +1,4 @@
-﻿using NFive.PluginManager.Adapters;
+using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Extensions;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;

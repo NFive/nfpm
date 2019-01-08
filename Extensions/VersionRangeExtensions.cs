@@ -1,4 +1,4 @@
-﻿using NFive.SDK.Core.Plugins;
+using NFive.SDK.Core.Plugins;
 using SemVer;
 
 namespace NFive.PluginManager.Extensions

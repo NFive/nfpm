@@ -1,6 +1,6 @@
-﻿using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
+using System.Threading.Tasks;
 
 namespace NFive.PluginManager.Modules
 {

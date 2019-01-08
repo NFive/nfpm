@@ -1,4 +1,4 @@
-﻿using NFive.PluginManager.Models;
+using NFive.PluginManager.Models;
 using NFive.SDK.Plugins.Configuration;
 using System;
 using System.Collections.Generic;

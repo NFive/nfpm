@@ -1,4 +1,4 @@
-﻿using CommandLine;
+using CommandLine;
 using JetBrains.Annotations;
 using System.Diagnostics;
 using System.Drawing;
@@ -20,7 +20,7 @@ namespace NFive.PluginManager.Modules
 
 		[Option('w', "window", Default = false, Required = false, HelpText = "Start server in separate window.")]
 		public bool Window { get; set; } = false;
-		
+
 		internal async Task<int> Main()
 		{
 			using (this.process = new Process
@@ -36,7 +36,7 @@ namespace NFive.PluginManager.Modules
 			})
 			{
 				Console.WriteLine("Starting server...", Color.Green);
-				
+
 				if (this.Window)
 				{
 					this.process.Start();

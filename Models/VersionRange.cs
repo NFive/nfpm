@@ -1,4 +1,4 @@
-﻿namespace NFive.PluginManager.Models
+namespace NFive.PluginManager.Models
 {
 	public class VersionRange : SDK.Core.Plugins.VersionRange
 	{

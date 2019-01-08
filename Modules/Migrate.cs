@@ -1,4 +1,4 @@
-﻿using CommandLine;
+using CommandLine;
 using EnvDTE;
 using JetBrains.Annotations;
 using NFive.PluginManager.Utilities;

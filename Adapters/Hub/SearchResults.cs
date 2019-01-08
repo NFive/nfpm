@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
 using JetBrains.Annotations;
+using System;
+using System.Collections.Generic;
 using Version = NFive.PluginManager.Models.Version;
 
 namespace NFive.PluginManager.Adapters.Hub

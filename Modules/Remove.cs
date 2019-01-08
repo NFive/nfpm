@@ -1,11 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Console = Colorful.Console;
 using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
 using Plugin = NFive.SDK.Plugins.Plugin;

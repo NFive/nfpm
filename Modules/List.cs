@@ -1,13 +1,13 @@
-﻿using System;
-using System.Drawing;
-using System.IO;
-using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.SDK.Plugins.Configuration;
+using System;
+using System.Drawing;
+using System.IO;
+using System.Threading.Tasks;
 using Console = Colorful.Console;
-using Plugin = NFive.SDK.Plugins.Plugin;
 using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
+using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Modules
 {
@@ -37,7 +37,7 @@ namespace NFive.PluginManager.Modules
 			}
 
 			DefinitionGraph graph;
-			
+
 			try
 			{
 				graph = DefinitionGraph.Load();
@@ -57,7 +57,7 @@ namespace NFive.PluginManager.Modules
 
 				return 1;
 			}
-			
+
 			Console.WriteLine($"{definition.FullName}");
 
 			foreach (var graphPlugin in graph.Plugins)

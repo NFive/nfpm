@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Console = Colorful.Console;
 
 namespace NFive.PluginManager
@@ -16,7 +16,7 @@ namespace NFive.PluginManager
 
 			return input;
 		}
-		
+
 		public static string String(string prompt, string @default, Func<string, bool> validator)
 		{
 			var input = String(prompt, @default);

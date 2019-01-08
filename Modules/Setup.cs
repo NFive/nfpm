@@ -1,4 +1,4 @@
-﻿using CommandLine;
+using CommandLine;
 using Ionic.Zip;
 using JetBrains.Annotations;
 using NFive.SDK.Plugins.Configuration;
@@ -186,7 +186,7 @@ namespace NFive.PluginManager.Modules
 					Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
 					File.WriteAllBytes(cacheFile, data);
 				}
-				
+
 				Console.WriteLine("Installing FiveM server...");
 
 				Directory.CreateDirectory(path);

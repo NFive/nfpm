@@ -1,4 +1,4 @@
-﻿using CommandLine;
+using CommandLine;
 using NFive.PluginManager.Modules;
 using System;
 using System.Drawing;

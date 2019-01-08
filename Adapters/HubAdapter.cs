@@ -1,7 +1,9 @@
-﻿using Ionic.Zip;
+using Ionic.Zip;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NFive.PluginManager.Adapters.Hub;
+using NFive.PluginManager.Extensions;
+using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using System;
 using System.Collections.Generic;
@@ -9,8 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using NFive.PluginManager.Extensions;
-using NFive.SDK.Core.Plugins;
 using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Adapters
@@ -60,7 +60,7 @@ namespace NFive.PluginManager.Adapters
 
 				return;
 			}
-			
+
 			var releases = await GetReleases();
 			var release = releases.First(r => r.Version.ToString() == version.ToString());
 			var file = Path.Combine(targetDir.FullName, Path.GetFileName(release.DownloadUrl));

@@ -1,7 +1,7 @@
-﻿using System;
+using NFive.SDK.Plugins.Configuration;
+using System;
 using System.IO;
 using System.Linq;
-using NFive.SDK.Plugins.Configuration;
 
 namespace NFive.PluginManager
 {

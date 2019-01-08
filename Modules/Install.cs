@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Models;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Console = Colorful.Console;
 using Plugin = NFive.SDK.Plugins.Plugin;
 
@@ -144,7 +144,7 @@ namespace NFive.PluginManager.Modules
 						return 1;
 					}
 				}
-				
+
 				if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
 
 				if (definition.Dependencies.ContainsKey(name))

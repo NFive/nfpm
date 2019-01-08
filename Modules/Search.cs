@@ -1,6 +1,7 @@
-﻿using Colorful;
+using Colorful;
 using CommandLine;
 using JetBrains.Annotations;
+using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Extensions;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using NFive.PluginManager.Adapters;
 using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules

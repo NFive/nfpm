@@ -1,4 +1,4 @@
-﻿using CommandLine;
+using CommandLine;
 using Ionic.Zip;
 using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;

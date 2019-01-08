@@ -1,6 +1,6 @@
-﻿using System;
-using System.IO;
 using NFive.SDK.Plugins.Configuration;
+using System;
+using System.IO;
 
 namespace NFive.PluginManager
 {

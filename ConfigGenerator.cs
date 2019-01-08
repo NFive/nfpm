@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -21,7 +21,7 @@ namespace NFive.PluginManager
 		public ushort MaxPlayers { get; set; } = 32;
 
 		public bool ScriptHookAllowed { get; set; } = false;
-		
+
 		public List<string> Tags { get; set; } = new List<string> { "nfive" };
 
 		[SuppressMessage("ReSharper", "StringLiteralTypo")]

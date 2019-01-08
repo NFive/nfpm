@@ -1,12 +1,12 @@
-﻿using CommandLine;
+using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
+using NFive.SDK.Plugins.Configuration;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using NFive.SDK.Plugins.Configuration;
 using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
@@ -24,7 +24,7 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine($"Current directory: {cd}");
 
 			Console.WriteLine();
-			
+
 			// NFPM
 
 			var nfpm = Process.GetCurrentProcess().MainModule;

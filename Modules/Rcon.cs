@@ -1,13 +1,13 @@
-﻿using System;
+using CommandLine;
+using JetBrains.Annotations;
+using NFive.PluginManager.Extensions;
+using System;
 using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using CommandLine;
-using JetBrains.Annotations;
 using System.Threading.Tasks;
 using Console = Colorful.Console;
-using NFive.PluginManager.Extensions;
 
 namespace NFive.PluginManager.Modules
 {
