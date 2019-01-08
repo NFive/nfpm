@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="packages\Costura.Fody.3.2.1\build\Costura.Fody.props" Condition="Exists('packages\Costura.Fody.3.2.1\build\Costura.Fody.props')" />
+  <Import Project="packages\Costura.Fody.3.3.0\build\Costura.Fody.props" Condition="Exists('packages\Costura.Fody.3.3.0\build\Costura.Fody.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -84,8 +84,8 @@
     <Reference Include="CommandLine, Version=2.3.0.0, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
       <HintPath>packages\CommandLineParser.2.3.0\lib\net45\CommandLine.dll</HintPath>
     </Reference>
-    <Reference Include="Costura, Version=3.2.1.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
-      <HintPath>packages\Costura.Fody.3.2.1\lib\net40\Costura.dll</HintPath>
+    <Reference Include="Costura, Version=3.3.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
+      <HintPath>packages\Costura.Fody.3.3.0\lib\net40\Costura.dll</HintPath>
     </Reference>
     <Reference Include="DotNetZip, Version=1.13.0.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
       <HintPath>packages\DotNetZip.1.13.0\lib\net40\DotNetZip.dll</HintPath>
@@ -117,17 +117,17 @@
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NFive.SDK.Client.net, Version=0.1.0.23, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\NFive.SDK.Client.0.1.0.23\lib\net452\NFive.SDK.Client.net.dll</HintPath>
+    <Reference Include="NFive.SDK.Client.net, Version=0.1.0.24, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NFive.SDK.Client.0.1.0.24\lib\net452\NFive.SDK.Client.net.dll</HintPath>
     </Reference>
-    <Reference Include="NFive.SDK.Core.net, Version=0.1.0.30, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\NFive.SDK.Core.0.1.0.30\lib\net452\NFive.SDK.Core.net.dll</HintPath>
+    <Reference Include="NFive.SDK.Core.net, Version=0.1.0.32, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NFive.SDK.Core.0.1.0.32\lib\net452\NFive.SDK.Core.net.dll</HintPath>
     </Reference>
-    <Reference Include="NFive.SDK.Plugins, Version=0.1.0.18, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\NFive.SDK.Plugins.0.1.0.18\lib\net452\NFive.SDK.Plugins.dll</HintPath>
+    <Reference Include="NFive.SDK.Plugins, Version=0.1.0.19, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NFive.SDK.Plugins.0.1.0.19\lib\net452\NFive.SDK.Plugins.dll</HintPath>
     </Reference>
-    <Reference Include="NFive.SDK.Server.net, Version=0.1.0.24, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\NFive.SDK.Server.0.1.0.24\lib\net452\NFive.SDK.Server.net.dll</HintPath>
+    <Reference Include="NFive.SDK.Server.net, Version=0.1.0.25, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NFive.SDK.Server.0.1.0.25\lib\net452\NFive.SDK.Server.net.dll</HintPath>
     </Reference>
     <Reference Include="Octokit, Version=0.32.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Octokit.0.32.0\lib\net45\Octokit.dll</HintPath>
@@ -152,12 +152,12 @@
     <Content Include="FodyWeavers.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="packages\Fody.3.3.5\build\Fody.targets" Condition="Exists('packages\Fody.3.3.5\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('packages\Costura.Fody.3.2.1\build\Costura.Fody.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Costura.Fody.3.2.1\build\Costura.Fody.props'))" />
-    <Error Condition="!Exists('packages\Fody.3.3.4\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Fody.3.3.4\build\Fody.targets'))" />
+    <Error Condition="!Exists('packages\Fody.3.3.5\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Fody.3.3.5\build\Fody.targets'))" />
+    <Error Condition="!Exists('packages\Costura.Fody.3.3.0\build\Costura.Fody.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Costura.Fody.3.3.0\build\Costura.Fody.props'))" />
   </Target>
-  <Import Project="packages\Fody.3.3.4\build\Fody.targets" Condition="Exists('packages\Fody.3.3.4\build\Fody.targets')" />
 </Project>
