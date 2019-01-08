@@ -78,20 +78,19 @@ namespace NFive.PluginManager.Models
 
 				new DirectoryInfo(src).Copy(dst);
 
-				if (Directory.Exists(configSrc))
-				{
-					Directory.CreateDirectory(configDst);
+				if (!Directory.Exists(configSrc)) continue;
 
-					foreach (var yml in Directory.EnumerateFiles(configSrc, "*.yml", SearchOption.TopDirectoryOnly))
+				Directory.CreateDirectory(configDst);
+
+				foreach (var yml in Directory.EnumerateFiles(configSrc, "*.yml", SearchOption.TopDirectoryOnly))
+				{
+					try
 					{
-						try
-						{
-							File.Copy(yml, Path.Combine(configDst, Path.GetFileName(yml)), false);
-						}
-						catch (Exception ex)
-						{
-							Console.WriteLine(ex.Message, Color.Yellow);
-						}
+						File.Copy(yml, Path.Combine(configDst, Path.GetFileName(yml)), false);
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine(ex.Message, Color.Yellow);
 					}
 				}
 			}
@@ -99,7 +98,7 @@ namespace NFive.PluginManager.Models
 			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) DeleteDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"));
 		}
 
-		private async Task StageDefinition(Plugin definition)
+		private static async Task StageDefinition(SDK.Core.Plugins.Plugin definition)
 		{
 			foreach (var dependency in definition.Dependencies ?? new Dictionary<Name, SDK.Core.Plugins.VersionRange>())
 			{
@@ -126,7 +125,7 @@ namespace NFive.PluginManager.Models
 			}
 		}
 
-		private static List<Plugin> Sort(List<Plugin> plugins)
+		private static List<Plugin> Sort(IEnumerable<Plugin> plugins)
 		{
 			var results = new List<Plugin>();
 

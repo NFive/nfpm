@@ -53,7 +53,6 @@
     <Compile Include="Models\DefinitionGraph.cs" />
     <Compile Include="Models\VersionRange.cs" />
     <Compile Include="Models\Version.cs" />
-    <Compile Include="Utilities\AsyncEventHandler.cs" />
     <Compile Include="Modules\Rcon.cs" />
     <Compile Include="Modules\CleanCache.cs" />
     <Compile Include="Utilities\Retry.cs" />

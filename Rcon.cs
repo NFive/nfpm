@@ -58,14 +58,11 @@ namespace NFive.PluginManager
 			{
 				var completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
 
-				if (completedTask == task)
-				{
-					timeoutCancellationTokenSource.Cancel();
+				if (completedTask != task) throw new TimeoutException("The command has timed out.");
 
-					return await task;
-				}
+				timeoutCancellationTokenSource.Cancel();
 
-				throw new TimeoutException("The command has timed out.");
+				return await task;
 			}
 		}
 

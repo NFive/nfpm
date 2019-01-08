@@ -23,9 +23,7 @@ namespace NFive.PluginManager.Extensions
 
 		public static string TrimEnd(this string target, string trimString)
 		{
-			if (!target.EndsWith(trimString)) return target;
-
-			return target.Remove(target.LastIndexOf(trimString, StringComparison.CurrentCulture));
+			return !target.EndsWith(trimString) ? target : target.Remove(target.LastIndexOf(trimString, StringComparison.CurrentCulture));
 		}
 
 		public static string Truncate(this string value, int length, string truncationString = "...")

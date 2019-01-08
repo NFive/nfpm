@@ -31,7 +31,7 @@ namespace NFive.PluginManager.Modules
 					RedirectStandardOutput = !this.Window,
 					RedirectStandardError = !this.Window,
 					ErrorDialog = false,
-					WorkingDirectory = PathManager.FindServer(),
+					WorkingDirectory = PathManager.FindServer()
 				}
 			})
 			{

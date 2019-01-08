@@ -14,3 +14,6 @@ indent_size = 2
 
 [*.{csproj,config}]
 insert_final_newline = false
+
+[*.{csproj,sln.DotSettings}]
+charset = utf-8-bom

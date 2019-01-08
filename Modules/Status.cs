@@ -96,7 +96,7 @@ namespace NFive.PluginManager.Modules
 			return await Task.FromResult(0);
 		}
 
-		private string FindServer()
+		private static string FindServer()
 		{
 			try
 			{
@@ -108,7 +108,7 @@ namespace NFive.PluginManager.Modules
 			}
 		}
 
-		private string FindResource()
+		private static string FindResource()
 		{
 			try
 			{
@@ -120,7 +120,7 @@ namespace NFive.PluginManager.Modules
 			}
 		}
 
-		private string GetServerVersion(string serverPath)
+		private static string GetServerVersion(string serverPath)
 		{
 			try
 			{
@@ -132,7 +132,7 @@ namespace NFive.PluginManager.Modules
 			}
 		}
 
-		private string Relative(string path, string cd)
+		private static string Relative(string path, string cd)
 		{
 			var res = path.TrimStart(cd);
 
@@ -140,15 +140,13 @@ namespace NFive.PluginManager.Modules
 			{
 				return @".\";
 			}
-			else
-			{
-				if (res == path)
-				{
-					return res;
-				}
 
-				return "." + res;
+			if (res == path)
+			{
+				return res;
 			}
+
+			return "." + res;
 		}
 	}
 }

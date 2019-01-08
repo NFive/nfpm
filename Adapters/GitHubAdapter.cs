@@ -74,7 +74,7 @@ namespace NFive.PluginManager.Adapters
 		/// <summary>
 		/// Gets the GitHub API client.
 		/// </summary>
-		private GitHubClient GetClient()
+		private static GitHubClient GetClient()
 		{
 			return new GitHubClient(new ProductHeaderValue("nfpm"));
 		}

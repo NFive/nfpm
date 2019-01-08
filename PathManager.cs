@@ -39,6 +39,8 @@ namespace NFive.PluginManager
 		public static bool IsResource()
 		{
 			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.LockFile))) return false;
+
+			// ReSharper disable once ConvertIfStatementToReturnStatement
 			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.DefinitionFile))) return false;
 
 			return File.Exists(Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, $"..{Path.DirectorySeparatorChar}", $"..{Path.DirectorySeparatorChar}", ServerFile)));

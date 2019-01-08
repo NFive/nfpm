@@ -56,7 +56,7 @@ namespace NFive.PluginManager.Modules
 				return 1;
 			}
 
-			AppDomain.CurrentDomain.AssemblyResolve += (object sender, ResolveEventArgs args) =>
+			AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
 			{
 				if (args.Name.Contains(".resources")) return null;
 
@@ -165,7 +165,7 @@ namespace NFive.PluginManager.Modules
 						MigrationsAssembly = asm,
 						MigrationsDirectory = migrationsPath,
 						MigrationsNamespace = @namespace,
-						TargetDatabase = new DbConnectionInfo(this.Database, "MySql.Data.MySqlClient"),
+						TargetDatabase = new DbConnectionInfo(this.Database, "MySql.Data.MySqlClient")
 					};
 
 					var ms = new MigrationScaffolder(migrationsConfiguration);
