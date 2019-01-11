@@ -158,11 +158,11 @@ namespace NFive.PluginManager.Modules
 			using (var client = new WebClient())
 			{
 				var page = await client.DownloadStringTaskAsync("https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/");
-				var regex = new Regex("href=\"(\\d{3})-([^\"]*)/\"", RegexOptions.IgnoreCase);
-				var versions = new List<Tuple<string, string>>();
+				var regex = new Regex("href=\"(\\d+)-([a-f0-9]{40})/\"", RegexOptions.IgnoreCase);
+				var versions = new List<Tuple<uint, string>>();
 				for (var match = regex.Match(page); match.Success; match = match.NextMatch())
 				{
-					versions.Add(new Tuple<string, string>(match.Groups[1].Value, match.Groups[2].Value));
+					versions.Add(new Tuple<uint, string>(uint.Parse(match.Groups[1].Value), match.Groups[2].Value));
 				}
 
 				var latest = versions.Max();
@@ -197,7 +197,7 @@ namespace NFive.PluginManager.Modules
 					zip.ExtractAll(path, ExtractExistingFileAction.OverwriteSilently);
 				}
 
-				File.WriteAllText(Path.Combine(path, "version"), latest.Item1);
+				File.WriteAllText(Path.Combine(path, "version"), latest.Item1.ToString());
 			}
 
 			Console.WriteLine();
