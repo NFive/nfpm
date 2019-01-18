@@ -25,7 +25,9 @@ install:
     $env:BUILD_VERSION_FRIENDLY = $version[0] -replace "(\.0)$"
 
     If ($version[1]) {
-      Update-AppveyorBuild -Version "$($version[0]).$env:APPVEYOR_BUILD_NUMBER-$($version[1])"
+      $env:BUILD_VERSION_FILE = "$($version[0]).$env:APPVEYOR_BUILD_NUMBER"
+
+      Update-AppveyorBuild -Version "$env:BUILD_VERSION_FILE-$($version[1])"
 
       $end = (Get-Culture).TextInfo.ToTitleCase($version[1].Replace("rc", "RC"))
       $env:BUILD_VERSION_FRIENDLY += " " + $end -replace "([a-z]+)(\d+)",'$1 $2'
