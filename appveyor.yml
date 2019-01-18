@@ -17,21 +17,20 @@ install:
     }
 
     $env:BUILD_VERSION_FILE = "$env:BUILD_VERSION.$env:APPVEYOR_BUILD_NUMBER"
+    Update-AppveyorBuild -Version $env:BUILD_VERSION_FILE
 
     $version = $env:BUILD_VERSION -split '-'
 
     $env:BUILD_VERSION_FRIENDLY = $version[0] -replace "(\.0)$"
 
     If ($version[1]) {
-      $env:BUILD_VERSION_FILE = "$($version[0]).$env:APPVEYOR_BUILD_NUMBER-$($version[1])"
+      Update-AppveyorBuild -Version "$($version[0]).$env:APPVEYOR_BUILD_NUMBER-$($version[1])"
 
       $end = (Get-Culture).TextInfo.ToTitleCase($version[1].Replace("rc", "RC"))
       $env:BUILD_VERSION_FRIENDLY += " " + $end -replace "([a-z]+)(\d+)",'$1 $2'
     }
 
     $env:BUILD_VERSION_FRIENDLY += " Build $env:APPVEYOR_BUILD_NUMBER"
-
-    Update-AppveyorBuild -Version $env:BUILD_VERSION_FILE
 
 assembly_info:
   patch: true
@@ -71,4 +70,4 @@ for:
       secure: piTpGhOfvdvWqMnPTWkLyuX/b1lHDazzSWt37UbgqUHCAdfsEb+0exY7AUnYzT7Z
 
   deploy_script:
-  - curl -s -w "\n" -T "bin\Release\nfpm.exe" -u"%BT_USER%:%BT_KEY%" "https://api.bintray.com/content/nfive/nfpm/nfpm/%APPVEYOR_BUILD_VERSION%/%APPVEYOR_BUILD_VERSION%/nfpm.exe?publish=1"
+  - curl -s -w "\n" -T "bin\Release\nfpm.exe" -u"%BT_USER%:%BT_KEY%" "https://api.bintray.com/content/nfive/nfpm/nfpm/%BUILD_VERSION_FILE%/%BUILD_VERSION_FILE%/nfpm.exe?publish=1"
