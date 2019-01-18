@@ -1,5 +1,7 @@
 using CommandLine;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -17,13 +19,42 @@ namespace NFive.PluginManager.Modules
 	{
 		internal async Task<int> Main()
 		{
-			var file = Path.GetFullPath(Process.GetCurrentProcess().MainModule.FileName);
+			var module = Process.GetCurrentProcess().MainModule;
+			var file = Path.GetFullPath(module.FileName);
+			var name = Path.GetFileName(module.FileName);
 
-			Console.WriteLine("Downloading latest nfpm...");
+			Console.WriteLine($"Currently running {name} {module.FileVersionInfo.FileVersion}");
+			Console.WriteLine("Checking for updates...");
+
+			string version;
 
 			using (var client = new WebClient())
 			{
-				var data = await client.DownloadDataTaskAsync("https://ci.appveyor.com/api/projects/NFive/nfpm/artifacts/bin/Release/nfpm.exe?branch=master");
+				var data = await client.DownloadStringTaskAsync("https://bintray.com/api/v1/packages/nfive/nfpm/nfpm/versions/_latest");
+
+				dynamic json = JsonConvert.DeserializeObject(data, new JsonSerializerSettings
+				{
+					ContractResolver = new DefaultContractResolver
+					{
+						NamingStrategy = new SnakeCaseNamingStrategy()
+					}
+				});
+
+				version = json.name.ToString();
+			}
+
+			if (version == module.FileVersionInfo.FileVersion)
+			{
+				Console.WriteLine($"{name} is up to date");
+
+				return 0;
+			}
+
+			Console.WriteLine($"Updating {name} to {version}...");
+
+			using (var client = new WebClient())
+			{
+				var data = await client.DownloadDataTaskAsync($"https://dl.bintray.com/nfive/nfpm/{version}/nfpm.exe");
 
 				File.Delete($"{file}.old");
 				File.Move(file, $"{file}.old");
@@ -31,7 +62,9 @@ namespace NFive.PluginManager.Modules
 				File.WriteAllBytes(file, data);
 			}
 
-			return await Task.FromResult(0);
+			Console.WriteLine("Update successful");
+
+			return 0;
 		}
 
 		internal static void Cleanup()
