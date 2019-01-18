@@ -41,7 +41,7 @@ assembly_info:
   assembly_informational_version: $(BUILD_VERSION_FRIENDLY)
 
 before_build:
-- cmd: nuget restore
+- nuget restore
 
 build:
   project: PluginManager.sln
@@ -51,21 +51,24 @@ artifacts:
 - path: bin\Release\nfpm.exe
 
 deploy:
-- provider: BinTray
-  username:
-    secure: WeKwDVyYUZltHMzCsNlq5w==
-  api_key:
-    secure: piTpGhOfvdvWqMnPTWkLyuX/b1lHDazzSWt37UbgqUHCAdfsEb+0exY7AUnYzT7Z
-  subject: nfive
-  repo: nfpm
-  package: nfpm
-  publish: true
-  on:
-    branch: master
 - provider: GitHub
   release: $(APPVEYOR_REPO_TAG_NAME)
   auth_token:
     secure: 11Aj9GejhzBxJlpQAwmcgJKINliGVNQ/mWTTFZCylmKiwglzys7hWxRZiRfT7INp
   on:
-    branch: master
     APPVEYOR_REPO_TAG: true
+
+for:
+-
+  branches:
+    only:
+      - master
+
+  environment:
+    BT_USER:
+      secure: WeKwDVyYUZltHMzCsNlq5w==
+    BT_KEY:
+      secure: piTpGhOfvdvWqMnPTWkLyuX/b1lHDazzSWt37UbgqUHCAdfsEb+0exY7AUnYzT7Z
+
+  deploy_script:
+  - curl -s -w "\n" -T "bin\Release\nfpm.exe" -u"%BT_USER%:%BT_KEY%" "https://api.bintray.com/content/nfive/nfpm/nfpm/%APPVEYOR_BUILD_VERSION%/%APPVEYOR_BUILD_VERSION%/nfpm.exe?publish=1"
