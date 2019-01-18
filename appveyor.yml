@@ -17,6 +17,7 @@ install:
     }
 
     $env:BUILD_VERSION_FILE = "$env:BUILD_VERSION.$env:APPVEYOR_BUILD_NUMBER"
+
     Update-AppveyorBuild -Version $env:BUILD_VERSION_FILE
 
     $version = $env:BUILD_VERSION -split '-'
