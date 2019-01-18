@@ -51,8 +51,19 @@ artifacts:
 - path: bin\Release\nfpm.exe
 
 deploy:
+- provider: BinTray
+  username:
+    secure: WeKwDVyYUZltHMzCsNlq5w==
+  api_key:
+    secure: piTpGhOfvdvWqMnPTWkLyuX/b1lHDazzSWt37UbgqUHCAdfsEb+0exY7AUnYzT7Z
+  subject: nfive
+  repo: nfpm
+  package: nfpm
+  publish: true
+  on:
+    branch: master
+- provider: GitHub
   release: $(APPVEYOR_REPO_TAG_NAME)
-  provider: GitHub
   auth_token:
     secure: 11Aj9GejhzBxJlpQAwmcgJKINliGVNQ/mWTTFZCylmKiwglzys7hWxRZiRfT7INp
   on:
