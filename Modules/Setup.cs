@@ -167,51 +167,46 @@ namespace NFive.PluginManager.Modules
 
 				var latest = versions.Max();
 
-				var cacheFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", $"fivem_server_{latest.Item1}.zip");
+				await Install(path, "FiveM server", latest.Item1.ToString(), "fivem_server", $"https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/{latest.Item1}-{latest.Item2}/server.zip");
+
+				File.WriteAllText(Path.Combine(path, "version"), latest.Item1.ToString());
+			}
+		}
+
+		private static async Task InstallNFive(string path)
+		{
+			Console.WriteLine("Finding latest NFive version...");
+
+			var version = (await Adapters.Bintray.Version.Get("nfive/NFive/NFive")).Name;
+			
+			await Install(path, "NFive", version, "nfive", $"https://dl.bintray.com/nfive/NFive/{version}/nfive.zip");
+		}
+
+		private static async Task Install(string path, string name, string version, string cacheName, string url)
+		{
+			using (var client = new WebClient())
+			{
+				var cacheFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", $"{cacheName}_{version}.zip");
 
 				byte[] data;
 
 				if (File.Exists(cacheFile))
 				{
-					Console.WriteLine($"Reading FiveM server v{latest.Item1} from cache...");
+					Console.WriteLine($"Reading {name} v{version} from cache...");
 
 					data = File.ReadAllBytes(cacheFile);
 				}
 				else
 				{
-					Console.WriteLine($"Downloading FiveM server v{latest.Item1}...");
+					Console.WriteLine($"Downloading {name} v{version}...");
 
-					data = await client.DownloadDataTaskAsync($"https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/{latest.Item1}-{latest.Item2}/server.zip");
+					data = await client.DownloadDataTaskAsync($"{url}");
 
 					Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
 					File.WriteAllBytes(cacheFile, data);
 				}
 
-				Console.WriteLine("Installing FiveM server...");
-
-				Directory.CreateDirectory(path);
-
-				using (var stream = new MemoryStream(data))
-				using (var zip = ZipFile.Read(stream))
-				{
-					zip.ExtractAll(path, ExtractExistingFileAction.OverwriteSilently);
-				}
-
-				File.WriteAllText(Path.Combine(path, "version"), latest.Item1.ToString());
-			}
-
-			Console.WriteLine();
-		}
-
-		private static async Task InstallNFive(string path)
-		{
-			Console.WriteLine("Downloading NFive...");
-
-			using (var client = new WebClient())
-			{
-				var data = await client.DownloadDataTaskAsync("https://ci.appveyor.com/api/projects/NFive/nfive/artifacts/nfive.zip?branch=master");
-
-				Console.WriteLine("Installing NFive...");
+				Console.WriteLine($"Installing {name}...");
 
 				Directory.CreateDirectory(path);
 

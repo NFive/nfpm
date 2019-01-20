@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using NFive.PluginManager.Adapters.Bintray;
 using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
@@ -26,22 +27,7 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine($"Currently running {name} {module.FileVersionInfo.FileVersion}");
 			Console.WriteLine("Checking for updates...");
 
-			string version;
-
-			using (var client = new WebClient())
-			{
-				var data = await client.DownloadStringTaskAsync("https://bintray.com/api/v1/packages/nfive/nfpm/nfpm/versions/_latest");
-
-				dynamic json = JsonConvert.DeserializeObject(data, new JsonSerializerSettings
-				{
-					ContractResolver = new DefaultContractResolver
-					{
-						NamingStrategy = new SnakeCaseNamingStrategy()
-					}
-				});
-
-				version = json.name.ToString();
-			}
+			var version = (await Version.Get("nfive/nfpm/nfpm")).Name;
 
 			if (version == module.FileVersionInfo.FileVersion)
 			{

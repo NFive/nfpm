@@ -41,6 +41,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Adapters\AdapterBuilder.cs" />
+    <Compile Include="Adapters\Bintray\Version.cs" />
     <Compile Include="Adapters\HubAdapter.cs" />
     <Compile Include="Adapters\GitHubAdapter.cs" />
     <Compile Include="Adapters\Hub\SearchResults.cs" />
