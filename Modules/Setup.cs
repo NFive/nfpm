@@ -178,7 +178,7 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine("Finding latest NFive version...");
 
 			var version = (await Adapters.Bintray.Version.Get("nfive/NFive/NFive")).Name;
-			
+
 			await Install(path, "NFive", version, "nfive", $"https://dl.bintray.com/nfive/NFive/{version}/nfive.zip");
 		}
 
@@ -210,10 +210,30 @@ namespace NFive.PluginManager.Modules
 
 				Directory.CreateDirectory(path);
 
+				var skip = new []
+				{
+					"server.cfg",
+					"__resource.lua",
+					"nfive.yml",
+					"nfive.lock",
+					"config/nfive.yml",
+					"config/database.yml"
+				};
+
 				using (var stream = new MemoryStream(data))
 				using (var zip = ZipFile.Read(stream))
 				{
-					zip.ExtractAll(path, ExtractExistingFileAction.OverwriteSilently);
+					foreach (var entry in zip)
+					{
+						var action = ExtractExistingFileAction.OverwriteSilently;
+
+						if (skip.Contains(entry.FileName) && File.Exists(Path.Combine(path, entry.FileName)))
+						{
+							action = ExtractExistingFileAction.DoNotOverwrite;
+						}
+
+						entry.Extract(path, action);
+					}
 				}
 			}
 
