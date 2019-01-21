@@ -6,7 +6,7 @@ platform: Any CPU
 clone_depth: 1
 
 cache:
-- packages -> **\packages.config
+- packages -> packages.config
 
 install:
 - ps: >-
