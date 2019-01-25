@@ -1,6 +1,9 @@
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using Octokit;
+using SharpCompress.Archives;
+using SharpCompress.Archives.Zip;
+using SharpCompress.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -62,9 +65,9 @@ namespace NFive.PluginManager.Adapters
 				await client.DownloadFileTaskAsync(asset.BrowserDownloadUrl, file);
 			}
 
-			using (var zip = ZipFile.Read(file))
+			using (var zip = ZipArchive.Open(file))
 			{
-				zip.ExtractAll(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project), ExtractExistingFileAction.OverwriteSilently);
+				zip.WriteToDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project), new ExtractionOptions { Overwrite = true });
 			}
 
 			File.Delete(file);

@@ -2,6 +2,9 @@ using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
 using Scriban;
+using SharpCompress.Archives;
+using SharpCompress.Archives.Zip;
+using SharpCompress.Common;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -223,20 +226,20 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine("Extracting plugin skeleton...");
 
 			using (var stream = new MemoryStream(data))
-			using (var zip = ZipFile.Read(stream))
+			using (var zip = ZipArchive.Open(stream))
 			{
-				var topLevelFiles = zip.EntriesSorted.Count(e => !e.IsDirectory && e.FileName.Count(c => c == '/') == 0);
-				var topLevelDirs = zip.EntriesSorted.Count(e => e.IsDirectory && e.FileName.Count(c => c == '/') == 1);
+				var topLevelFiles = zip.Entries.Count(e => !e.IsDirectory && e.Key.Count(c => c == '/') == 0);
+				var topLevelDirs = zip.Entries.Count(e => e.IsDirectory && e.Key.Count(c => c == '/') == 1);
 
 				Directory.CreateDirectory(directory);
 
 				if (topLevelFiles == 0 && topLevelDirs == 1)
 				{
-					var topLevel = zip.EntriesSorted.First(e => e.IsDirectory && e.FileName.Count(c => c == '/') == 1);
+					var topLevel = zip.Entries.First(e => e.IsDirectory && e.Key.Count(c => c == '/') == 1);
 
-					foreach (var e in zip.EntriesSorted.Where(e => e.FileName != topLevel.FileName))
+					foreach (var e in zip.Entries.Where(e => e.Key != topLevel.Key))
 					{
-						var newPath = Path.Combine(directory, e.FileName.Replace(topLevel.FileName, ""));
+						var newPath = Path.Combine(directory, e.Key.Replace(topLevel.Key, ""));
 
 						if (e.IsDirectory)
 						{
@@ -246,14 +249,14 @@ namespace NFive.PluginManager.Modules
 						{
 							using (var file = new FileStream(newPath, FileMode.Create))
 							{
-								e.Extract(file);
+								e.WriteTo(file);
 							}
 						}
 					}
 				}
 				else
 				{
-					zip.ExtractAll(directory, ExtractExistingFileAction.OverwriteSilently);
+					zip.WriteToDirectory(directory, new ExtractionOptions { Overwrite = true });
 				}
 			}
 		}
