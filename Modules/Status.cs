@@ -3,7 +3,6 @@ using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
 using NFive.SDK.Plugins.Configuration;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -26,12 +25,12 @@ namespace NFive.PluginManager.Modules
 
 			// NFPM
 
-			var nfpm = Process.GetCurrentProcess().MainModule;
+			var nfpm = Assembly.GetEntryAssembly();
 
 			Console.WriteLine("NFPM:");
-			Console.WriteLine($"-- Path: {Relative(Path.GetDirectoryName(nfpm.FileName), cd)}");
-			Console.WriteLine($"-- Binary: {Relative(nfpm.FileName, cd)}");
-			Console.WriteLine($"-- Version: {nfpm.FileVersionInfo.FileVersion}");
+			Console.WriteLine($"-- Path: {Relative(Path.GetDirectoryName(nfpm.Location), cd)}");
+			Console.WriteLine($"-- Binary: {Relative(nfpm.Location, cd)}");
+			Console.WriteLine($"-- Version: {((AssemblyFileVersionAttribute)Attribute.GetCustomAttribute(nfpm, typeof(AssemblyFileVersionAttribute), false)).Version}");
 
 			Console.WriteLine();
 
