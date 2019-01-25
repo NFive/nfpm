@@ -1,5 +1,4 @@
 using CommandLine;
-using Ionic.Zip;
 using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
 using Scriban;
@@ -11,7 +10,6 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
 {

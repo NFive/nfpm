@@ -5,7 +5,6 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
 using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
 using Plugin = NFive.SDK.Plugins.Plugin;
 

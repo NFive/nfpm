@@ -1,4 +1,3 @@
-using Ionic.Zip;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NFive.PluginManager.Adapters.Hub;

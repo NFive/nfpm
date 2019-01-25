@@ -4,7 +4,7 @@ using System;
 using System.Drawing;
 using System.Net;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
+using NFive.PluginManager.Utilities;
 
 namespace NFive.PluginManager
 {
@@ -42,8 +42,16 @@ namespace NFive.PluginManager
 
 			try
 			{
-				// Required to connect to github.com, default TLS 1.1 won't do
-				ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+				NetworkUtilities.ConfigureSupportedSslProtocols();
+			}
+			catch
+			{
+				// ignored
+			}
+
+			try
+			{
+				NetworkUtilities.SetConnectionLimit();
 			}
 			catch
 			{
@@ -88,7 +96,7 @@ namespace NFive.PluginManager
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("An unhandled application error has occured:", Color.Red);
+				Console.WriteLine("An unhandled application error has occured:");
 				Console.WriteLine(ex.Message);
 				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message);
 

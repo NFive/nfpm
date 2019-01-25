@@ -9,7 +9,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
 using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Modules

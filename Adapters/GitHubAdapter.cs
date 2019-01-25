@@ -1,4 +1,3 @@
-using Ionic.Zip;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using Octokit;

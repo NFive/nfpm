@@ -1,3 +1,4 @@
+using System;
 using CommandLine;
 using JetBrains.Annotations;
 using System.Diagnostics;
@@ -5,7 +6,6 @@ using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
 {

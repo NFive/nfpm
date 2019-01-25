@@ -1,13 +1,11 @@
+using System;
 using CommandLine;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using NFive.PluginManager.Adapters.Bintray;
-using Console = Colorful.Console;
+using Version = NFive.PluginManager.Adapters.Bintray.Version;
 
 namespace NFive.PluginManager.Modules
 {
