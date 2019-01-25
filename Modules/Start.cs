@@ -1,6 +1,7 @@
-using System;
 using CommandLine;
 using JetBrains.Annotations;
+using NFive.PluginManager.Utilities;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -25,7 +26,7 @@ namespace NFive.PluginManager.Modules
 		{
 			using (this.process = new Process
 			{
-				StartInfo = new ProcessStartInfo(Path.Combine(PathManager.FindServer(), PathManager.ServerFile), $"+set citizen_dir citizen +exec {PathManager.ConfigFile}")
+				StartInfo = new ProcessStartInfo(Path.Combine(PathManager.FindServer(), RuntimeEnvironment.IsWindows ? PathManager.ServerFileWindows : PathManager.ServerFileLinux), $"+set citizen_dir citizen +exec {PathManager.ConfigFile}")
 				{
 					UseShellExecute = this.Window,
 					RedirectStandardOutput = !this.Window,

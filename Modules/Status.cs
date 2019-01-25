@@ -1,6 +1,7 @@
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
+using NFive.PluginManager.Utilities;
 using NFive.SDK.Plugins.Configuration;
 using System;
 using System.IO;
@@ -49,7 +50,7 @@ namespace NFive.PluginManager.Modules
 				Console.WriteLine();
 				Console.WriteLine($"-- Path: {Relative(server, cd)}");
 
-				var binary = Path.Combine(server, "FXServer.exe");
+				var binary = Path.Combine(server, RuntimeEnvironment.IsWindows ? PathManager.ServerFileWindows : PathManager.ServerFileLinux);
 				Console.Write("-- Binary: ");
 				Console.WriteLine(File.Exists(binary) ? Relative(binary, cd) : "MISSING");
 
