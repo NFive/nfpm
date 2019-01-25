@@ -1,7 +1,9 @@
 using CommandLine;
-using Ionic.Zip;
 using JetBrains.Annotations;
+using NFive.PluginManager.Utilities;
 using NFive.SDK.Plugins.Configuration;
+using SharpCompress.Common;
+using SharpCompress.Readers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +11,6 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
 using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Modules
@@ -91,14 +92,15 @@ namespace NFive.PluginManager.Modules
 					RconPassword = string.IsNullOrWhiteSpace(this.RconPassword) ? Regex.Replace(Input.String("RCON password", "<disabled>"), "^<disabled>$", string.Empty) : this.RconPassword
 				};
 
-				Directory.CreateDirectory(this.Location);
+				Directory.CreateDirectory(RuntimeEnvironment.IsWindows ? this.Location : Path.Combine(this.Location, "alpine", "opt", "cfx-server"));
 
-				config.Serialize(Path.Combine(this.Location, PathManager.ConfigFile));
+				config.Serialize(Path.Combine(this.Location, RuntimeEnvironment.IsWindows ? PathManager.ConfigFile : Path.Combine("alpine", "opt", "cfx-server", PathManager.ConfigFile)));
 
 				if (!this.FiveM.HasValue) Console.WriteLine();
 
 				await InstallFiveM(this.Location);
 
+				if (!RuntimeEnvironment.IsWindows) this.Location = Path.Combine(this.Location, "alpine", "opt", "cfx-server");
 				this.Location = Path.Combine(this.Location, "resources", "nfive");
 			}
 
@@ -153,11 +155,16 @@ namespace NFive.PluginManager.Modules
 
 		private static async Task InstallFiveM(string path)
 		{
-			Console.WriteLine("Finding latest FiveM Windows server version...");
+			var platformName = RuntimeEnvironment.IsWindows ? "Windows" : "Linux";
+			var platformUrl = RuntimeEnvironment.IsWindows ? "build_server_windows" : "build_proot_linux";
+			var platformFile = RuntimeEnvironment.IsWindows ? "server.zip" : "fx.tar.xz";
+			var platformPath = RuntimeEnvironment.IsWindows ? Path.Combine(path) : Path.Combine(path, "alpine", "opt", "cfx-server");
+
+			Console.WriteLine($"Finding latest FiveM {platformName} server version...");
 
 			using (var client = new WebClient())
 			{
-				var page = await client.DownloadStringTaskAsync("https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/");
+				var page = await client.DownloadStringTaskAsync($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
 				var regex = new Regex("href=\"(\\d+)-([a-f0-9]{40})/\"", RegexOptions.IgnoreCase);
 				var versions = new List<Tuple<uint, string>>();
 				for (var match = regex.Match(page); match.Success; match = match.NextMatch())
@@ -167,9 +174,11 @@ namespace NFive.PluginManager.Modules
 
 				var latest = versions.Max();
 
-				await Install(path, "FiveM server", latest.Item1.ToString(), "fivem_server", $"https://runtime.fivem.net/artifacts/fivem/build_server_windows/master/{latest.Item1}-{latest.Item2}/server.zip");
+				var platformCache = RuntimeEnvironment.IsWindows ? $"fivem_server_{latest.Item1}.zip" : $"fivem_server_{latest.Item1}.tar.xz";
 
-				File.WriteAllText(Path.Combine(path, "version"), latest.Item1.ToString());
+				await Install(path, $"FiveM {platformName} server", latest.Item1.ToString(), platformCache, $"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/{latest.Item1}-{latest.Item2}/{platformFile}");
+
+				File.WriteAllText(Path.Combine(platformPath, "version"), latest.Item1.ToString());
 			}
 		}
 
@@ -186,7 +195,7 @@ namespace NFive.PluginManager.Modules
 		{
 			using (var client = new WebClient())
 			{
-				var cacheFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", $"{cacheName}_{version}.zip");
+				var cacheFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", cacheName);
 
 				byte[] data;
 
@@ -200,7 +209,7 @@ namespace NFive.PluginManager.Modules
 				{
 					Console.WriteLine($"Downloading {name} v{version}...");
 
-					data = await client.DownloadDataTaskAsync($"{url}");
+					data = await client.DownloadDataTaskAsync(url);
 
 					Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
 					File.WriteAllBytes(cacheFile, data);
@@ -210,7 +219,7 @@ namespace NFive.PluginManager.Modules
 
 				Directory.CreateDirectory(path);
 
-				var skip = new []
+				var skip = new[]
 				{
 					"server.cfg",
 					"__resource.lua",
@@ -221,18 +230,20 @@ namespace NFive.PluginManager.Modules
 				};
 
 				using (var stream = new MemoryStream(data))
-				using (var zip = ZipFile.Read(stream))
+				using (var reader = ReaderFactory.Open(stream))
 				{
-					foreach (var entry in zip)
+					while (reader.MoveToNextEntry())
 					{
-						var action = ExtractExistingFileAction.OverwriteSilently;
+						if (reader.Entry.IsDirectory) continue;
 
-						if (skip.Contains(entry.FileName) && File.Exists(Path.Combine(path, entry.FileName)))
+						var opts = new ExtractionOptions { ExtractFullPath = true, Overwrite = true };
+
+						if (skip.Contains(reader.Entry.Key) && File.Exists(Path.Combine(path, reader.Entry.Key)))
 						{
-							action = ExtractExistingFileAction.DoNotOverwrite;
+							opts.Overwrite = false;
 						}
 
-						entry.Extract(path, action);
+						reader.WriteEntryToDirectory(path, opts);
 					}
 				}
 			}
