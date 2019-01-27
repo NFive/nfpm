@@ -4,9 +4,7 @@ using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace NFive.PluginManager.Modules

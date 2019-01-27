@@ -123,7 +123,7 @@ namespace NFive.PluginManager.Modules
 		{
 			try
 			{
-				return File.ReadAllText(Path.Combine(serverPath, "version"));
+				return File.ReadAllText(Path.Combine(serverPath, "version")).Trim();
 			}
 			catch (Exception)
 			{
