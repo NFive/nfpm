@@ -1,8 +1,6 @@
 using CommandLine;
 using NFive.PluginManager.Modules;
 using System;
-using System.Drawing;
-using System.Net;
 using System.Threading.Tasks;
 using NFive.PluginManager.Utilities;
 

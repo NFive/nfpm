@@ -7,7 +7,6 @@ using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -155,8 +154,8 @@ namespace NFive.PluginManager.Modules
 			}
 			else
 			{
-				Console.WriteLine("nuget.exe not found in %PATH%, skipping package restore", Color.Yellow);
-				Console.WriteLine("You will need to manually restore packages from Visual Studio", Color.Yellow);
+				Console.WriteLine("nuget.exe not found in %PATH%, skipping package restore");
+				Console.WriteLine("You will need to manually restore packages from Visual Studio");
 			}
 
 			Console.WriteLine();

@@ -2,7 +2,6 @@ using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
 using System;
-using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -47,7 +46,7 @@ namespace NFive.PluginManager.Modules
 				Console.CursorLeft = 0;
 			}
 
-			if (!this.Quiet) Console.WriteLine($"Connecting to {this.Host}:{this.Port}...", Color.Green);
+			if (!this.Quiet) Console.WriteLine($"Connecting to {this.Host}:{this.Port}...");
 
 			this.rcon = new PluginManager.Rcon(Dns.GetHostEntry(this.Host).AddressList.First(a => a.AddressFamily == AddressFamily.InterNetwork), this.Port, this.Password);
 
@@ -84,7 +83,7 @@ namespace NFive.PluginManager.Modules
 				l.StartsWith("No such command ", StringComparison.InvariantCultureIgnoreCase)
 			))
 			{
-				Console.Write(output, Color.Red);
+				Console.Write(output);
 
 				return true;
 			}

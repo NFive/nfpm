@@ -4,7 +4,6 @@ using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -89,7 +88,7 @@ namespace NFive.PluginManager.Models
 					}
 					catch (Exception ex)
 					{
-						Console.WriteLine(ex.Message, Color.Yellow);
+						Console.WriteLine(ex.Message);
 					}
 				}
 			}
