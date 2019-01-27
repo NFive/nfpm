@@ -1,9 +1,10 @@
-using System;
 using CommandLine;
 using JetBrains.Annotations;
-using System.Diagnostics;
+using NFive.PluginManager.Utilities;
+using System;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using Version = NFive.PluginManager.Adapters.Bintray.Version;
 
@@ -18,16 +19,17 @@ namespace NFive.PluginManager.Modules
 	{
 		internal async Task<int> Main()
 		{
-			var module = Process.GetCurrentProcess().MainModule;
-			var file = Path.GetFullPath(module.FileName);
-			var name = Path.GetFileName(module.FileName);
+			var asm = Assembly.GetEntryAssembly();
+			var file = Path.GetFullPath(asm.Location);
+			var name = Path.GetFileName(asm.Location);
+			var fileVersion = ((AssemblyFileVersionAttribute)Attribute.GetCustomAttribute(asm, typeof(AssemblyFileVersionAttribute), false)).Version;
 
-			Console.WriteLine($"Currently running {name} {module.FileVersionInfo.FileVersion}");
+			Console.WriteLine($"Currently running {name} {fileVersion}");
 			Console.WriteLine("Checking for updates...");
 
 			var version = (await Version.Get("nfive/nfpm/nfpm")).Name;
 
-			if (version == module.FileVersionInfo.FileVersion)
+			if (version == fileVersion)
 			{
 				Console.WriteLine($"{name} is up to date");
 
@@ -41,7 +43,11 @@ namespace NFive.PluginManager.Modules
 				var data = await client.DownloadDataTaskAsync($"https://dl.bintray.com/nfive/nfpm/{version}/nfpm.exe");
 
 				File.Delete($"{file}.old");
-				File.Move(file, $"{file}.old");
+
+				if (RuntimeEnvironment.IsWindows)
+				{
+					File.Move(file, $"{file}.old");
+				}
 
 				File.WriteAllBytes(file, data);
 			}
@@ -53,7 +59,7 @@ namespace NFive.PluginManager.Modules
 
 		internal static void Cleanup()
 		{
-			File.Delete($"{Path.GetFullPath(Process.GetCurrentProcess().MainModule.FileName)}.old");
+			File.Delete($"{Path.GetFullPath(Assembly.GetEntryAssembly().Location)}.old");
 		}
 	}
 }
