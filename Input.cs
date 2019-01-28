@@ -1,5 +1,4 @@
 using System;
-using Console = Colorful.Console;
 
 namespace NFive.PluginManager
 {

@@ -2,12 +2,14 @@ using NFive.SDK.Plugins.Configuration;
 using System;
 using System.IO;
 using System.Linq;
+using NFive.PluginManager.Utilities;
 
 namespace NFive.PluginManager
 {
 	public static class PathManager
 	{
-		public static readonly string ServerFile = "FXServer.exe";
+		public static readonly string ServerFileWindows = "FXServer.exe";
+		public static readonly string ServerFileLinux = "FXServer";
 		public static readonly string ConfigFile = "server.cfg";
 
 		public static string FindServer()
@@ -15,11 +17,12 @@ namespace NFive.PluginManager
 			for (var i = 0; i < 10; i++)
 			{
 				var path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, string.Concat(Enumerable.Repeat($"..{Path.DirectorySeparatorChar}", i))));
+				if (!RuntimeEnvironment.IsWindows) path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "alpine", "opt", "cfx-server", string.Concat(Enumerable.Repeat($"..{Path.DirectorySeparatorChar}", i))));
 
-				if (File.Exists(Path.Combine(path, ServerFile))) return path;
+				if (File.Exists(Path.Combine(path, RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux))) return path;
 			}
 
-			throw new FileNotFoundException("Unable to locate server in the directory tree", ServerFile);
+			throw new FileNotFoundException("Unable to locate server in the directory tree", RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux);
 		}
 
 		public static string FindResource()
@@ -43,7 +46,7 @@ namespace NFive.PluginManager
 			// ReSharper disable once ConvertIfStatementToReturnStatement
 			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.DefinitionFile))) return false;
 
-			return File.Exists(Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, $"..{Path.DirectorySeparatorChar}", $"..{Path.DirectorySeparatorChar}", ServerFile)));
+			return File.Exists(Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, $"..{Path.DirectorySeparatorChar}", $"..{Path.DirectorySeparatorChar}", RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux)));
 		}
 	}
 }

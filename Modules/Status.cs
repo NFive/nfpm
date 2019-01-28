@@ -1,13 +1,12 @@
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
+using NFive.PluginManager.Utilities;
 using NFive.SDK.Plugins.Configuration;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
 {
@@ -27,12 +26,12 @@ namespace NFive.PluginManager.Modules
 
 			// NFPM
 
-			var nfpm = Process.GetCurrentProcess().MainModule;
+			var nfpm = Assembly.GetEntryAssembly();
 
 			Console.WriteLine("NFPM:");
-			Console.WriteLine($"-- Path: {Relative(Path.GetDirectoryName(nfpm.FileName), cd)}");
-			Console.WriteLine($"-- Binary: {Relative(nfpm.FileName, cd)}");
-			Console.WriteLine($"-- Version: {nfpm.FileVersionInfo.FileVersion}");
+			Console.WriteLine($"-- Path: {Relative(Path.GetDirectoryName(nfpm.Location), cd)}");
+			Console.WriteLine($"-- Binary: {Relative(nfpm.Location, cd)}");
+			Console.WriteLine($"-- Version: {((AssemblyFileVersionAttribute)Attribute.GetCustomAttribute(nfpm, typeof(AssemblyFileVersionAttribute), false)).Version}");
 
 			Console.WriteLine();
 
@@ -51,7 +50,7 @@ namespace NFive.PluginManager.Modules
 				Console.WriteLine();
 				Console.WriteLine($"-- Path: {Relative(server, cd)}");
 
-				var binary = Path.Combine(server, "FXServer.exe");
+				var binary = Path.Combine(server, RuntimeEnvironment.IsWindows ? PathManager.ServerFileWindows : PathManager.ServerFileLinux);
 				Console.Write("-- Binary: ");
 				Console.WriteLine(File.Exists(binary) ? Relative(binary, cd) : "MISSING");
 
@@ -124,7 +123,7 @@ namespace NFive.PluginManager.Modules
 		{
 			try
 			{
-				return File.ReadAllText(Path.Combine(serverPath, "version"));
+				return File.ReadAllText(Path.Combine(serverPath, "version")).Trim();
 			}
 			catch (Exception)
 			{

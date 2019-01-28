@@ -1,11 +1,11 @@
 using CommandLine;
 using JetBrains.Annotations;
+using NFive.PluginManager.Utilities;
+using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
 {
@@ -23,19 +23,30 @@ namespace NFive.PluginManager.Modules
 
 		internal async Task<int> Main()
 		{
+			var start = new ProcessStartInfo(Path.Combine(PathManager.FindServer(), PathManager.ServerFileWindows), $"+set citizen_dir citizen +exec {PathManager.ConfigFile}")
+			{
+				UseShellExecute = this.Window,
+				RedirectStandardOutput = !this.Window,
+				RedirectStandardError = !this.Window,
+				ErrorDialog = false,
+				WorkingDirectory = PathManager.FindServer()
+			};
+
+			if (!RuntimeEnvironment.IsWindows)
+			{
+				start = new ProcessStartInfo("sh", $"{Path.GetFullPath(Path.Combine(PathManager.FindServer(), "..", "..", "..", "run.sh"))} +exec {PathManager.ConfigFile}")
+				{
+					UseShellExecute = false,
+					ErrorDialog = false
+				};
+			}
+
 			using (this.process = new Process
 			{
-				StartInfo = new ProcessStartInfo(Path.Combine(PathManager.FindServer(), PathManager.ServerFile), $"+set citizen_dir citizen +exec {PathManager.ConfigFile}")
-				{
-					UseShellExecute = this.Window,
-					RedirectStandardOutput = !this.Window,
-					RedirectStandardError = !this.Window,
-					ErrorDialog = false,
-					WorkingDirectory = PathManager.FindServer()
-				}
+				StartInfo = start
 			})
 			{
-				Console.WriteLine("Starting server...", Color.Green);
+				Console.WriteLine("Starting server...");
 
 				if (this.Window)
 				{
@@ -45,19 +56,23 @@ namespace NFive.PluginManager.Modules
 
 				Console.WriteLine("Press Ctrl+C to exit");
 
-				this.process.ErrorDataReceived += (s, e) => Console.WriteLine(e.Data, Color.Red);
+				this.process.ErrorDataReceived += (s, e) => Console.WriteLine(e.Data);
 
 				this.process.Start();
-				this.process.BeginErrorReadLine();
 
-				new Thread(() =>
+				if (RuntimeEnvironment.IsWindows)
 				{
-					char c;
-					while (!this.process.HasExited && (c = (char)this.process.StandardOutput.Read()) >= 0)
+					this.process.BeginErrorReadLine();
+
+					new Thread(() =>
 					{
-						Console.Write(c);
-					}
-				}).Start();
+						char c;
+						while (!this.process.HasExited && (c = (char)this.process.StandardOutput.Read()) >= 0)
+						{
+							Console.Write(c);
+						}
+					}).Start();
+				}
 
 				this.process.WaitForExit();
 			}

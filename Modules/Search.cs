@@ -1,15 +1,11 @@
-using Colorful;
 using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
 {
@@ -41,30 +37,31 @@ namespace NFive.PluginManager.Modules
 
 			Console.WriteLine($"{"NAME".PadRight(nameLength)} | {"VERSION".PadRight(versionLength)} | {"DESCRIPTION".PadRight(descriptionLength)}");
 
-			var styleSheet = new StyleSheet(Color.LightGray);
+			//var styleSheet = new StyleSheet(Color.LightGray);
 
-			if (this.Query.Any())
-			{
-				var colors = new[]
-				{
-					Color.FromArgb(197, 15, 31),
-					Color.FromArgb(193, 156, 0),
-					Color.FromArgb(19, 161, 14),
-					Color.FromArgb(58, 150, 221),
-					Color.FromArgb(0, 55, 218),
-					Color.FromArgb(136, 23, 152)
-				};
+			//if (this.Query.Any())
+			//{
+			//	var colors = new[]
+			//	{
+			//		Color.FromArgb(197, 15, 31),
+			//		Color.FromArgb(193, 156, 0),
+			//		Color.FromArgb(19, 161, 14),
+			//		Color.FromArgb(58, 150, 221),
+			//		Color.FromArgb(0, 55, 218),
+			//		Color.FromArgb(136, 23, 152)
+			//	};
 
-				var i = 0;
-				foreach (var term in this.Query)
-				{
-					styleSheet.AddStyle($"(?i){Regex.Escape(term)}", colors[i++ % colors.Length]);
-				}
-			}
+			//	var i = 0;
+			//	foreach (var term in this.Query)
+			//	{
+			//		styleSheet.AddStyle($"(?i){Regex.Escape(term)}", colors[i++ % colors.Length]);
+			//	}
+			//}
 
 			foreach (var repository in results)
 			{
-				Console.WriteLineStyled($"{repository.Name.Truncate(nameLength).PadRight(nameLength)} | {repository.Versions.First().Version.ToString().Truncate(versionLength).PadRight(versionLength)} | {repository.Description?.Truncate(descriptionLength).PadRight(descriptionLength)}", styleSheet);
+				//Console.WriteLineStyled($"{repository.Name.Truncate(nameLength).PadRight(nameLength)} | {repository.Versions.First().Version.ToString().Truncate(versionLength).PadRight(versionLength)} | {repository.Description?.Truncate(descriptionLength).PadRight(descriptionLength)}", styleSheet);
+				Console.WriteLine($"{repository.Name.Truncate(nameLength).PadRight(nameLength)} | {repository.Versions.First().Version.ToString().Truncate(versionLength).PadRight(versionLength)} | {repository.Description?.Truncate(descriptionLength).PadRight(descriptionLength)}");
 			}
 
 			return 0;

@@ -1,10 +1,12 @@
-using Ionic.Zip;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NFive.PluginManager.Adapters.Hub;
 using NFive.PluginManager.Extensions;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
+using SharpCompress.Archives;
+using SharpCompress.Archives.Zip;
+using SharpCompress.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -70,9 +72,9 @@ namespace NFive.PluginManager.Adapters
 				await client.DownloadFileTaskAsync(release.DownloadUrl, file);
 			}
 
-			using (var zip = ZipFile.Read(file))
+			using (var zip = ZipArchive.Open(file))
 			{
-				zip.ExtractAll(targetDir.FullName, ExtractExistingFileAction.OverwriteSilently);
+				zip.WriteToDirectory(targetDir.FullName, new ExtractionOptions { Overwrite = true });
 			}
 
 			File.Delete(file);

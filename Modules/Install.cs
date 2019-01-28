@@ -5,11 +5,9 @@ using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
 using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Modules
@@ -57,7 +55,7 @@ namespace NFive.PluginManager.Modules
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("Unable to build definition graph (PANIC):", Color.Red);
+				Console.WriteLine("Unable to build definition graph (PANIC):");
 				Console.WriteLine(ex.Message);
 				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message);
 
@@ -151,7 +149,7 @@ namespace NFive.PluginManager.Modules
 				{
 					if (definition.Dependencies[name] == version)
 					{
-						Console.WriteLine($"Plugin \"{name}@{version}\" is already installed", Color.Yellow);
+						Console.WriteLine($"Plugin \"{name}@{version}\" is already installed");
 						continue;
 					}
 

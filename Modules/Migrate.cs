@@ -13,12 +13,10 @@ using System.Data.Entity.Migrations.Design;
 using System.Data.Entity.Migrations.Model;
 using System.Data.Entity.Migrations.Utilities;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
 
 namespace NFive.PluginManager.Modules
 {
@@ -200,14 +198,14 @@ namespace NFive.PluginManager.Modules
 			}
 			catch (ReflectionTypeLoadException ex)
 			{
-				Console.WriteLine(ex.Message, Color.Red);
-				Console.WriteLine(string.Join(Environment.NewLine, ex.LoaderExceptions.Select(e => e.Message)), Color.Red);
+				Console.WriteLine(ex.Message);
+				Console.WriteLine(string.Join(Environment.NewLine, ex.LoaderExceptions.Select(e => e.Message)));
 
 				return 1;
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.Message, Color.Red);
+				Console.WriteLine(ex.Message);
 
 				return 1;
 			}

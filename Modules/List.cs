@@ -2,10 +2,8 @@ using CommandLine;
 using JetBrains.Annotations;
 using NFive.SDK.Plugins.Configuration;
 using System;
-using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
-using Console = Colorful.Console;
 using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
 using Plugin = NFive.SDK.Plugins.Plugin;
 
@@ -51,7 +49,7 @@ namespace NFive.PluginManager.Modules
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("Unable to build definition graph (PANIC):", Color.Red);
+				Console.WriteLine("Unable to build definition graph (PANIC):");
 				Console.WriteLine(ex.Message);
 				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message);
 
