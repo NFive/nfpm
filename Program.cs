@@ -73,7 +73,8 @@ namespace NFive.PluginManager
 						Modules.Rcon,
 						Status,
 						Migrate,
-						CleanCache
+						CleanCache,
+						Pack
 					>(args)
 					.MapResult(
 						(Setup s) => s.Main(),
@@ -89,6 +90,7 @@ namespace NFive.PluginManager
 						(Status s) => s.Main(),
 						(Migrate s) => s.Main(),
 						(CleanCache c) => c.Main(),
+						(Pack p) => p.Main(),
 						e => Task.FromResult(1)
 					);
 			}
