@@ -6,6 +6,7 @@ using SharpCompress.Common;
 using SharpCompress.Readers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -232,18 +233,50 @@ namespace NFive.PluginManager.Modules
 				using (var stream = new MemoryStream(data))
 				using (var reader = ReaderFactory.Open(stream))
 				{
-					while (reader.MoveToNextEntry())
+					if (reader.ArchiveType == ArchiveType.Tar && RuntimeEnvironment.IsLinux)
 					{
-						if (reader.Entry.IsDirectory) continue;
+						stream.Position = 0;
 
-						var opts = new ExtractionOptions { ExtractFullPath = true, Overwrite = true };
+						var tempFile = Path.GetTempFileName();
 
-						if (skip.Contains(reader.Entry.Key) && File.Exists(Path.Combine(path, reader.Entry.Key)))
+						using (var file = new FileStream(tempFile, FileMode.Create, FileAccess.Write))
 						{
-							opts.Overwrite = false;
+							stream.CopyTo(file);
 						}
 
-						reader.WriteEntryToDirectory(path, opts);
+						using (var process = new Process
+						{
+							StartInfo =
+							{
+								FileName = "tar",
+								Arguments = $"xJ -C {path} -f {tempFile}",
+								UseShellExecute = false,
+								RedirectStandardInput = false,
+								RedirectStandardOutput = false
+							}
+						})
+						{
+							process.Start();
+							process.WaitForExit();
+						}
+
+						File.Delete(tempFile);
+					}
+					else
+					{
+						while (reader.MoveToNextEntry())
+						{
+							if (reader.Entry.IsDirectory) continue;
+
+							var opts = new ExtractionOptions { ExtractFullPath = true, Overwrite = true, PreserveFileTime = true };
+
+							if (skip.Contains(reader.Entry.Key) && File.Exists(Path.Combine(path, reader.Entry.Key)))
+							{
+								opts.Overwrite = false;
+							}
+
+							reader.WriteEntryToDirectory(path, opts);
+						}
 					}
 				}
 			}

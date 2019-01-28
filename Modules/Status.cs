@@ -137,7 +137,7 @@ namespace NFive.PluginManager.Modules
 
 			if (string.IsNullOrEmpty(res))
 			{
-				return @".\";
+				return @"." + Path.PathSeparator;
 			}
 
 			if (res == path)

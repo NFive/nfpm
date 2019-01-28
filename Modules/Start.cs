@@ -37,7 +37,8 @@ namespace NFive.PluginManager.Modules
 				start = new ProcessStartInfo("sh", $"{Path.GetFullPath(Path.Combine(PathManager.FindServer(), "..", "..", "..", "run.sh"))} +exec {PathManager.ConfigFile}")
 				{
 					UseShellExecute = false,
-					ErrorDialog = false
+					ErrorDialog = false,
+					WorkingDirectory = PathManager.FindServer()
 				};
 			}
 
