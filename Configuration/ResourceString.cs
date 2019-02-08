@@ -1,8 +1,8 @@
-using NFive.SDK.Plugins.Configuration;
 using System;
 using System.IO;
+using NFive.SDK.Plugins.Configuration;
 
-namespace NFive.PluginManager
+namespace NFive.PluginManager.Configuration
 {
 	public class ResourceString
 	{

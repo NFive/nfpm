@@ -73,10 +73,10 @@
     <Compile Include="PathManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="ConfigGenerator.cs" />
+    <Compile Include="Configuration\ConfigGenerator.cs" />
     <Compile Include="Rcon.cs" />
-    <Compile Include="ResourceGenerator.cs" />
-    <Compile Include="ResourceString.cs" />
+    <Compile Include="Configuration\ResourceGenerator.cs" />
+    <Compile Include="Configuration\ResourceString.cs" />
     <Compile Include="Utilities\RuntimeEnvironment.cs" />
     <Compile Include="Utilities\VisualStudio.cs" />
   </ItemGroup>

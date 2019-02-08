@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 
-namespace NFive.PluginManager
+namespace NFive.PluginManager.Configuration
 {
 	/// <summary>
 	/// Represent and generate a FiveM server configuration file.

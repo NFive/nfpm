@@ -1,12 +1,12 @@
-using NFive.PluginManager.Models;
-using NFive.SDK.Plugins.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using NFive.PluginManager.Models;
+using NFive.SDK.Plugins.Configuration;
 
-namespace NFive.PluginManager
+namespace NFive.PluginManager.Configuration
 {
 	/// <summary>
 	/// Represent and generate a FiveM Lua resource file.
