@@ -2,7 +2,7 @@ using System;
 
 namespace NFive.PluginManager.Utilities
 {
-	public static class RuntimeEnvironment
+	internal static class RuntimeEnvironment
 	{
 		private static readonly Lazy<bool> Mono = new Lazy<bool>(() => Type.GetType("Mono.Runtime") != null);
 

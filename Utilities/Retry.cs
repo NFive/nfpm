@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NFive.PluginManager.Utilities
 {
-	public static class Retry
+	internal static class Retry
 	{
 		public static void Do(Action action, uint retryIntervalMs = 1000, int maxAttemptCount = 3)
 		{

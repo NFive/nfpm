@@ -20,8 +20,8 @@ namespace NFive.PluginManager.Modules
 		internal async Task<int> Main()
 		{
 			var asm = Assembly.GetEntryAssembly();
-			var file = Path.GetFullPath(asm.Location);
 			var name = Path.GetFileName(asm.Location);
+			var file = Path.GetFullPath(asm.Location);
 			var fileVersion = ((AssemblyFileVersionAttribute)Attribute.GetCustomAttribute(asm, typeof(AssemblyFileVersionAttribute), false)).Version;
 
 			Console.WriteLine($"Currently running {name} {fileVersion}");

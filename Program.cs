@@ -40,7 +40,7 @@ namespace NFive.PluginManager
 
 			try
 			{
-				NetworkUtilities.ConfigureSupportedSslProtocols();
+				NetworkUtilities.ConfigureSupportedSecurityProtocols();
 			}
 			catch
 			{
