@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using NFive.SDK.Plugins.Configuration;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
 using Plugin = NFive.SDK.Plugins.Plugin;
@@ -58,19 +59,37 @@ namespace NFive.PluginManager.Modules
 
 			Console.WriteLine($"{definition.FullName}");
 
-			foreach (var graphPlugin in graph.Plugins)
+			foreach (var plugin in graph.Plugins)
 			{
-				Console.WriteLine($"+-- {graphPlugin.FullName}");
-
-				if (graphPlugin.DependencyNodes == null) continue;
-
-				foreach (var graphDefinitionDependencyNode in graphPlugin.DependencyNodes)
-				{
-					Console.WriteLine($"| +-- {graphDefinitionDependencyNode.FullName}");
-				}
+				RecurseDependencies(plugin, string.Empty, plugin == graph.Plugins.Last());
 			}
 
 			return await Task.FromResult(0);
+		}
+
+		private static void RecurseDependencies(Plugin plugin, string prefix, bool last)
+		{
+			Console.Write(prefix);
+
+			if (last)
+			{
+				Console.Write("└── ");
+				prefix += "   ";
+			}
+			else
+			{
+				Console.Write("├── ");
+				prefix += "│   ";
+			}
+
+			Console.WriteLine(plugin.FullName);
+
+			if (plugin.DependencyNodes == null) return;
+
+			foreach (var pluginDependencyNode in plugin.DependencyNodes)
+			{
+				RecurseDependencies(pluginDependencyNode, prefix, pluginDependencyNode == plugin.DependencyNodes.Last());
+			}
 		}
 	}
 }
