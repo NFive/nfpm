@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NFive.PluginManager.Utilities;
 using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
 using Plugin = NFive.SDK.Plugins.Plugin;
 

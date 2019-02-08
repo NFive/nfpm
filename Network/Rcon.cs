@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NFive.PluginManager
+namespace NFive.PluginManager.Network
 {
 	public class Rcon : IDisposable
 	{

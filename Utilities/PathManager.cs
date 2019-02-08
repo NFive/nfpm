@@ -1,10 +1,9 @@
-using NFive.SDK.Plugins.Configuration;
 using System;
 using System.IO;
 using System.Linq;
-using NFive.PluginManager.Utilities;
+using NFive.SDK.Plugins.Configuration;
 
-namespace NFive.PluginManager
+namespace NFive.PluginManager.Utilities
 {
 	public static class PathManager
 	{

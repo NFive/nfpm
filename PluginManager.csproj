@@ -50,7 +50,7 @@
     <Compile Include="Extensions\DirectoryExtensions.cs" />
     <Compile Include="Extensions\VersionRangeExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="Input.cs" />
+    <Compile Include="Utilities\Input.cs" />
     <Compile Include="Models\DefinitionGraph.cs" />
     <Compile Include="Models\VersionRange.cs" />
     <Compile Include="Models\Version.cs" />
@@ -70,11 +70,11 @@
     <Compile Include="Modules\Remove.cs" />
     <Compile Include="Modules\List.cs" />
     <Compile Include="Modules\Install.cs" />
-    <Compile Include="PathManager.cs" />
+    <Compile Include="Utilities\PathManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Configuration\ConfigGenerator.cs" />
-    <Compile Include="Rcon.cs" />
+    <Compile Include="Network\Rcon.cs" />
     <Compile Include="Configuration\ResourceGenerator.cs" />
     <Compile Include="Configuration\ResourceString.cs" />
     <Compile Include="Utilities\RuntimeEnvironment.cs" />

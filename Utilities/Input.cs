@@ -1,6 +1,6 @@
 using System;
 
-namespace NFive.PluginManager
+namespace NFive.PluginManager.Utilities
 {
 	public static class Input
 	{

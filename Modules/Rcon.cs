@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using NFive.PluginManager.Utilities;
 
 namespace NFive.PluginManager.Modules
 {
@@ -16,7 +17,7 @@ namespace NFive.PluginManager.Modules
 	[Verb("rcon", HelpText = "Connect to a running FiveM server over RCON.")]
 	internal class Rcon
 	{
-		private PluginManager.Rcon rcon;
+		private Network.Rcon rcon;
 
 		[Option('h', "host", Default = "localhost", Required = false, HelpText = "Remote server host.")]
 		public string Host { get; set; }
@@ -48,7 +49,7 @@ namespace NFive.PluginManager.Modules
 
 			if (!this.Quiet) Console.WriteLine($"Connecting to {this.Host}:{this.Port}...");
 
-			this.rcon = new PluginManager.Rcon(Dns.GetHostEntry(this.Host).AddressList.First(a => a.AddressFamily == AddressFamily.InterNetwork), this.Port, this.Password);
+			this.rcon = new Network.Rcon(Dns.GetHostEntry(this.Host).AddressList.First(a => a.AddressFamily == AddressFamily.InterNetwork), this.Port, this.Password);
 
 			if (this.Command == null)
 			{
