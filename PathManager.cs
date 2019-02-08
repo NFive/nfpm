@@ -8,21 +8,39 @@ namespace NFive.PluginManager
 {
 	public static class PathManager
 	{
-		public static readonly string ServerFileWindows = "FXServer.exe";
-		public static readonly string ServerFileLinux = "FXServer";
-		public static readonly string ConfigFile = "server.cfg";
+		/// <summary>
+		/// The name of the Linux FiveM server binary file.
+		/// </summary>
+		public const string ServerFileLinux = "FXServer";
 
+		/// <summary>
+		/// The name of the Windows FiveM server binary file.
+		/// </summary>
+		public const string ServerFileWindows = ServerFileLinux + ".exe";
+
+		/// <summary>
+		/// The name of the FiveM server configuration file.
+		/// </summary>
+		public const string ConfigFile = "server.cfg";
+
+		/// <summary>
+		/// Finds the FiveM server binary in the current directory tree.
+		/// </summary>
+		/// <remarks>Searches 10 directories up from the current directory.</remarks>
+		/// <returns>Full path to the FiveM server directory.</returns>
+		/// <exception cref="FileNotFoundException">Unable to locate FiveM server in the directory tree.</exception>
 		public static string FindServer()
 		{
+			var osPath = RuntimeEnvironment.IsWindows ? "." : Path.Combine("alpine", "opt", "cfx-server");
+
 			for (var i = 0; i < 10; i++)
 			{
-				var path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, string.Concat(Enumerable.Repeat($"..{Path.DirectorySeparatorChar}", i))));
-				if (!RuntimeEnvironment.IsWindows) path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "alpine", "opt", "cfx-server", string.Concat(Enumerable.Repeat($"..{Path.DirectorySeparatorChar}", i))));
+				var path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, osPath, string.Concat(Enumerable.Repeat($"..{Path.DirectorySeparatorChar}", i))));
 
 				if (File.Exists(Path.Combine(path, RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux))) return path;
 			}
 
-			throw new FileNotFoundException("Unable to locate server in the directory tree", RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux);
+			throw new FileNotFoundException("Unable to locate FiveM server in the directory tree.", RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux);
 		}
 
 		public static string FindResource()
@@ -30,13 +48,18 @@ namespace NFive.PluginManager
 			if (File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.LockFile))) return Environment.CurrentDirectory;
 			if (File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.DefinitionFile))) return Environment.CurrentDirectory;
 
-			var server = FindServer();
+			try
+			{
+				var path = Path.Combine(FindServer(), "resources", "nfive");
 
-			var path = Path.Combine(server, "resources", "nfive");
-
-			if (Directory.Exists(path)) return path;
-
-			throw new DirectoryNotFoundException("Unable to locate resource in the directory tree");
+				if (Directory.Exists(path)) return path;
+			}
+			catch (FileNotFoundException ex)
+			{
+				throw new DirectoryNotFoundException("Unable to locate resource in the directory tree.", ex);
+			}
+			
+			throw new DirectoryNotFoundException("Unable to locate resource in the directory tree.");
 		}
 
 		public static bool IsResource()
