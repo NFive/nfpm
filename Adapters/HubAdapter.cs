@@ -53,7 +53,7 @@ namespace NFive.PluginManager.Adapters
 		/// <param name="version">The version to download.</param>
 		public async Task Download(Version version)
 		{
-			var cacheDir = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", this.name.Vendor, this.name.Project, version.ToString()));
+			var cacheDir = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", ConfigurationManager.PluginPath, this.name.Vendor, this.name.Project, version.ToString()));
 			var targetDir = new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project));
 
 			if (cacheDir.Exists)

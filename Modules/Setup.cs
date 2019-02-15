@@ -190,7 +190,7 @@ namespace NFive.PluginManager.Modules
 
 			var version = (await Adapters.Bintray.Version.Get("nfive/NFive/NFive")).Name;
 
-			await Install(path, "NFive", version, "nfive", $"https://dl.bintray.com/nfive/NFive/{version}/nfive.zip");
+			await Install(path, "NFive", version, $"nfive_{version}.zip", $"https://dl.bintray.com/nfive/NFive/{version}/nfive.zip");
 		}
 
 		private static async Task Install(string path, string name, string version, string cacheName, string url)
