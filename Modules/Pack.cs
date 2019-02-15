@@ -62,11 +62,13 @@ namespace NFive.PluginManager.Modules
 
 					if (!matches.Any()) continue;
 
-					foreach (var match in matches)
+					foreach (var match in matches) 
 					{
-						Console.WriteLine($"Adding {Path.GetFileName(match)}...");
+						var fileName = Path.GetFileName(match);
 
-						zip.AddEntry(match, File.OpenRead(match));
+						Console.WriteLine($"Adding {fileName}...");
+
+						zip.AddEntry(fileName, File.OpenRead(match));
 					}
 				}
 
