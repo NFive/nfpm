@@ -74,7 +74,11 @@ namespace NFive.PluginManager.Adapters
 
 			using (var zip = ZipArchive.Open(file))
 			{
-				zip.WriteToDirectory(targetDir.FullName, new ExtractionOptions { Overwrite = true });
+				zip.WriteToDirectory(targetDir.FullName, new ExtractionOptions
+				{
+					Overwrite = true,
+					ExtractFullPath = true
+				});
 			}
 
 			File.Delete(file);
