@@ -83,16 +83,16 @@ namespace NFive.PluginManager.Modules
 			}
 
 			var nameLength = Math.Max(Math.Min(50, results.Max(d => d[0].Text.Length)), 10);
-			var currentLength = Math.Max(Math.Min(20, results.Max(d => d[1].Text.ToString().Length)), 8);
-			var wantedLength = Math.Max(Math.Min(20, results.Max(d => d[2].Text.ToString().Length)), 8);
-			var latestLength = Math.Max(Math.Min(20, results.Max(d => d[3].Text.ToString().Length)), 8);
+			var currentLength = Math.Max(Math.Min(20, results.Max(d => d[1].Text.ToString().Length)), 7);
+			var wantedLength = Math.Max(Math.Min(20, results.Max(d => d[2].Text.ToString().Length)), 7);
+			var latestLength = Math.Max(Math.Min(20, results.Max(d => d[3].Text.ToString().Length)), 7);
 
 			foreach (var result in results)
 			{
-				result[0].Text = result[0].Text.PadRight(nameLength);
-				result[1].Text = result[1].Text.PadRight(currentLength);
-				result[2].Text = result[2].Text.PadRight(wantedLength);
-				result[3].Text = result[3].Text.PadRight(latestLength);
+				result[0].Text = result[0].Text.Truncate(nameLength).PadRight(nameLength);
+				result[1].Text = result[1].Text.Truncate(currentLength).PadLeft(currentLength);
+				result[2].Text = result[2].Text.Truncate(wantedLength).PadLeft(wantedLength);
+				result[3].Text = result[3].Text.Truncate(latestLength).PadLeft(latestLength);
 
 				ColorConsole.WriteLine(result[0], " | ", result[1], " | ", result[2], " | ", result[3]);
 			}
