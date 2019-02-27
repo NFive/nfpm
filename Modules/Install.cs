@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Configuration;
 using NFive.PluginManager.Extensions;
@@ -22,7 +21,6 @@ namespace NFive.PluginManager.Modules
 	[Verb("install", HelpText = "Install NFive plugins.")]
 	internal class Install
 	{
-		[PublicAPI]
 		[Value(0, Required = false, HelpText = "plugin name")]
 		public IEnumerable<string> Plugins { get; set; } = new List<string>();
 

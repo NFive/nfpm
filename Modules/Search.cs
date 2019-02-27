@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Utilities.Console;
@@ -16,7 +15,6 @@ namespace NFive.PluginManager.Modules
 	[Verb("search", HelpText = "Searches available NFive plugins.")]
 	internal class Search
 	{
-		[PublicAPI]
 		[Value(0, Required = false, HelpText = "search query")]
 		public IEnumerable<string> Query { get; set; }
 
