@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Utilities;
 using NFive.SDK.Plugins.Configuration;
@@ -13,7 +12,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Show the status of the current directory.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("status", HelpText = "Show the status of the current directory.")]
 	internal class Status
 	{

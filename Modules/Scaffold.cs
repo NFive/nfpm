@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
 using Scriban;
 using SharpCompress.Archives;
@@ -19,7 +18,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Generate the boilerplate code for a new NFive plugin.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("scaffold", HelpText = "Generate the boilerplate code for a new NFive plugin.")]
 	internal class Scaffold
 	{

@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
 using System;
 using System.Linq;
@@ -13,7 +12,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Connect to a running FiveM server over RCON.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("rcon", HelpText = "Connect to a running FiveM server over RCON.")]
 	internal class Rcon
 	{

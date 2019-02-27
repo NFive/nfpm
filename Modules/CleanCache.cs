@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -9,7 +8,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Remove locally cached nfpm packages.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("clean-cache", HelpText = "Remove locally cached nfpm packages.")]
 	internal class CleanCache
 	{

@@ -12,7 +12,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Searches available NFive plugins.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("search", HelpText = "Searches available NFive plugins.")]
 	internal class Search
 	{

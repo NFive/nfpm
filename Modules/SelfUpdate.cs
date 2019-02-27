@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.PluginManager.Utilities;
 using System;
 using System.IO;
@@ -13,7 +12,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Update nfpm.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("self-update", HelpText = "Update nfpm.")]
 	internal class SelfUpdate
 	{

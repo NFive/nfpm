@@ -1,6 +1,5 @@
 using CommandLine;
 using EnvDTE;
-using JetBrains.Annotations;
 using NFive.PluginManager.Utilities;
 using NFive.SDK.Server;
 using NFive.SDK.Server.Storage;
@@ -23,7 +22,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Create a NFive database migration.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("migrate", HelpText = "Create a NFive database migration.")]
 	internal class Migrate
 	{

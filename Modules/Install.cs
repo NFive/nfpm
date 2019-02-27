@@ -19,7 +19,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Installs a plugin or processes the lock file.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("install", HelpText = "Install NFive plugins.")]
 	internal class Install
 	{
@@ -77,7 +76,7 @@ namespace NFive.PluginManager.Modules
 				await graph.Apply(definition);
 
 				definition.Save(ConfigurationManager.DefinitionFile);
-				graph.Save(ConfigurationManager.LockFile);
+				graph.Save();
 
 				if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 
@@ -113,7 +112,7 @@ namespace NFive.PluginManager.Modules
 
 					await graph.Apply(definition);
 
-					graph.Save(ConfigurationManager.LockFile);
+					graph.Save();
 
 					if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 				}
@@ -206,7 +205,7 @@ namespace NFive.PluginManager.Modules
 			await graph.Apply(definition);
 
 			definition.Save(ConfigurationManager.DefinitionFile);
-			graph.Save(ConfigurationManager.LockFile);
+			graph.Save();
 
 			if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 

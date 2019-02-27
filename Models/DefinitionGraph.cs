@@ -94,7 +94,7 @@ namespace NFive.PluginManager.Models
 			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) DeleteDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"));
 		}
 
-		private static async Task<List<Plugin>> StageDefinition(SDK.Core.Plugins.Plugin definition, Dictionary<Name, SDK.Core.Plugins.VersionRange> loaded)
+		private static async Task<List<Plugin>> StageDefinition(SDK.Core.Plugins.Plugin definition, IDictionary<Name, SDK.Core.Plugins.VersionRange> loaded)
 		{
 			var results = new List<Plugin>();
 

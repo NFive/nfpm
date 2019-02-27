@@ -48,9 +48,6 @@ namespace NFive.PluginManager.Adapters
 		/// The download adapter instance.
 		/// </summary>
 		/// <returns></returns>
-		public IDownloadAdapter Adapter()
-		{
-			return this.adapter;
-		}
+		public IDownloadAdapter Adapter() => this.adapter;
 	}
 }

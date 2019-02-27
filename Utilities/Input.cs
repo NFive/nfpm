@@ -28,10 +28,7 @@ namespace NFive.PluginManager.Utilities
 			return input;
 		}
 
-		public static string String(string prompt, Func<string, bool> validator)
-		{
-			return String(prompt, null, validator);
-		}
+		public static string String(string prompt, Func<string, bool> validator) => String(prompt, null, validator);
 
 		public static bool Bool(string prompt, bool? @default = null)
 		{

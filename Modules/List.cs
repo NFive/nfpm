@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.SDK.Plugins.Configuration;
 using System;
 using System.IO;
@@ -14,7 +13,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// List installed NFive plugins.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("list", HelpText = "List installed NFive plugins.")]
 	internal class List
 	{

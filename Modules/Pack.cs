@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.SDK.Plugins.Configuration;
 using SharpCompress.Archives.Zip;
 using System;
@@ -15,7 +14,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// List installed NFive plugins.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("pack", HelpText = "Packs a NFive plugin from source.")]
 	internal class Pack
 	{

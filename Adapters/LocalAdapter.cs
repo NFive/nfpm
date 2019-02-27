@@ -49,10 +49,7 @@ namespace NFive.PluginManager.Adapters
 			return await Task.FromResult(new List<Version> { definition.Version });
 		}
 
-		public Task<string> Cache(Version version)
-		{
-			return Task.FromResult(Path.Combine(Path.GetFullPath(this.repo.Path), this.repo.Path));
-		}
+		public Task<string> Cache(Version version) => Task.FromResult(Path.Combine(Path.GetFullPath(this.repo.Path), this.repo.Path));
 
 		/// <inheritdoc />
 		/// <summary>

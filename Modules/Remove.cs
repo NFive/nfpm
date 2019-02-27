@@ -16,7 +16,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Uninstall a NFive plugin.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("remove", HelpText = "Uninstall a NFive plugin.")]
 	internal class Remove
 	{

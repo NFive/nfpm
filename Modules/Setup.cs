@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.PluginManager.Utilities;
 using NFive.SDK.Plugins.Configuration;
 using SharpCompress.Common;
@@ -20,7 +19,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Install and configure a new FiveM server with NFive installed.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("setup", HelpText = "Install and configure a new FiveM server with NFive installed.")]
 	internal class Setup
 	{

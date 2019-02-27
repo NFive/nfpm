@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.PluginManager.Utilities;
 using System;
 using System.Diagnostics;
@@ -12,7 +11,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Starts a local FiveM server.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("start", HelpText = "Starts up an installed FiveM server.")]
 	internal class Start
 	{

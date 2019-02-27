@@ -46,10 +46,7 @@ namespace NFive.PluginManager.Adapters
 				.OrderBy(v => v.ToString());
 		}
 
-		public Task<string> Cache(Version version)
-		{
-			throw new NotImplementedException();
-		}
+		public Task<string> Cache(Version version) => throw new NotImplementedException();
 
 		/// <inheritdoc />
 		/// <summary>
@@ -81,17 +78,11 @@ namespace NFive.PluginManager.Adapters
 		/// <summary>
 		/// Gets the GitHub API client.
 		/// </summary>
-		private static GitHubClient GetClient()
-		{
-			return new GitHubClient(new ProductHeaderValue("nfpm"));
-		}
+		private static GitHubClient GetClient() => new GitHubClient(new ProductHeaderValue("nfpm"));
 
 		/// <summary>
 		/// Gets the available GitHub releases.
 		/// </summary>
-		private async Task<IReadOnlyList<Release>> GetReleases()
-		{
-			return await GetClient().Repository.Release.GetAll(this.name.Vendor, this.name.Project);
-		}
+		private async Task<IReadOnlyList<Release>> GetReleases() => await GetClient().Repository.Release.GetAll(this.name.Vendor, this.name.Project);
 	}
 }

@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Utilities;
@@ -16,7 +15,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Check for updates for installed NFive plugins.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("outdated", HelpText = "Check for updates for installed NFive plugins.")]
 	internal class Outdated
 	{
