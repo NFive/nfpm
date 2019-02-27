@@ -4,7 +4,7 @@ namespace NFive.PluginManager.Utilities.Console
 {
 	public struct ColorToken : IEquatable<ColorToken>
 	{
-		public string Text { get; }
+		public string Text { get; set; }
 
 		public ConsoleColor? Color { get; }
 

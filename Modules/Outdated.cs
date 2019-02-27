@@ -6,6 +6,7 @@ using NFive.PluginManager.Utilities.Console;
 using NFive.SDK.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,7 +37,16 @@ namespace NFive.PluginManager.Modules
 				return 1;
 			}
 
-			ColorConsole.WriteLine("NAME".PadRight(30).White(), " | ", "CURRENT".PadRight(8).White(), " | ", "WANTED".PadRight(8).White(), " | ", "LATEST".PadRight(8).White());
+			var results = new List<ColorToken[]>
+			{
+				new []
+				{
+					"NAME".White(),
+					"CURRENT".White(),
+					"WANTED".White(),
+					"LATEST".White()
+				}
+			};
 
 			foreach (var dependency in definition.Dependencies)
 			{
@@ -47,9 +57,9 @@ namespace NFive.PluginManager.Modules
 				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version.ToString()));
 				if (versionMatch == null) throw new Exception("No matching version found");
 
-				var current = "MISSING".PadRight(8).Red();
-				var wanted = versionMatch.ToString().PadRight(8).Color(null);
-				var latest = versions.Last().ToString().PadRight(8).Color(null);
+				var current = "MISSING".Red();
+				ColorToken wanted = versionMatch.ToString();
+				ColorToken latest = versions.Last().ToString();
 
 				var pluginDefinition = new FileInfo(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, dependency.Key.Vendor, dependency.Key.Project, ConfigurationManager.DefinitionFile));
 
@@ -57,13 +67,34 @@ namespace NFive.PluginManager.Modules
 				{
 					var plugin = Plugin.Load(pluginDefinition.FullName);
 
-					current = plugin.Version.ToString().PadRight(8);
+					current = plugin.Version.ToString();
 
 					current = current.Text != wanted.Text ? current.Red() : current.Green();
 					wanted = wanted.Text != latest.Text ? wanted.Red() : wanted.Green();
 				}
 
-				ColorConsole.WriteLine(dependency.Key.ToString().PadRight(30), " | ", current, " | ", wanted, " | ", latest);
+				results.Add(new[]
+				{
+					dependency.Key.ToString(),
+					current,
+					wanted,
+					latest
+				});
+			}
+
+			var nameLength = Math.Max(Math.Min(50, results.Max(d => d[0].Text.Length)), 10);
+			var currentLength = Math.Max(Math.Min(20, results.Max(d => d[1].Text.ToString().Length)), 8);
+			var wantedLength = Math.Max(Math.Min(20, results.Max(d => d[2].Text.ToString().Length)), 8);
+			var latestLength = Math.Max(Math.Min(20, results.Max(d => d[3].Text.ToString().Length)), 8);
+
+			foreach (var result in results)
+			{
+				result[0].Text = result[0].Text.PadRight(nameLength);
+				result[1].Text = result[1].Text.PadRight(currentLength);
+				result[2].Text = result[2].Text.PadRight(wantedLength);
+				result[3].Text = result[3].Text.PadRight(latestLength);
+
+				ColorConsole.WriteLine(result[0], " | ", result[1], " | ", result[2], " | ", result[3]);
 			}
 
 			return await Task.FromResult(0);
