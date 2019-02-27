@@ -15,16 +15,14 @@ namespace NFive.PluginManager.Models
 	{
 		public async Task Build(Plugin definition)
 		{
-			if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
-
-			var plugins = await StageDefinition(definition, new Dictionary<Name, SDK.Core.Plugins.VersionRange>());
+			var plugins = await StageDefinition(definition);
 
 			foreach (var plugin in plugins.Where(d => d.Dependencies != null))
 			{
 				foreach (var dependency in plugin.Dependencies)
 				{
 					var dependencyPlugin = plugins.FirstOrDefault(p => p.Name == dependency.Key);
-					if (dependencyPlugin == null) throw new Exception($"Unable to find dependency {dependency.Key}@{dependency.Value} required by {plugin.Name}@{plugin.Version}"); // TODO: DependencyException
+					//if (dependencyPlugin == null) throw new Exception($"Unable to find dependency {dependency.Key}@{dependency.Value} required by {plugin.Name}@{plugin.Version}"); // TODO: DependencyException
 					if (!dependency.Value.IsSatisfied(dependencyPlugin.Version.ToString())) throw new Exception($"{plugin.Name}@{plugin.Version} requires {dependencyPlugin.Name}@{dependency.Value} but {dependencyPlugin.Name}@{dependencyPlugin.Version} was found");
 
 					if (plugin.Server == null) plugin.Server = new Server();
@@ -94,7 +92,7 @@ namespace NFive.PluginManager.Models
 			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) DeleteDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"));
 		}
 
-		private static async Task<List<Plugin>> StageDefinition(SDK.Core.Plugins.Plugin definition, IDictionary<Name, SDK.Core.Plugins.VersionRange> loaded)
+		private static async Task<List<Plugin>> StageDefinition(SDK.Core.Plugins.Plugin definition, IDictionary<Name, SDK.Core.Plugins.VersionRange> loaded = null)
 		{
 			var results = new List<Plugin>();
 
@@ -106,6 +104,8 @@ namespace NFive.PluginManager.Models
 				var versions = await adapter.GetVersions();
 				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version.ToString()));
 				if (versionMatch == null) throw new Exception("No matching version found");
+
+				if (loaded == null) loaded = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
 
 				if (loaded.ContainsKey(dependency.Key))
 				{
@@ -126,7 +126,7 @@ namespace NFive.PluginManager.Models
 				//if (plugin.Name != dependency.Key) throw new Exception("Downloaded package does not match requested.");
 				//if (plugin.Version != versionMatch) throw new Exception("Downloaded package does not match requested.");
 
-				await StageDefinition(plugin, loaded);
+				results.AddRange(await StageDefinition(plugin, loaded));
 			}
 
 			return results;
