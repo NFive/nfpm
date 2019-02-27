@@ -256,7 +256,11 @@ namespace NFive.PluginManager.Modules
 				}
 				else
 				{
-					zip.WriteToDirectory(directory, new ExtractionOptions { Overwrite = true });
+					zip.WriteToDirectory(directory, new ExtractionOptions
+					{
+						Overwrite = true,
+						ExtractFullPath = true
+					});
 				}
 			}
 		}

@@ -6,10 +6,10 @@ namespace NFive.PluginManager.Utilities
 	{
 		public static string String(string prompt, string @default = null)
 		{
-			Console.Write($"{prompt}: ");
-			if (@default != null) Console.Write($"({@default}) ");
+			System.Console.Write($"{prompt}: ");
+			if (@default != null) System.Console.Write($"({@default}) ");
 
-			var input = Console.ReadLine()?.Trim();
+			var input = System.Console.ReadLine()?.Trim();
 
 			if (@default != null && string.IsNullOrEmpty(input)) return @default;
 
@@ -22,7 +22,7 @@ namespace NFive.PluginManager.Utilities
 
 			while (!validator(input))
 			{
-				input = Console.ReadLine()?.Trim();
+				input = System.Console.ReadLine()?.Trim();
 			}
 
 			return input;

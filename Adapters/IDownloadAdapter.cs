@@ -14,6 +14,8 @@ namespace NFive.PluginManager.Adapters
 		/// </summary>
 		Task<IEnumerable<Version>> GetVersions();
 
+		Task<string> Cache(Version version);
+
 		/// <summary>
 		/// Downloads and unpacks the specified plugin version.
 		/// </summary>

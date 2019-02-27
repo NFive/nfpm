@@ -1,6 +1,10 @@
 using CommandLine;
 using JetBrains.Annotations;
+using NFive.PluginManager.Adapters;
+using NFive.PluginManager.Configuration;
+using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Models;
+using NFive.PluginManager.Utilities;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using System;
@@ -8,8 +12,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NFive.PluginManager.Configuration;
-using NFive.PluginManager.Utilities;
 using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Modules
@@ -63,6 +65,30 @@ namespace NFive.PluginManager.Modules
 
 				return 1;
 			}
+
+
+			// New plugins
+			if (this.Plugins.Any())
+			{
+				definition = await LocalInstall(definition, this.Plugins);
+
+				graph = new DefinitionGraph();
+				await graph.Build(definition);
+				await graph.Apply(definition);
+
+				definition.Save(ConfigurationManager.DefinitionFile);
+				graph.Save(ConfigurationManager.LockFile);
+
+				if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
+
+				Console.WriteLine("Finished");
+
+				return 0;
+			}
+
+
+
+
 
 			if (!this.Plugins.Any())
 			{
@@ -145,23 +171,31 @@ namespace NFive.PluginManager.Modules
 					}
 				}
 
-				if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
+				var adapter = new AdapterBuilder(name, definition.Repositories?.FirstOrDefault(r => r.Name == name)).Adapter();
+				var versions = await adapter.GetVersions();
 
-				if (definition.Dependencies.ContainsKey(name))
+				var versionMatch = versions.LastOrDefault(v => version.IsSatisfied(v.ToString()));
+
+				if (versionMatch != null)
 				{
-					if (definition.Dependencies[name] == version)
-					{
-						Console.WriteLine($"Plugin \"{name}@{version}\" is already installed");
-						continue;
-					}
-
-					Console.WriteLine($"Updating plugin \"{name}\" from \"{definition.Dependencies[name]}\" to \"{version}\"");
-					definition.Dependencies[name] = version;
+					version = new Models.VersionRange(versionMatch.ToString());
 				}
 				else
 				{
-					Console.WriteLine($"Adding new plugin \"{name}@{version}\"");
-					definition.Dependencies.Add(name, version);
+					// ERROR: Ver not found
+				}
+
+				if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
+
+				Console.WriteLine($"+ {name}@{version}");
+
+				if (definition.Dependencies.ContainsKey(name))
+				{
+					definition.Dependencies[name] = new Models.VersionRange($"^{versionMatch}");
+				}
+				else
+				{
+					definition.Dependencies.Add(name, new Models.VersionRange($"^{versionMatch}"));
 				}
 			}
 
@@ -179,6 +213,69 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine("Finished");
 
 			return 0;
+		}
+
+		private async Task<Plugin> LocalInstall(Plugin definition, IEnumerable<string> plugins)
+		{
+			foreach (var plugin in plugins)
+			{
+				var input = plugin;
+
+				// Local install
+				if (Directory.Exists(plugin) && File.Exists(Path.Combine(plugin, ConfigurationManager.DefinitionFile)))
+				{
+					var path = Path.GetFullPath(plugin);
+
+					var pluginDef = Plugin.Load(Path.Combine(path, ConfigurationManager.DefinitionFile));
+
+					if (definition.Repositories == null) definition.Repositories = new List<Repository>();
+					definition.Repositories.Add(new Repository
+					{
+						Name = pluginDef.Name,
+						Type = "local",
+						Path = path
+					});
+
+					input = pluginDef.Name;
+				}
+
+				var parts = input.Split(new[] { '@' }, 2);
+				Name name;
+				var version = new Models.VersionRange("*");
+
+				name = new Name(parts[0]);
+
+				if (parts.Length == 2)
+				{
+					version = new Models.VersionRange(parts[1]);
+				}
+
+				var adapter = new AdapterBuilder(name, definition.Repositories?.FirstOrDefault(r => r.Name == name)).Adapter();
+				var versions = await adapter.GetVersions();
+				var versionMatch = versions.LastOrDefault(v => version.IsSatisfied(v.ToString()));
+
+				if (versionMatch == null)
+				{
+					throw new Exception("Version not found");
+				}
+
+				version = new Models.VersionRange(versionMatch.ToString());
+
+				if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
+
+				Console.WriteLine($"+ {name}@{version}");
+
+				if (definition.Dependencies.ContainsKey(name))
+				{
+					definition.Dependencies[name] = new Models.VersionRange($"^{versionMatch}");
+				}
+				else
+				{
+					definition.Dependencies.Add(name, new Models.VersionRange($"^{versionMatch}"));
+				}
+			}
+
+			return definition;
 		}
 	}
 }

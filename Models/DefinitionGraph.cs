@@ -15,11 +15,9 @@ namespace NFive.PluginManager.Models
 	{
 		public async Task Build(Plugin definition)
 		{
-			await StageDefinition(definition);
-
 			if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
 
-			var plugins = definition.Dependencies.Select(d => Plugin.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", d.Key.Vendor, d.Key.Project, ConfigurationManager.DefinitionFile))).ToList();
+			var plugins = await StageDefinition(definition, new Dictionary<Name, SDK.Core.Plugins.VersionRange>());
 
 			foreach (var plugin in plugins.Where(d => d.Dependencies != null))
 			{
@@ -78,7 +76,7 @@ namespace NFive.PluginManager.Models
 
 				if (!Directory.Exists(configSrc)) continue;
 
-				Directory.CreateDirectory(configDst);
+				if (!Directory.Exists(configDst)) Directory.CreateDirectory(configDst);
 
 				foreach (var yml in Directory.EnumerateFiles(configSrc, "*.yml", SearchOption.TopDirectoryOnly))
 				{
@@ -96,31 +94,42 @@ namespace NFive.PluginManager.Models
 			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) DeleteDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"));
 		}
 
-		private static async Task StageDefinition(SDK.Core.Plugins.Plugin definition)
+		private static async Task<List<Plugin>> StageDefinition(SDK.Core.Plugins.Plugin definition, Dictionary<Name, SDK.Core.Plugins.VersionRange> loaded)
 		{
+			var results = new List<Plugin>();
+
 			foreach (var dependency in definition.Dependencies ?? new Dictionary<Name, SDK.Core.Plugins.VersionRange>())
 			{
 				var repo = definition.Repositories?.FirstOrDefault(r => r.Name.ToString() == dependency.Key.ToString());
-
 				var adapter = new AdapterBuilder(dependency.Key, repo).Adapter();
 
 				var versions = await adapter.GetVersions();
-
 				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version.ToString()));
 				if (versionMatch == null) throw new Exception("No matching version found");
 
-				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project));
+				if (loaded.ContainsKey(dependency.Key))
+				{
+					if (dependency.Value.Value != "*" && loaded[dependency.Key].Value != "*" && !dependency.Value.IsSatisfied(loaded[dependency.Key].Value)) throw new Exception($"{dependency.Key} was found");
+				}
+				else
+				{
+					loaded.Add(dependency.Key, dependency.Value);
+				}
 
-				await adapter.Download(versionMatch);
+				var localPath = await adapter.Cache(versionMatch);
 
-				var dependencyDefinition = Plugin.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project, ConfigurationManager.DefinitionFile));
+				var plugin = Plugin.Load(Path.Combine(localPath, ConfigurationManager.DefinitionFile));
+
+				results.Add(plugin);
 
 				// TODO: What should be validated?
-				//if (dependencyDefinition.Name != dependency.Key) throw new Exception("Downloaded package does not match requested.");
-				//if (dependencyDefinition.Version != versionMatch) throw new Exception("Downloaded package does not match requested.");
+				//if (plugin.Name != dependency.Key) throw new Exception("Downloaded package does not match requested.");
+				//if (plugin.Version != versionMatch) throw new Exception("Downloaded package does not match requested.");
 
-				await StageDefinition(dependencyDefinition);
+				await StageDefinition(plugin, loaded);
 			}
+
+			return results;
 		}
 
 		private static List<Plugin> Sort(IEnumerable<Plugin> plugins)

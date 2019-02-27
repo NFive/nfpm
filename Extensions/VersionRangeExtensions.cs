@@ -7,7 +7,7 @@ namespace NFive.PluginManager.Extensions
 	{
 		public static bool IsSatisfied(this VersionRange target, string version)
 		{
-			return new Range(version).IsSatisfied(version);
+			return new Range(target.Value).IsSatisfied(version);
 		}
 	}
 }

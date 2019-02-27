@@ -26,6 +26,8 @@ namespace NFive.PluginManager.Adapters
 	{
 		private readonly Name name;
 
+		private static readonly Dictionary<Name, List<HubShortVersion>> CachedReleases = new Dictionary<Name, List<HubShortVersion>>();
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="HubAdapter"/> class.
 		/// </summary>
@@ -33,6 +35,8 @@ namespace NFive.PluginManager.Adapters
 		public HubAdapter(Name name)
 		{
 			this.name = name;
+
+			//if (!CachedVersions.ContainsKey(this.name)) CachedVersions.Add(this.name, new List<Version>());
 		}
 
 		/// <inheritdoc />
@@ -43,7 +47,7 @@ namespace NFive.PluginManager.Adapters
 		{
 			var releases = await GetReleases();
 
-			return releases.Select(v => v.Version);
+			return releases.Select(v => v.Version).ToList();
 		}
 
 		/// <inheritdoc />
@@ -63,18 +67,36 @@ namespace NFive.PluginManager.Adapters
 				return;
 			}
 
+			await Cache(version);
+
+			targetDir.Copy(cacheDir.FullName);
+		}
+
+		public async Task<string> Cache(Version version)
+		{
+			var cacheDir = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", ConfigurationManager.PluginPath, this.name.Vendor, this.name.Project, version.ToString()));
+	
+			if (cacheDir.Exists) return cacheDir.FullName;
+
+			cacheDir.Create();
+
 			var releases = await GetReleases();
 			var release = releases.First(r => r.Version.ToString() == version.ToString());
-			var file = Path.Combine(targetDir.FullName, Path.GetFileName(release.DownloadUrl));
+
+			if (string.IsNullOrWhiteSpace(release.DownloadUrl)) throw new Exception("Got invalid download URL");
+
+			var file = Path.Combine(cacheDir.FullName, Path.GetFileName(release.DownloadUrl));
 
 			using (var client = new WebClient())
 			{
+				//Console.WriteLine($"Downloading: {release.DownloadUrl}");
+
 				await client.DownloadFileTaskAsync(release.DownloadUrl, file);
 			}
 
 			using (var zip = ZipArchive.Open(file))
 			{
-				zip.WriteToDirectory(targetDir.FullName, new ExtractionOptions
+				zip.WriteToDirectory(cacheDir.FullName, new ExtractionOptions
 				{
 					Overwrite = true,
 					ExtractFullPath = true
@@ -83,14 +105,21 @@ namespace NFive.PluginManager.Adapters
 
 			File.Delete(file);
 
-			targetDir.Copy(cacheDir.FullName);
+			return cacheDir.FullName;
 		}
 
-		public async Task<List<HubShortVersion>> GetReleases()
+		private async Task<List<HubShortVersion>> GetReleases()
 		{
-			var result = await Get<HubProject>($"project/{this.name.Vendor}/{this.name.Project}.json");
+			if (CachedReleases.ContainsKey(this.name)) return CachedReleases[this.name];
 
-			return result.Versions.OrderBy(v => v.Version.ToString()).ToList();
+			//Console.WriteLine($"Downloading: project/{this.name.Vendor}/{this.name.Project}.json");
+
+			var result = await Get<HubProject>($"project/{this.name.Vendor}/{this.name.Project}.json");
+			var releases = result.Versions.OrderBy(v => v.Version.ToString()).ToList();
+
+			CachedReleases.Add(this.name, releases);
+
+			return releases;
 		}
 
 		public static async Task<List<HubSearchResult>> Search(string query)

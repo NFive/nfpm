@@ -74,13 +74,13 @@ namespace NFive.PluginManager.Modules
 
 			if (last)
 			{
-				Console.Write("└── ");
-				prefix += "   ";
+				Console.Write("└─ ");
+				prefix += "  ";
 			}
 			else
 			{
-				Console.Write("├── ");
-				prefix += "│   ";
+				Console.Write("├─ ");
+				prefix += "│  ";
 			}
 
 			Console.WriteLine(plugin.FullName);

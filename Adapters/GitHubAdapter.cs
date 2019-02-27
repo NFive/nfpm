@@ -46,6 +46,11 @@ namespace NFive.PluginManager.Adapters
 				.OrderBy(v => v.ToString());
 		}
 
+		public Task<string> Cache(Version version)
+		{
+			throw new NotImplementedException();
+		}
+
 		/// <inheritdoc />
 		/// <summary>
 		/// Downloads and unpacks the specified release version.
