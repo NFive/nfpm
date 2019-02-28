@@ -44,6 +44,7 @@ namespace NFive.PluginManager.Adapters.Hub
 	public class HubShortVersion
 	{
 		public Version Version { get; set; }
+		[NotNull]
 		public string DownloadUrl { get; set; }
 	}
 

@@ -10,8 +10,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Plugin = NFive.SDK.Plugins.Plugin;
+using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Modules
 {
@@ -34,10 +36,10 @@ namespace NFive.PluginManager.Modules
 
 				definition = Plugin.Load(ConfigurationManager.DefinitionFile);
 			}
-			catch (FileNotFoundException ex)
+			catch (DirectoryNotFoundException)
 			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine("Use `nfpm setup` to setup NFive in this directory");
+				Console.WriteLine("NFive installation or plugin not found.".Red());
+				Console.WriteLine("Use ", "nfpm setup".Yellow(), " to install NFive in this directory.");
 
 				return 1;
 			}
@@ -46,8 +48,6 @@ namespace NFive.PluginManager.Modules
 
 			try
 			{
-				Console.WriteLine("Building dependency tree...");
-
 				graph = DefinitionGraph.Load();
 			}
 			catch (FileNotFoundException)
@@ -56,17 +56,76 @@ namespace NFive.PluginManager.Modules
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("Unable to build definition graph (PANIC):");
-				Console.WriteLine(ex.Message);
-				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message);
+				Console.WriteLine("Unable to build definition graph (PANIC):".Red());
+				Console.WriteLine(ex.Message.Red());
+				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message.Red());
 
 				return 1;
 			}
-			
+
 			// New plugins
 			if (this.Plugins.Any())
 			{
-				definition = await LocalInstall(definition, this.Plugins);
+				foreach (var plugin in this.Plugins)
+				{
+					var input = plugin;
+
+					// Local install
+					if (Directory.Exists(plugin) && File.Exists(Path.Combine(plugin, ConfigurationManager.DefinitionFile)))
+					{
+						var path = Path.GetFullPath(plugin);
+
+						var pluginDefinition = Plugin.Load(Path.Combine(path, ConfigurationManager.DefinitionFile));
+
+						if (definition.Repositories == null) definition.Repositories = new List<Repository>();
+						definition.Repositories.Add(new Repository
+						{
+							Name = pluginDefinition.Name,
+							Type = "local",
+							Path = path
+						});
+
+						input = pluginDefinition.Name;
+					}
+
+					var parts = input.Split(new[] { '@' }, 2);
+					var name = new Name(parts[0]);
+					var version = parts.Length == 2 ? new Models.VersionRange(parts[1]) : new Models.VersionRange("*");
+
+					List<Version> versions;
+					try
+					{
+						var adapter = new AdapterBuilder(name, definition).Adapter();
+						versions = (await adapter.GetVersions()).ToList();
+					}
+					catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound)
+					{
+						Console.WriteLine("Error ".DarkRed(), $"{name}".Red(), " not found.".DarkRed());
+
+						return 1;
+					}
+
+					var versionMatch = version.Latest(versions);
+					if (versionMatch == null)
+					{
+						Console.WriteLine("Error ".DarkRed(), $"{name}@{version}".Red(), " not found, available versions: ".DarkRed(), string.Join(" ", versions.Select(v => v.ToString())).Red());
+
+						return 1;
+					}
+
+					if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
+
+					Console.WriteLine($"+ {name}@{versionMatch}");
+
+					if (definition.Dependencies.ContainsKey(name))
+					{
+						definition.Dependencies[name] = new Models.VersionRange($"^{versionMatch}");
+					}
+					else
+					{
+						definition.Dependencies.Add(name, new Models.VersionRange($"^{versionMatch}"));
+					}
+				}
 
 				graph = new DefinitionGraph();
 				await graph.Apply(definition);
@@ -85,7 +144,7 @@ namespace NFive.PluginManager.Modules
 				else
 				{
 					graph = new DefinitionGraph();
-					
+
 					await graph.Apply(definition);
 
 					graph.Save();
@@ -93,61 +152,8 @@ namespace NFive.PluginManager.Modules
 
 				if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 			}
-			
+
 			return 0;
-		}
-
-		private async Task<Plugin> LocalInstall(Plugin definition, IEnumerable<string> plugins)
-		{
-			foreach (var plugin in plugins)
-			{
-				var input = plugin;
-
-				// Local install
-				if (Directory.Exists(plugin) && File.Exists(Path.Combine(plugin, ConfigurationManager.DefinitionFile)))
-				{
-					var path = Path.GetFullPath(plugin);
-
-					var pluginDef = Plugin.Load(Path.Combine(path, ConfigurationManager.DefinitionFile));
-
-					if (definition.Repositories == null) definition.Repositories = new List<Repository>();
-					definition.Repositories.Add(new Repository
-					{
-						Name = pluginDef.Name,
-						Type = "local",
-						Path = path
-					});
-
-					input = pluginDef.Name;
-				}
-
-				var parts = input.Split(new[] { '@' }, 2);
-				var name = new Name(parts[0]);
-				var version = new Models.VersionRange("*");
-
-				if (parts.Length == 2) version = new Models.VersionRange(parts[1]);
-
-				var adapter = new AdapterBuilder(name, definition).Adapter();
-				var versions = await adapter.GetVersions();
-
-				var versionMatch = versions.LastOrDefault(v => version.IsSatisfied(v));
-				if (versionMatch == null) throw new Exception("Version not found");
-
-				if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
-
-				Console.WriteLine($"+ {name}@{versionMatch}");
-
-				if (definition.Dependencies.ContainsKey(name))
-				{
-					definition.Dependencies[name] = new Models.VersionRange($"^{versionMatch}");
-				}
-				else
-				{
-					definition.Dependencies.Add(name, new Models.VersionRange($"^{versionMatch}"));
-				}
-			}
-
-			return definition;
 		}
 	}
 }

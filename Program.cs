@@ -3,6 +3,7 @@ using NFive.PluginManager.Modules;
 using NFive.PluginManager.Utilities;
 using System;
 using System.Threading.Tasks;
+using NFive.PluginManager.Extensions;
 
 namespace NFive.PluginManager
 {
@@ -98,7 +99,7 @@ namespace NFive.PluginManager
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("An unhandled application error has occured:");
+				Console.WriteLine("An unhandled application error has occured:".Red());
 				Console.WriteLine(ex.Message);
 				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message);
 
