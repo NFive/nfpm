@@ -94,7 +94,7 @@ namespace NFive.PluginManager.Modules
 				result[2].Text = result[2].Text.Truncate(wantedLength).PadLeft(wantedLength);
 				result[3].Text = result[3].Text.Truncate(latestLength).PadLeft(latestLength);
 
-				ColorConsole.WriteLine(result[0], " | ", result[1], " | ", result[2], " | ", result[3]);
+				Console.WriteLine(result[0], " | ", result[1], " | ", result[2], " | ", result[3]);
 			}
 
 			return await Task.FromResult(0);

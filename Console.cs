@@ -1,8 +1,26 @@
-namespace NFive.PluginManager.Utilities.Console
+using System.Linq;
+using NFive.PluginManager.Utilities.Console;
+
+namespace NFive.PluginManager
 {
-	public static class ColorConsole
+	public static class Console
 	{
 		private static readonly object Lock = new object();
+
+		public static void WriteLine()
+		{
+			System.Console.WriteLine();
+		}
+
+		public static void Write(string message)
+		{
+			System.Console.Write(message);
+		}
+
+		public static void WriteLine(string message)
+		{
+			System.Console.WriteLine(message);
+		}
 
 		public static void Write(params ColorToken[] tokens)
 		{

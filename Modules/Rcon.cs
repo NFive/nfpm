@@ -40,9 +40,9 @@ namespace NFive.PluginManager.Modules
 			if (this.Password == null)
 			{
 				this.Password = Input.String("Password");
-				Console.CursorTop--;
-				Console.Write(new string(' ', Console.WindowWidth - 1));
-				Console.CursorLeft = 0;
+				System.Console.CursorTop--;
+				System.Console.Write(new string(' ', System.Console.WindowWidth - 1));
+				System.Console.CursorLeft = 0;
 			}
 
 			if (!this.Quiet) Console.WriteLine($"Connecting to {this.Host}:{this.Port}...");

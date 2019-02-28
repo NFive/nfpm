@@ -1,5 +1,6 @@
 using NFive.SDK.Core.Plugins;
 using System;
+using System.Linq;
 
 namespace NFive.PluginManager.Adapters
 {
@@ -43,6 +44,8 @@ namespace NFive.PluginManager.Adapters
 					throw new ArgumentOutOfRangeException(nameof(repo), repo.Type, "Unknown repository type");
 			}
 		}
+
+		public AdapterBuilder(Name name, Plugin plugin) : this(name, plugin.Repositories?.FirstOrDefault(r => r.Name == name)) { }
 
 		/// <summary>
 		/// The download adapter instance.

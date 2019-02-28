@@ -13,25 +13,32 @@ namespace NFive.PluginManager.Models
 {
 	public class DefinitionGraph : SDK.Plugins.DefinitionGraph
 	{
-		public async Task Apply(Plugin baseDefinition)
+		public async Task Apply(Plugin baseDefinition = null)
 		{
-			var plugins = await StageDefinition(baseDefinition);
-
-			foreach (var plugin in plugins.Where(d => d.Dependencies != null))
+			if (baseDefinition != null)
 			{
-				foreach (var dependency in plugin.Dependencies)
+				var plugins = await StageDefinition(baseDefinition);
+
+				foreach (var plugin in plugins.Where(d => d.Dependencies != null))
 				{
-					var dependencyPlugin = plugins.FirstOrDefault(p => p.Name == dependency.Key);
-					if (dependencyPlugin == null) throw new Exception($"Unable to find dependency {dependency.Key}@{dependency.Value} required by {plugin.Name}@{plugin.Version}"); // TODO: DependencyException
-					if (!dependency.Value.IsSatisfied(dependencyPlugin.Version.ToString())) throw new Exception($"{plugin.Name}@{plugin.Version} requires {dependencyPlugin.Name}@{dependency.Value} but {dependencyPlugin.Name}@{dependencyPlugin.Version} was found");
+					foreach (var dependency in plugin.Dependencies)
+					{
+						var dependencyPlugin = plugins.FirstOrDefault(p => p.Name == dependency.Key);
+						if (dependencyPlugin == null) throw new Exception($"Unable to find dependency {dependency.Key}@{dependency.Value} required by {plugin.Name}@{plugin.Version}"); // TODO: DependencyException
+						if (!dependency.Value.IsSatisfied(dependencyPlugin.Version)) throw new Exception($"{plugin.Name}@{plugin.Version} requires {dependencyPlugin.Name}@{dependency.Value} but {dependencyPlugin.Name}@{dependencyPlugin.Version} was found");
 
-					if (plugin.DependencyNodes == null) plugin.DependencyNodes = new List<Plugin>();
-					plugin.DependencyNodes.Add(dependencyPlugin);
+						if (plugin.DependencyNodes == null) plugin.DependencyNodes = new List<Plugin>();
+						plugin.DependencyNodes.Add(dependencyPlugin);
+					}
 				}
+
+				this.Plugins = Sort(plugins);
 			}
-
-			this.Plugins = Sort(plugins);
-
+			else
+			{
+				this.Plugins = Sort(this.Plugins);
+			}
+			
 			foreach (var definition in this.Plugins)
 			{
 				var path = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile);
@@ -49,7 +56,7 @@ namespace NFive.PluginManager.Models
 				var dir = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project);
 				if (Directory.Exists(dir)) DeleteDirectory(dir);
 
-				var repo = baseDefinition.Repositories?.FirstOrDefault(r => r.Name == definition.Name);
+				var repo = baseDefinition?.Repositories?.FirstOrDefault(r => r.Name == definition.Name);
 				var adapter = new AdapterBuilder(definition.Name, repo).Adapter();
 				await adapter.Download(definition.Version);
 
@@ -91,7 +98,7 @@ namespace NFive.PluginManager.Models
 				var adapter = new AdapterBuilder(dependency.Key, repo).Adapter();
 
 				var versions = await adapter.GetVersions();
-				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version.ToString()));
+				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version));
 				if (versionMatch == null) throw new Exception("No matching version found");
 
 				if (loaded == null) loaded = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();

@@ -75,135 +75,25 @@ namespace NFive.PluginManager.Modules
 				graph.Save();
 
 				if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
-
-				Console.WriteLine("Finished");
-
-				return 0;
 			}
-
-
-
-
-
-			if (!this.Plugins.Any())
+			else
 			{
-				Console.WriteLine("No new plugins to add");
-
 				if (graph != null)
 				{
-					Console.WriteLine("Applying dependencies...");
-
-					await graph.Apply(definition);
-
-					if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
+					await graph.Apply();
 				}
 				else
 				{
-					Console.WriteLine("Building new tree...");
-
-					Console.WriteLine("Applying dependencies...");
-
 					graph = new DefinitionGraph();
+					
 					await graph.Apply(definition);
 
 					graph.Save();
-
-					if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 				}
 
-				Console.WriteLine("Finished");
-
-				return 0;
+				if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 			}
-
-			foreach (var plugin in this.Plugins)
-			{
-				var input = plugin;
-
-				if (Directory.Exists(plugin) && File.Exists(Path.Combine(plugin, ConfigurationManager.DefinitionFile)))
-				{
-					var path = Path.GetFullPath(plugin);
-
-					var pluginDef = Plugin.Load(Path.Combine(path, ConfigurationManager.DefinitionFile));
-
-					if (definition.Repositories == null) definition.Repositories = new List<Repository>();
-					definition.Repositories.Add(new Repository
-					{
-						Name = pluginDef.Name,
-						Type = "local",
-						Path = path
-					});
-
-					input = pluginDef.Name;
-				}
-
-				var parts = input.Split(new[] { '@' }, 2);
-				Name name;
-				var version = new Models.VersionRange("*");
-
-				try
-				{
-					name = new Name(parts[0]);
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex);
-					return 1;
-				}
-
-				if (parts.Length == 2)
-				{
-					try
-					{
-						version = new Models.VersionRange(parts[1]);
-					}
-					catch (Exception ex)
-					{
-						Console.WriteLine(ex);
-						return 1;
-					}
-				}
-
-				var adapter = new AdapterBuilder(name, definition.Repositories?.FirstOrDefault(r => r.Name == name)).Adapter();
-				var versions = await adapter.GetVersions();
-
-				var versionMatch = versions.LastOrDefault(v => version.IsSatisfied(v.ToString()));
-
-				if (versionMatch != null)
-				{
-					version = new Models.VersionRange(versionMatch.ToString());
-				}
-				else
-				{
-					// ERROR: Ver not found
-				}
-
-				if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
-
-				Console.WriteLine($"+ {name}@{version}");
-
-				if (definition.Dependencies.ContainsKey(name))
-				{
-					definition.Dependencies[name] = new Models.VersionRange($"^{versionMatch}");
-				}
-				else
-				{
-					definition.Dependencies.Add(name, new Models.VersionRange($"^{versionMatch}"));
-				}
-			}
-
-			Console.WriteLine("Applying dependencies...");
-
-			graph = new DefinitionGraph();
-			await graph.Apply(definition);
-
-			definition.Save(ConfigurationManager.DefinitionFile);
-			graph.Save();
-
-			if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
-
-			Console.WriteLine("Finished");
-
+			
 			return 0;
 		}
 
@@ -232,30 +122,20 @@ namespace NFive.PluginManager.Modules
 				}
 
 				var parts = input.Split(new[] { '@' }, 2);
-				Name name;
+				var name = new Name(parts[0]);
 				var version = new Models.VersionRange("*");
 
-				name = new Name(parts[0]);
+				if (parts.Length == 2) version = new Models.VersionRange(parts[1]);
 
-				if (parts.Length == 2)
-				{
-					version = new Models.VersionRange(parts[1]);
-				}
-
-				var adapter = new AdapterBuilder(name, definition.Repositories?.FirstOrDefault(r => r.Name == name)).Adapter();
+				var adapter = new AdapterBuilder(name, definition).Adapter();
 				var versions = await adapter.GetVersions();
-				var versionMatch = versions.LastOrDefault(v => version.IsSatisfied(v.ToString()));
 
-				if (versionMatch == null)
-				{
-					throw new Exception("Version not found");
-				}
-
-				version = new Models.VersionRange(versionMatch.ToString());
+				var versionMatch = versions.LastOrDefault(v => version.IsSatisfied(v));
+				if (versionMatch == null) throw new Exception("Version not found");
 
 				if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
 
-				Console.WriteLine($"+ {name}@{version}");
+				Console.WriteLine($"+ {name}@{versionMatch}");
 
 				if (definition.Dependencies.ContainsKey(name))
 				{

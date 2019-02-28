@@ -35,11 +35,11 @@ namespace NFive.PluginManager.Modules
 			var versionLength = Math.Max(Math.Min(20, results.Max(d => d.Versions.First().Version.ToString().Length)), 8);
 			var descriptionLength = Math.Max(Math.Min(50, results.Max(d => (d.Description ?? string.Empty).Length)), 15);
 
-			ColorConsole.WriteLine("NAME".PadRight(nameLength).White(), " | ", "VERSION".PadLeft(versionLength).White(), " | ", "DESCRIPTION".PadRight(descriptionLength).White());
+			Console.WriteLine("NAME".PadRight(nameLength).White(), " | ", "VERSION".PadLeft(versionLength).White(), " | ", "DESCRIPTION".PadRight(descriptionLength).White());
 
 			foreach (var repository in results)
 			{
-				ColorConsole.WriteLine(
+				Console.WriteLine(
 					repository.Name.Truncate(nameLength).PadRight(nameLength),
 					" | ",
 					repository.Versions.First().Version.ToString().Truncate(versionLength).PadLeft(versionLength),

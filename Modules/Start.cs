@@ -68,7 +68,7 @@ namespace NFive.PluginManager.Modules
 						char c;
 						while (!this.process.HasExited && (c = (char)this.process.StandardOutput.Read()) >= 0)
 						{
-							Console.Write(c);
+							System.Console.Write(c);
 						}
 					}).Start();
 				}
