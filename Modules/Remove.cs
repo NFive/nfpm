@@ -62,7 +62,6 @@ namespace NFive.PluginManager.Modules
 			// TODO: Remove orphaned child dependencies
 
 			var graph = new DefinitionGraph();
-			await graph.Build(definition);
 			await graph.Apply(definition);
 
 			definition.Save(ConfigurationManager.DefinitionFile);

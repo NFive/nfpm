@@ -62,15 +62,13 @@ namespace NFive.PluginManager.Modules
 
 				return 1;
 			}
-
-
+			
 			// New plugins
 			if (this.Plugins.Any())
 			{
 				definition = await LocalInstall(definition, this.Plugins);
 
 				graph = new DefinitionGraph();
-				await graph.Build(definition);
 				await graph.Apply(definition);
 
 				definition.Save(ConfigurationManager.DefinitionFile);
@@ -103,11 +101,9 @@ namespace NFive.PluginManager.Modules
 				{
 					Console.WriteLine("Building new tree...");
 
-					graph = new DefinitionGraph();
-					await graph.Build(definition);
-
 					Console.WriteLine("Applying dependencies...");
 
+					graph = new DefinitionGraph();
 					await graph.Apply(definition);
 
 					graph.Save();
@@ -199,7 +195,6 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine("Applying dependencies...");
 
 			graph = new DefinitionGraph();
-			await graph.Build(definition);
 			await graph.Apply(definition);
 
 			definition.Save(ConfigurationManager.DefinitionFile);

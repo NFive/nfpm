@@ -13,40 +13,35 @@ namespace NFive.PluginManager.Models
 {
 	public class DefinitionGraph : SDK.Plugins.DefinitionGraph
 	{
-		public async Task Build(Plugin definition)
+		public async Task Apply(Plugin baseDefinition)
 		{
-			var plugins = await StageDefinition(definition);
+			var plugins = await StageDefinition(baseDefinition);
 
 			foreach (var plugin in plugins.Where(d => d.Dependencies != null))
 			{
 				foreach (var dependency in plugin.Dependencies)
 				{
 					var dependencyPlugin = plugins.FirstOrDefault(p => p.Name == dependency.Key);
-					//if (dependencyPlugin == null) throw new Exception($"Unable to find dependency {dependency.Key}@{dependency.Value} required by {plugin.Name}@{plugin.Version}"); // TODO: DependencyException
+					if (dependencyPlugin == null) throw new Exception($"Unable to find dependency {dependency.Key}@{dependency.Value} required by {plugin.Name}@{plugin.Version}"); // TODO: DependencyException
 					if (!dependency.Value.IsSatisfied(dependencyPlugin.Version.ToString())) throw new Exception($"{plugin.Name}@{plugin.Version} requires {dependencyPlugin.Name}@{dependency.Value} but {dependencyPlugin.Name}@{dependencyPlugin.Version} was found");
 
-					if (plugin.Server == null) plugin.Server = new Server();
 					if (plugin.DependencyNodes == null) plugin.DependencyNodes = new List<Plugin>();
 					plugin.DependencyNodes.Add(dependencyPlugin);
 				}
 			}
 
 			this.Plugins = Sort(plugins);
-		}
-
-		public async Task Apply(Plugin baseDefinition)
-		{
-			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) DeleteDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"));
 
 			foreach (var definition in this.Plugins)
 			{
 				var path = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile);
 
-				if (File.Exists(path)) // TODO: Test this ever occurs
+				if (File.Exists(path))
 				{
 					var loadedDefinition = Plugin.Load(path);
 
-					if (loadedDefinition.Name == definition.Name && loadedDefinition.Version == definition.Version) continue;
+					// TODO: IEquality
+					if (loadedDefinition.Name.ToString() == definition.Name.ToString() && loadedDefinition.Version.ToString() == definition.Version.ToString()) continue;
 				}
 
 				// Missing or outdated
@@ -54,28 +49,24 @@ namespace NFive.PluginManager.Models
 				var dir = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project);
 				if (Directory.Exists(dir)) DeleteDirectory(dir);
 
-				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project));
-
 				var repo = baseDefinition.Repositories?.FirstOrDefault(r => r.Name == definition.Name);
 				var adapter = new AdapterBuilder(definition.Name, repo).Adapter();
 				await adapter.Download(definition.Version);
 
-				var dependencyDefinition = Plugin.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile));
+				var dependencyDefinition = Plugin.Load(Path.Combine(dir, ConfigurationManager.DefinitionFile));
 
+				// TODO: Needed?
 				if (dependencyDefinition.Name != definition.Name) throw new Exception("Downloaded package does not match requested.");
 				if (dependencyDefinition.Version.ToString() != definition.Version.ToString()) throw new Exception("Downloaded package does not match requested.");
 
-				var src = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project);
-				var dst = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project);
-				var configSrc = Path.Combine(src, ConfigurationManager.ConfigurationPath);
+				var configSrc = Path.Combine(dir, ConfigurationManager.ConfigurationPath);
 				var configDst = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.ConfigurationPath, definition.Name.Vendor, definition.Name.Project);
 
-				new DirectoryInfo(src).Copy(dst);
-
 				if (!Directory.Exists(configSrc)) continue;
-
 				if (!Directory.Exists(configDst)) Directory.CreateDirectory(configDst);
 
+				// TODO: More files?
+				// TODO: Ask user to replace
 				foreach (var yml in Directory.EnumerateFiles(configSrc, "*.yml", SearchOption.TopDirectoryOnly))
 				{
 					try
@@ -88,8 +79,6 @@ namespace NFive.PluginManager.Models
 					}
 				}
 			}
-
-			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) DeleteDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"));
 		}
 
 		private static async Task<List<Plugin>> StageDefinition(SDK.Core.Plugins.Plugin definition, IDictionary<Name, SDK.Core.Plugins.VersionRange> loaded = null)
