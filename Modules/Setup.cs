@@ -1,4 +1,6 @@
 using CommandLine;
+using NFive.PluginManager.Configuration;
+using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Utilities;
 using NFive.SDK.Plugins.Configuration;
 using SharpCompress.Common;
@@ -11,7 +13,6 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using NFive.PluginManager.Configuration;
 using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Modules
@@ -20,7 +21,7 @@ namespace NFive.PluginManager.Modules
 	/// Install and configure a new FiveM server with NFive installed.
 	/// </summary>
 	[Verb("setup", HelpText = "Install and configure a new FiveM server with NFive installed.")]
-	internal class Setup
+	internal class Setup : Module
 	{
 		[Option("fivem", Required = false, HelpText = "Install FiveM server.")]
 		public bool? FiveM { get; set; } = null;
@@ -61,7 +62,7 @@ namespace NFive.PluginManager.Modules
 		[Value(0, Default = "server", Required = false, HelpText = "Path to install server at.")]
 		public string Location { get; set; }
 
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
 			this.Location = Path.GetFullPath(this.Location);
 
@@ -69,7 +70,7 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine();
 			Console.WriteLine($"The server will be installed at {this.Location}");
 			Console.WriteLine();
-			Console.WriteLine("Press Ctrl+C at any time to quit.");
+			Console.WriteLine("Press ", "Ctrl+C".Yellow(), " at any time to quit.");
 			Console.WriteLine();
 
 			if (this.FiveM.HasValue && this.FiveM.Value || !this.FiveM.HasValue && Input.Bool("Install FiveM server?", true))
@@ -112,7 +113,7 @@ namespace NFive.PluginManager.Modules
 				var dbHost = string.IsNullOrWhiteSpace(this.DatabaseHost) ? Input.String("database host", "localhost") : this.DatabaseHost;
 				var dbPort = this.DatabasePort ?? Input.Int("database port", 1, ushort.MaxValue, 3306);
 				var dbUser = string.IsNullOrWhiteSpace(this.DatabaseUser) ? Input.String("database user", "root") : this.DatabaseUser;
-				var dbPass = string.IsNullOrWhiteSpace(this.DatabasePassword) ? Regex.Replace(Input.String("database password", "<blank>"), "^<blank>$", string.Empty) : this.DatabasePassword;
+				var dbPass = string.IsNullOrWhiteSpace(this.DatabasePassword) ? Regex.Replace(Input.Password("database password", "<blank>"), "^<blank>$", string.Empty) : this.DatabasePassword;
 				var dbName = string.IsNullOrWhiteSpace(this.DatabaseName) ? Input.String("database name", "fivem", s =>
 				{
 					if (Regex.IsMatch(s, "^[^\\/?%*:|\"<>.]{1,64}$")) return true;

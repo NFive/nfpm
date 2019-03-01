@@ -1,4 +1,3 @@
-using System.Linq;
 using NFive.PluginManager.Utilities.Console;
 
 namespace NFive.PluginManager

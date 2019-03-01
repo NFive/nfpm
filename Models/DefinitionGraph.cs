@@ -38,7 +38,7 @@ namespace NFive.PluginManager.Models
 			{
 				this.Plugins = Sort(this.Plugins);
 			}
-			
+
 			foreach (var definition in this.Plugins)
 			{
 				var path = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile);

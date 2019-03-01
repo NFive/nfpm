@@ -1,7 +1,6 @@
 using CommandLine;
 using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Extensions;
-using NFive.PluginManager.Utilities.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +12,12 @@ namespace NFive.PluginManager.Modules
 	/// Searches available NFive plugins.
 	/// </summary>
 	[Verb("search", HelpText = "Searches available NFive plugins.")]
-	internal class Search
+	internal class Search : Module
 	{
 		[Value(0, Required = false, HelpText = "search query")]
 		public IEnumerable<string> Query { get; set; }
 
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
 			var results = await HubAdapter.Search(string.Join(" ", this.Query));
 

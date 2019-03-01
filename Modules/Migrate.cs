@@ -23,7 +23,7 @@ namespace NFive.PluginManager.Modules
 	/// Create a NFive database migration.
 	/// </summary>
 	[Verb("migrate", HelpText = "Create a NFive database migration.")]
-	internal class Migrate
+	internal class Migrate : Module
 	{
 		private bool existingInstance = true;
 
@@ -38,7 +38,7 @@ namespace NFive.PluginManager.Modules
 
 		[SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
 		[SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
 			try
 			{

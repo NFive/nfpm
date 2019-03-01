@@ -3,6 +3,7 @@ using NFive.PluginManager.Modules;
 using NFive.PluginManager.Utilities;
 using System;
 using System.Threading.Tasks;
+using NFive.PluginManager.Exceptions;
 using NFive.PluginManager.Extensions;
 
 namespace NFive.PluginManager
@@ -96,6 +97,21 @@ namespace NFive.PluginManager
 						(Update m) => m.Main(),
 						e => Task.FromResult(1)
 					);
+			}
+			catch (DefinitionLoadException)
+			{
+				Console.WriteLine("NFive installation or plugin not found.".Red());
+				Console.WriteLine("Use ", "nfpm setup".Yellow(), " to install NFive in this directory.");
+
+				return 1;
+			}
+			catch (GraphLoadException ex)
+			{
+				Console.WriteLine("Unable to build definition graph (PANIC):".Red());
+				Console.WriteLine(ex.Message.Red());
+				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message.Red());
+
+				return 1;
 			}
 			catch (Exception ex)
 			{

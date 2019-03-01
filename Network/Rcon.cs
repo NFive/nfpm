@@ -1,4 +1,6 @@
+using NFive.PluginManager.Extensions;
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -12,7 +14,9 @@ namespace NFive.PluginManager.Network
 		private readonly UdpClient client;
 
 		public IPAddress Host { get; }
+
 		public int Port { get; }
+
 		public string Password { get; }
 
 		public Rcon(IPAddress host, int port, string password)
@@ -36,12 +40,21 @@ namespace NFive.PluginManager.Network
 			await this.client.SendAsync(data, data.Length);
 		}
 
-		public async Task<string> Receive()
+		public async Task<string> Receive(bool format = true)
 		{
 			var response = await this.client.ReceiveAsync();
 			var result = Encoding.UTF8.GetString(response.Buffer, 4, response.Buffer.Length - 4);
 
-			return result.StartsWith("print ") ? result.Substring("print ".Length) : null;
+			if (!format) return result;
+
+			if (!result.StartsWith("print ")) return null;
+
+			var lines = result.Substring("print ".Length)
+				.Split('\n')
+				.Select(l => l.TrimEnd("^7")) // Why FiveM? Why?
+				.ToList();
+
+			return string.Join(Environment.NewLine, lines); // Correct line endings
 		}
 
 		public async Task<string> Command(string command)

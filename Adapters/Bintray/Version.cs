@@ -1,8 +1,8 @@
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace NFive.PluginManager.Adapters.Bintray
 {
@@ -30,6 +30,7 @@ namespace NFive.PluginManager.Adapters.Bintray
 
 				return JsonConvert.DeserializeObject<Version>(data, new JsonSerializerSettings
 				{
+					MissingMemberHandling = MissingMemberHandling.Ignore,
 					ContractResolver = new DefaultContractResolver
 					{
 						NamingStrategy = new SnakeCaseNamingStrategy()

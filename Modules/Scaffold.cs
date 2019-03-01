@@ -48,7 +48,7 @@ namespace NFive.PluginManager.Modules
 
 			Console.WriteLine("This utility will walk you through generating the boilerplate code for a new plugin.");
 			Console.WriteLine();
-			Console.WriteLine("Press Ctrl+C at any time to quit.");
+			Console.WriteLine("Press ", "Ctrl+C".Yellow(), " at any time to quit.");
 			Console.WriteLine();
 
 			var org = string.IsNullOrWhiteSpace(this.Owner) ? Input.String("Owner", s =>
@@ -141,7 +141,7 @@ namespace NFive.PluginManager.Modules
 
 			if (!string.IsNullOrWhiteSpace(path))
 			{
-				Console.WriteLine("Running \"nuget restore\" to download packages...");
+				Console.WriteLine("Running ", "nuget restore".Yellow(), " to download packages...");
 
 				Process.Start(new ProcessStartInfo(Path.Combine(path, "nuget.exe"), $"restore {directory}")
 				{
@@ -158,7 +158,7 @@ namespace NFive.PluginManager.Modules
 			}
 
 			Console.WriteLine();
-			Console.WriteLine("Scaffolding is complete, you can now write your plugin!");
+			Console.WriteLine("Scaffolding is complete, you can now develop your plugin!");
 
 			return 0;
 		}
@@ -263,6 +263,7 @@ namespace NFive.PluginManager.Modules
 			}
 		}
 
+		// TODO: Use helper
 		private static void DirectoryCopy(string source, string dest, bool recursive = true)
 		{
 			var dir = new DirectoryInfo(source);

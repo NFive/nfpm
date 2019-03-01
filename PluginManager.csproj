@@ -48,6 +48,9 @@
     <Compile Include="Adapters\IDownloadAdapter.cs" />
     <Compile Include="Adapters\LocalAdapter.cs" />
     <Compile Include="Console.cs" />
+    <Compile Include="Exceptions\GraphLoadException.cs" />
+    <Compile Include="Exceptions\DefinitionLoadException.cs" />
+    <Compile Include="Modules\Module.cs" />
     <Compile Include="Utilities\Console\ColorToken.cs" />
     <Compile Include="Extensions\ColorTokenExtensions.cs" />
     <Compile Include="Extensions\DirectoryExtensions.cs" />
@@ -81,7 +84,6 @@
     <Compile Include="Configuration\ConfigGenerator.cs" />
     <Compile Include="Network\Rcon.cs" />
     <Compile Include="Configuration\ResourceGenerator.cs" />
-    <Compile Include="Configuration\ResourceString.cs" />
     <Compile Include="Utilities\RuntimeEnvironment.cs" />
     <Compile Include="Utilities\VisualStudio.cs" />
   </ItemGroup>

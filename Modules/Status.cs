@@ -41,7 +41,7 @@ namespace NFive.PluginManager.Modules
 
 			if (string.IsNullOrWhiteSpace(server))
 			{
-				Console.WriteLine(" NOT FOUND");
+				Console.WriteLine(" NOT FOUND".DarkRed());
 			}
 			else
 			{
@@ -50,15 +50,15 @@ namespace NFive.PluginManager.Modules
 
 				var binary = Path.Combine(server, RuntimeEnvironment.IsWindows ? PathManager.ServerFileWindows : PathManager.ServerFileLinux);
 				Console.Write("-- Binary: ");
-				Console.WriteLine(File.Exists(binary) ? Relative(binary, cd) : "MISSING");
+				Console.WriteLine(File.Exists(binary) ? Relative(binary, cd) : "MISSING".DarkRed());
 
 				var version = GetServerVersion(server);
 				Console.Write("-- Version: ");
-				Console.WriteLine(!string.IsNullOrWhiteSpace(version) ? version : "UNKNOWN");
+				Console.WriteLine(!string.IsNullOrWhiteSpace(version) ? version : "UNKNOWN".DarkRed());
 
 				var config = Path.Combine(server, "server.cfg");
 				Console.Write("-- Config: ");
-				Console.WriteLine(File.Exists(config) ? Relative(config, cd) : "MISSING");
+				Console.WriteLine(File.Exists(config) ? Relative(config, cd) : "MISSING".DarkRed());
 			}
 
 			Console.WriteLine();
@@ -71,7 +71,7 @@ namespace NFive.PluginManager.Modules
 
 			if (string.IsNullOrWhiteSpace(nfive))
 			{
-				Console.WriteLine(" NOT FOUND");
+				Console.WriteLine(" NOT FOUND".DarkRed());
 			}
 			else
 			{
@@ -83,11 +83,11 @@ namespace NFive.PluginManager.Modules
 
 				var definition = Path.Combine(nfive, ConfigurationManager.DefinitionFile);
 				Console.Write("-- Definition: ");
-				Console.WriteLine(File.Exists(definition) ? Relative(definition, cd) : "MISSING");
+				Console.WriteLine(File.Exists(definition) ? Relative(definition, cd) : "MISSING".DarkRed());
 
 				var @lock = Path.Combine(nfive, ConfigurationManager.LockFile);
 				Console.Write("-- Lock: ");
-				Console.WriteLine(File.Exists(@lock) ? Relative(@lock, cd) : "MISSING");
+				Console.WriteLine(File.Exists(@lock) ? Relative(@lock, cd) : "MISSING".DarkRed());
 			}
 
 			return await Task.FromResult(0);

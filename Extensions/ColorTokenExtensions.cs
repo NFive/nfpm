@@ -1,8 +1,8 @@
+using JetBrains.Annotations;
+using NFive.PluginManager.Utilities.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
-using NFive.PluginManager.Utilities.Console;
 
 namespace NFive.PluginManager.Extensions
 {

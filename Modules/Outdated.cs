@@ -1,7 +1,6 @@
 using CommandLine;
 using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Extensions;
-using NFive.PluginManager.Utilities;
 using NFive.PluginManager.Utilities.Console;
 using NFive.SDK.Plugins;
 using NFive.SDK.Plugins.Configuration;
@@ -17,26 +16,13 @@ namespace NFive.PluginManager.Modules
 	/// Check for updates for installed NFive plugins.
 	/// </summary>
 	[Verb("outdated", HelpText = "Check for updates for installed NFive plugins.")]
-	internal class Outdated
+	internal class Outdated : Module
 	{
-		internal async Task<int> Main()
+		[Option('a', "all", Required = false, HelpText = "Show all dependencies, including up to date.")]
+		public bool All { get; set; } = false;
+
+		internal override async Task<int> Main()
 		{
-			Plugin definition;
-
-			try
-			{
-				Environment.CurrentDirectory = PathManager.FindResource();
-
-				definition = Plugin.Load(ConfigurationManager.DefinitionFile);
-			}
-			catch (FileNotFoundException ex)
-			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine("Use `nfpm setup` to setup NFive in this directory");
-
-				return 1;
-			}
-
 			var results = new List<ColorToken[]>
 			{
 				new []
@@ -47,6 +33,8 @@ namespace NFive.PluginManager.Modules
 					"LATEST".White()
 				}
 			};
+
+			var definition = LoadDefinition();
 
 			foreach (var dependency in definition.Dependencies)
 			{
@@ -71,6 +59,8 @@ namespace NFive.PluginManager.Modules
 
 					current = current.Text != wanted.Text ? current.Red() : current.Green();
 					wanted = wanted.Text != latest.Text ? wanted.Red() : wanted.Green();
+
+					if (!this.All && current.Text == wanted.Text && wanted.Text == latest.Text) continue;
 				}
 
 				results.Add(new[]
@@ -81,6 +71,8 @@ namespace NFive.PluginManager.Modules
 					latest
 				});
 			}
+
+			if (results.Count < 2) return 0;
 
 			var nameLength = Math.Max(Math.Min(50, results.Max(d => d[0].Text.Length)), 10);
 			var currentLength = Math.Max(Math.Min(20, results.Max(d => d[1].Text.ToString().Length)), 7);

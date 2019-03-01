@@ -1,8 +1,8 @@
+using NFive.SDK.Core.Plugins;
+using SemVer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFive.SDK.Core.Plugins;
-using SemVer;
 using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Extensions

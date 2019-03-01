@@ -1,6 +1,6 @@
-using System;
 using JetBrains.Annotations;
 using NFive.PluginManager.Utilities.Console;
+using System;
 
 namespace NFive.PluginManager.Extensions
 {

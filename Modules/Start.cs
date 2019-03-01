@@ -1,6 +1,6 @@
 using CommandLine;
+using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Utilities;
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -12,14 +12,14 @@ namespace NFive.PluginManager.Modules
 	/// Starts a local FiveM server.
 	/// </summary>
 	[Verb("start", HelpText = "Starts up an installed FiveM server.")]
-	internal class Start
+	internal class Start : Module
 	{
 		private Process process;
 
 		[Option('w', "window", Default = false, Required = false, HelpText = "Start server in separate window.")]
 		public bool Window { get; set; } = false;
 
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
 			var start = new ProcessStartInfo(Path.Combine(PathManager.FindServer(), PathManager.ServerFileWindows), $"+set citizen_dir citizen +exec {PathManager.ConfigFile}")
 			{
@@ -53,7 +53,7 @@ namespace NFive.PluginManager.Modules
 					return 0;
 				}
 
-				Console.WriteLine("Press Ctrl+C to exit");
+				Console.WriteLine("Press ", "Ctrl+C".Yellow(), " to exit");
 
 				this.process.ErrorDataReceived += (s, e) => Console.WriteLine(e.Data);
 

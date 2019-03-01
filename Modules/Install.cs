@@ -6,7 +6,6 @@ using NFive.PluginManager.Models;
 using NFive.PluginManager.Utilities;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,50 +17,18 @@ using Version = NFive.SDK.Core.Plugins.Version;
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
-	/// Installs a plugin or processes the lock file.
+	/// Installs new plugins or processes the existing lock file.
 	/// </summary>
 	[Verb("install", HelpText = "Install NFive plugins.")]
-	internal class Install
+	internal class Install : Module
 	{
-		[Value(0, Required = false, HelpText = "plugin name")]
+		[Value(0, Required = false, HelpText = "plugin name and optional version")]
 		public IEnumerable<string> Plugins { get; set; } = new List<string>();
 
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
-			Plugin definition;
-
-			try
-			{
-				Environment.CurrentDirectory = PathManager.FindResource();
-
-				definition = Plugin.Load(ConfigurationManager.DefinitionFile);
-			}
-			catch (DirectoryNotFoundException)
-			{
-				Console.WriteLine("NFive installation or plugin not found.".Red());
-				Console.WriteLine("Use ", "nfpm setup".Yellow(), " to install NFive in this directory.");
-
-				return 1;
-			}
-
-			DefinitionGraph graph;
-
-			try
-			{
-				graph = DefinitionGraph.Load();
-			}
-			catch (FileNotFoundException)
-			{
-				graph = null;
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine("Unable to build definition graph (PANIC):".Red());
-				Console.WriteLine(ex.Message.Red());
-				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message.Red());
-
-				return 1;
-			}
+			var definition = LoadDefinition();
+			var graph = LoadGraph();
 
 			// New plugins
 			if (this.Plugins.Any())
@@ -115,7 +82,7 @@ namespace NFive.PluginManager.Modules
 
 					if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
 
-					Console.WriteLine($"+ {name}@{versionMatch}");
+					Console.WriteLine("+ ", $"{name}@{versionMatch}".White());
 
 					if (definition.Dependencies.ContainsKey(name))
 					{
@@ -132,8 +99,6 @@ namespace NFive.PluginManager.Modules
 
 				definition.Save(ConfigurationManager.DefinitionFile);
 				graph.Save();
-
-				if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 			}
 			else
 			{
@@ -149,9 +114,9 @@ namespace NFive.PluginManager.Modules
 
 					graph.Save();
 				}
-
-				if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
 			}
+
+			if (PathManager.IsResource()) ResourceGenerator.Serialize(graph);
 
 			return 0;
 		}
