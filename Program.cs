@@ -1,10 +1,10 @@
 using CommandLine;
+using NFive.PluginManager.Exceptions;
+using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Modules;
 using NFive.PluginManager.Utilities;
 using System;
 using System.Threading.Tasks;
-using NFive.PluginManager.Exceptions;
-using NFive.PluginManager.Extensions;
 
 namespace NFive.PluginManager
 {

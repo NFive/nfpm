@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NFive.PluginManager.Adapters.Hub;
 using NFive.PluginManager.Extensions;
+using NFive.PluginManager.Utilities;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using SharpCompress.Archives;
@@ -13,7 +14,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using NFive.PluginManager.Utilities;
 using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Adapters
@@ -28,7 +28,7 @@ namespace NFive.PluginManager.Adapters
 		private static readonly Dictionary<Name, List<HubShortVersion>> CachedReleases = new Dictionary<Name, List<HubShortVersion>>();
 
 		private readonly Name name;
-		
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="HubAdapter"/> class.
 		/// </summary>
@@ -111,7 +111,7 @@ namespace NFive.PluginManager.Adapters
 		private async Task<List<HubShortVersion>> GetReleases()
 		{
 			if (CachedReleases.ContainsKey(this.name)) return CachedReleases[this.name];
-			
+
 			var result = await Get<HubProject>($"project/{this.name.Vendor}/{this.name.Project}.json");
 			var releases = result.Versions.OrderBy(v => v.Version.ToString()).ToList();
 

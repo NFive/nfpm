@@ -293,14 +293,14 @@ namespace NFive.PluginManager.Modules
 			{
 				var exceptions = new IEnumerable<MigrationOperation>[]
 				{
-				operations.OfType<CreateTableOperation>().Where(op => this.ExcludedModels.Contains(op.Name)),
-				operations.OfType<DropTableOperation>().Where(op => this.ExcludedModels.Contains(op.Name)),
+					operations.OfType<CreateTableOperation>().Where(op => this.ExcludedModels.Contains(op.Name)),
+					operations.OfType<DropTableOperation>().Where(op => this.ExcludedModels.Contains(op.Name)),
 
-				operations.OfType<AddForeignKeyOperation>().Where(op => this.ExcludedModels.Contains(op.DependentTable)),
-				operations.OfType<DropForeignKeyOperation>().Where(op => this.ExcludedModels.Contains(op.DependentTable)),
+					operations.OfType<AddForeignKeyOperation>().Where(op => this.ExcludedModels.Contains(op.DependentTable)),
+					operations.OfType<DropForeignKeyOperation>().Where(op => this.ExcludedModels.Contains(op.DependentTable)),
 
-				operations.OfType<CreateIndexOperation>().Where(op => this.ExcludedModels.Contains(op.Table)),
-				operations.OfType<DropIndexOperation>().Where(op => this.ExcludedModels.Contains(op.Table))
+					operations.OfType<CreateIndexOperation>().Where(op => this.ExcludedModels.Contains(op.Table)),
+					operations.OfType<DropIndexOperation>().Where(op => this.ExcludedModels.Contains(op.Table))
 				};
 
 				return operations.Except(exceptions.SelectMany(o => o));
