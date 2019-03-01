@@ -23,7 +23,7 @@ namespace NFive.PluginManager.Modules
 			var file = Path.GetFullPath(asm.Location);
 			var fileVersion = ((AssemblyFileVersionAttribute)Attribute.GetCustomAttribute(asm, typeof(AssemblyFileVersionAttribute), false)).Version;
 
-			Console.WriteLine($"Currently running ", "{name} {fileVersion}".White());
+			Console.WriteLine("Currently running ", $"{name} {fileVersion}".White());
 			Console.WriteLine("Checking for updates...");
 
 			var version = (await Version.Get("nfive/nfpm/nfpm")).Name;

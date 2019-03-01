@@ -14,6 +14,8 @@ namespace NFive.PluginManager.Modules
 	{
 		internal override async Task<int> Main()
 		{
+			// TODO: Output changes
+
 			var graph = new DefinitionGraph();
 			await graph.Apply(LoadDefinition());
 			graph.Save();

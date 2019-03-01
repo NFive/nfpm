@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace NFive.PluginManager.Adapters.Bintray
 {
+	[PublicAPI]
 	public class Version
 	{
 		public string Name { get; set; }

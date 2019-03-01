@@ -72,7 +72,7 @@ namespace NFive.PluginManager.Utilities
 				{
 					if (key.Key == ConsoleKey.Backspace && input.Length > 0)
 					{
-						input = input.Substring(0, (input.Length - 1));
+						input = input.Substring(0, input.Length - 1);
 						System.Console.Write("\b \b");
 					}
 					else if (key.Key == ConsoleKey.Enter)
