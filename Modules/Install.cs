@@ -45,6 +45,8 @@ namespace NFive.PluginManager.Modules
 						var pluginDefinition = Plugin.Load(Path.Combine(path, ConfigurationManager.DefinitionFile));
 
 						if (definition.Repositories == null) definition.Repositories = new List<Repository>();
+
+						definition.Repositories.RemoveAll(r => r.Name == pluginDefinition.Name);
 						definition.Repositories.Add(new Repository
 						{
 							Name = pluginDefinition.Name,
