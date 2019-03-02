@@ -59,7 +59,7 @@ namespace NFive.PluginManager.Adapters
 		public async Task Download(Version version)
 		{
 			var src = Path.Combine(Path.GetFullPath(this.repo.Path), this.repo.Path);
-			var dst = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project);
+			var dst = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, this.name.Vendor, this.name.Project);
 
 			var path = Path.Combine(Path.GetFullPath(this.repo.Path), ConfigurationManager.DefinitionFile);
 			if (!File.Exists(path)) throw new FileNotFoundException("Unable to find definition file", path);

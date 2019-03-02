@@ -17,13 +17,15 @@ namespace NFive.PluginManager.Models
 		{
 			if (baseDefinition != null)
 			{
-				var plugins = await StageDefinition(baseDefinition);
+				var results = await StageDefinition(baseDefinition);
+				var top = results.Item1;
+				var all = top.Concat(results.Item2).Distinct().ToList();
 
-				foreach (var plugin in plugins.Where(d => d.Dependencies != null))
+				foreach (var plugin in top.Where(d => d.Dependencies != null))
 				{
 					foreach (var dependency in plugin.Dependencies)
 					{
-						var dependencyPlugin = plugins.FirstOrDefault(p => p.Name == dependency.Key);
+						var dependencyPlugin = all.FirstOrDefault(p => p.Name == dependency.Key);
 						if (dependencyPlugin == null) throw new Exception($"Unable to find dependency {dependency.Key}@{dependency.Value} required by {plugin.Name}@{plugin.Version}"); // TODO: DependencyException
 						if (!dependency.Value.IsSatisfied(dependencyPlugin.Version)) throw new Exception($"{plugin.Name}@{plugin.Version} requires {dependencyPlugin.Name}@{dependency.Value} but {dependencyPlugin.Name}@{dependencyPlugin.Version} was found");
 
@@ -32,12 +34,16 @@ namespace NFive.PluginManager.Models
 					}
 				}
 
-				this.Plugins = Sort(plugins);
+				this.Plugins = top;
+
+				//this.Plugins = Sort(top);
 			}
 			else
 			{
-				this.Plugins = Sort(this.Plugins);
+				//this.Plugins = Sort(this.Plugins);
 			}
+
+			Sort(this.Plugins);
 
 			foreach (var definition in this.Plugins)
 			{
@@ -55,6 +61,7 @@ namespace NFive.PluginManager.Models
 
 				var dir = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project);
 				if (Directory.Exists(dir)) DeleteDirectory(dir);
+				Directory.CreateDirectory(dir);
 
 				var repo = baseDefinition?.Repositories?.FirstOrDefault(r => r.Name == definition.Name);
 				var adapter = new AdapterBuilder(definition.Name, repo).Adapter();
@@ -62,7 +69,6 @@ namespace NFive.PluginManager.Models
 
 				var dependencyDefinition = Plugin.Load(Path.Combine(dir, ConfigurationManager.DefinitionFile));
 
-				// TODO: Needed?
 				if (dependencyDefinition.Name != definition.Name) throw new Exception("Downloaded package does not match requested.");
 				if (dependencyDefinition.Version.ToString() != definition.Version.ToString()) throw new Exception("Downloaded package does not match requested.");
 
@@ -88,9 +94,10 @@ namespace NFive.PluginManager.Models
 			}
 		}
 
-		private static async Task<List<Plugin>> StageDefinition(SDK.Core.Plugins.Plugin definition, IDictionary<Name, SDK.Core.Plugins.VersionRange> loaded = null)
+		private static async Task<Tuple<List<Plugin>, List<Plugin>>> StageDefinition(SDK.Core.Plugins.Plugin definition, IDictionary<Name, SDK.Core.Plugins.VersionRange> loaded = null)
 		{
-			var results = new List<Plugin>();
+			var top = new List<Plugin>();
+			var nested = new List<Plugin>();
 
 			foreach (var dependency in definition.Dependencies ?? new Dictionary<Name, SDK.Core.Plugins.VersionRange>())
 			{
@@ -116,16 +123,16 @@ namespace NFive.PluginManager.Models
 
 				var plugin = Plugin.Load(Path.Combine(localPath, ConfigurationManager.DefinitionFile));
 
-				results.Add(plugin);
+				top.Add(plugin);
 
 				// TODO: What should be validated?
 				//if (plugin.Name != dependency.Key) throw new Exception("Downloaded package does not match requested.");
 				//if (plugin.Version != versionMatch) throw new Exception("Downloaded package does not match requested.");
 
-				results.AddRange(await StageDefinition(plugin, loaded));
+				nested.AddRange((await StageDefinition(plugin, loaded)).Item1);
 			}
 
-			return results;
+			return new Tuple<List<Plugin>, List<Plugin>>(top, nested);
 		}
 
 		private static List<Plugin> Sort(IEnumerable<Plugin> plugins)
