@@ -35,15 +35,9 @@ namespace NFive.PluginManager.Models
 				}
 
 				this.Plugins = top;
-
-				//this.Plugins = Sort(top);
-			}
-			else
-			{
-				//this.Plugins = Sort(this.Plugins);
 			}
 
-			Sort(this.Plugins);
+			this.Plugins = Sort(this.Plugins); // TODO: Don't store nested deps but still load them
 
 			foreach (var definition in this.Plugins)
 			{
