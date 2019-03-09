@@ -21,7 +21,7 @@ namespace NFive.PluginManager.Modules
 
 		internal override async Task<int> Main()
 		{
-			var definition = LoadDefinition();
+			var definition = LoadDefinition(this.Verbose);
 
 			foreach (var plugin in this.Plugins)
 			{
@@ -29,7 +29,7 @@ namespace NFive.PluginManager.Modules
 
 				if (definition.Dependencies == null || !definition.Dependencies.ContainsKey(name)) continue;
 
-				Console.WriteLine("- ", name.ToString().White());
+				if (!this.Quiet) Console.WriteLine("- ", name.ToString().White());
 
 				definition.Dependencies.Remove(name);
 			}

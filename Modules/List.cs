@@ -48,7 +48,7 @@ namespace NFive.PluginManager.Modules
 			}
 			else
 			{
-				Console.WriteLine(plugin.FullName);
+				Console.WriteLine(plugin.FullName.Gray());
 			}
 
 			if (plugin.DependencyNodes == null) return;

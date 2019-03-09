@@ -138,7 +138,7 @@ namespace NFive.PluginManager.Modules
 					}
 				}));
 
-				var dbYml = File.ReadAllText(Path.Combine(this.Location, "config", "database.yml"));
+				var dbYml = File.ReadAllText(Path.Combine(this.Location, "config", "database.yml")); // TODO: Handle as YAML?
 				dbYml = Regex.Replace(dbYml, "(\\s*host\\: ).+", $"${{1}}{dbHost}");
 				dbYml = Regex.Replace(dbYml, "(\\s*port\\: ).+", $"${{1}}{dbPort}");
 				dbYml = Regex.Replace(dbYml, "(\\s*database\\: ).+", $"${{1}}{dbName}");

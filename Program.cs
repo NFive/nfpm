@@ -100,14 +100,14 @@ namespace NFive.PluginManager
 			}
 			catch (DefinitionLoadException)
 			{
-				Console.WriteLine("NFive installation or plugin not found.".Red());
+				Console.WriteLine("NFive installation or plugin not found.".DarkRed());
 				Console.WriteLine("Use ", "nfpm setup".Yellow(), " to install NFive in this directory.");
 
 				return 1;
 			}
 			catch (GraphLoadException ex)
 			{
-				Console.WriteLine("Unable to build definition graph (PANIC):".Red());
+				Console.WriteLine("Unable to build definition graph (PANIC):".DarkRed());
 				Console.WriteLine(ex.Message.Red());
 				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message.Red());
 
@@ -115,9 +115,9 @@ namespace NFive.PluginManager
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("An unhandled application error has occured:".Red());
-				Console.WriteLine(ex.Message);
-				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message);
+				Console.WriteLine("An unhandled application error has occured:".DarkRed());
+				Console.WriteLine(ex.Message.Red());
+				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message.Red());
 
 				return 1;
 			}

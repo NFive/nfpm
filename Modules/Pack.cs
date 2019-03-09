@@ -15,30 +15,34 @@ namespace NFive.PluginManager.Modules
 	[Verb("pack", HelpText = "Packs a NFive plugin from source.")]
 	internal class Pack : Module
 	{
+		protected readonly string[] StandardFiles = {
+			"nfive.yml",
+			"nfive.lock",
+			"readme*",
+			"license*"
+		};
+
 		[Value(0, Default = "{project}.zip", Required = false, HelpText = "Zip file to pack plugin into.")]
 		public string Output { get; set; }
 
 		internal override async Task<int> Main()
 		{
-			var definition = LoadDefinition();
+			var definition = LoadDefinition(this.Verbose);
 
 			var outputPath = string.Equals(this.Output, "{project}.zip") ? $"{definition.Name.Project}.zip" : this.Output;
 
-			Console.WriteLine("Packing ", definition.FullName.White(), " in ", outputPath.White());
+			if (!this.Quiet) Console.WriteLine("Packing ", definition.FullName.White(), " as ", outputPath.White());
 
-			var standardFiles = new[]
+			if (File.Exists(outputPath))
 			{
-				"nfive.yml",
-				"nfive.lock",
-				"readme*",
-				"license*"
-			};
+				if (this.Verbose) Console.WriteLine("Deleting existing file: ".DarkGray(), outputPath.Gray());
 
-			File.Delete(outputPath);
+				File.Delete(outputPath);
+			}
 
 			using (var zip = ZipArchive.Create())
 			{
-				foreach (var file in standardFiles)
+				foreach (var file in this.StandardFiles)
 				{
 					var matches = Directory.EnumerateFiles(Environment.CurrentDirectory, file).ToList();
 
@@ -48,7 +52,7 @@ namespace NFive.PluginManager.Modules
 					{
 						var fileName = Path.GetFileName(match);
 
-						Console.WriteLine("Adding ", fileName.White(), "...");
+						if (!this.Quiet) Console.WriteLine("Adding ", fileName.White(), "...");
 
 						zip.AddEntry(fileName, File.OpenRead(match));
 					}
@@ -64,18 +68,20 @@ namespace NFive.PluginManager.Modules
 
 				foreach (var file in files.Distinct().Select(f => f.Replace(Path.DirectorySeparatorChar, '/')))
 				{
-					Console.WriteLine("Adding ", file.White(), "...");
+					if (!this.Quiet) Console.WriteLine("Adding ", file.White(), "...");
 
 					zip.AddEntry(file, File.OpenRead(file));
 				}
 
 				using (var file = new FileStream(outputPath, FileMode.Create))
 				{
+					if (this.Verbose) Console.WriteLine("Writing to file: ".DarkGray(), file.Name.Gray());
+
 					zip.SaveTo(file);
 				}
 			}
 
-			Console.WriteLine("Packing complete");
+			if (!this.Quiet) Console.WriteLine("Packing complete");
 
 			return await Task.FromResult(0);
 		}

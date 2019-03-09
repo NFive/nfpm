@@ -27,9 +27,6 @@ namespace NFive.PluginManager.Modules
 		[Option('t', "timeout", Required = false, Default = 5, HelpText = "Connection timeout in seconds.")]
 		public int Timeout { get; set; }
 
-		[Option('q', "quiet", Required = false, HelpText = "Less verbose output.")]
-		public bool Quiet { get; set; } = false;
-
 		[Value(0, Required = false, HelpText = "Command to run on the remote server, if unset will be interactive.")]
 		public string Command { get; set; }
 
@@ -49,11 +46,31 @@ namespace NFive.PluginManager.Modules
 
 			var result = 1;
 
-			using (var rcon = new Network.Rcon(Dns.GetHostEntry(this.Host).AddressList.First(a => a.AddressFamily == AddressFamily.InterNetwork), this.Port, this.Password))
+			var ip = Dns.GetHostEntry(this.Host).AddressList.First(a => a.AddressFamily == AddressFamily.InterNetwork);
+
+			if (this.Verbose) Console.WriteLine("Connecting to ".DarkGray(), $"{ip}:{this.Port}".Gray(), "...".DarkGray());
+
+			using (var rcon = new Network.Rcon(ip, this.Port, this.Password))
 			{
 				if (this.Command == null)
 				{
+					if (this.Verbose) Console.WriteLine("Testing connection...".DarkGray());
+
 					var connected = !await RunCommand(rcon, "version", false);
+
+					if (this.Verbose)
+					{
+						if (connected)
+						{
+							Console.WriteLine("Connection successful".DarkGray());
+
+							Console.WriteLine("Running interactively".DarkGray());
+						}
+						else
+						{
+							Console.WriteLine("Connection failed".DarkGray());
+						}
+					}
 
 					while (connected && !await RunCommand(rcon, Input.String("#"))) { }
 				}
@@ -72,6 +89,8 @@ namespace NFive.PluginManager.Modules
 		{
 			try
 			{
+				if (this.Verbose) Console.WriteLine("Running command: ".DarkGray(), command.Gray());
+
 				var response = await rcon.Command(command, TimeSpan.FromSeconds(Math.Max(this.Timeout, 1)));
 
 				if (response.Equals($"Invalid password.{Environment.NewLine}", StringComparison.InvariantCulture) ||

@@ -2,6 +2,7 @@ using CommandLine;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using NFive.PluginManager.Extensions;
 
 namespace NFive.PluginManager.Modules
 {
@@ -15,9 +16,18 @@ namespace NFive.PluginManager.Modules
 		{
 			var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache"); // TODO: CachePath
 
-			if (Directory.Exists(path)) Directory.Delete(path, true);
+			if (Directory.Exists(path))
+			{
+				if (this.Verbose) Console.WriteLine("Deleting cache: ".DarkGray(), path.Gray());
 
-			Console.WriteLine("Cache directory emptied.");
+				Directory.Delete(path, true);
+			}
+			else
+			{
+				if (this.Verbose) Console.WriteLine("Cache directory does not exist: ".DarkGray(), path.Gray());
+			}
+
+			if (!this.Quiet) Console.WriteLine("Cache directory emptied.");
 
 			return await Task.FromResult(0);
 		}
