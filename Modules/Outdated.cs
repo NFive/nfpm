@@ -42,7 +42,7 @@ namespace NFive.PluginManager.Modules
 				var adapter = new AdapterBuilder(dependency.Key, repo).Adapter();
 
 				var versions = (await adapter.GetVersions()).ToList();
-				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version.ToString()));
+				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version));
 				if (versionMatch == null) throw new Exception("No matching version found");
 
 				var current = "MISSING".Red();

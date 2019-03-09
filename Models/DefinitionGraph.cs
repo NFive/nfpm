@@ -88,7 +88,7 @@ namespace NFive.PluginManager.Models
 			}
 		}
 
-		private static async Task<Tuple<List<Plugin>, List<Plugin>>> StageDefinition(SDK.Core.Plugins.Plugin definition, IDictionary<Name, SDK.Core.Plugins.VersionRange> loaded = null)
+		private static async Task<Tuple<List<Plugin>, List<Plugin>>> StageDefinition(SDK.Core.Plugins.Plugin definition, IDictionary<Name, Tuple<SDK.Core.Plugins.VersionRange, Plugin>> loaded = null)
 		{
 			var top = new List<Plugin>();
 			var nested = new List<Plugin>();
@@ -102,20 +102,21 @@ namespace NFive.PluginManager.Models
 				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version));
 				if (versionMatch == null) throw new Exception("No matching version found");
 
-				if (loaded == null) loaded = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
+				if (loaded == null) loaded = new Dictionary<Name, Tuple<SDK.Core.Plugins.VersionRange, Plugin>>();
 
 				if (loaded.ContainsKey(dependency.Key))
 				{
-					if (dependency.Value.Value != "*" && loaded[dependency.Key].Value != "*" && !dependency.Value.IsSatisfied(loaded[dependency.Key].Value)) throw new Exception($"{dependency.Key} was found");
-				}
-				else
-				{
-					loaded.Add(dependency.Key, dependency.Value);
+					if (dependency.Value.Value != "*" && loaded[dependency.Key].Item1.Value != "*" && !dependency.Value.IsSatisfied(loaded[dependency.Key].Item2.Version)) throw new Exception($"{dependency.Key} was found");
 				}
 
 				var localPath = await adapter.Cache(versionMatch);
 
 				var plugin = Plugin.Load(Path.Combine(localPath, ConfigurationManager.DefinitionFile));
+
+				if (loaded.ContainsKey(dependency.Key))
+				{
+					loaded.Add(dependency.Key, new Tuple<SDK.Core.Plugins.VersionRange, Plugin>(dependency.Value, plugin));
+				}
 
 				top.Add(plugin);
 
