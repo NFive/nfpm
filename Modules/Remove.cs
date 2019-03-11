@@ -1,19 +1,21 @@
 using CommandLine;
 using NFive.PluginManager.Configuration;
 using NFive.PluginManager.Extensions;
+using NFive.PluginManager.Models;
 using NFive.PluginManager.Utilities;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
-using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
 
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
-	/// Uninstall a NFive plugin.
+	/// Uninstall NFive plugins.
 	/// </summary>
-	[Verb("remove", HelpText = "Uninstall a NFive plugin.")]
+	[Verb("remove", HelpText = "Uninstall NFive plugins.")]
 	internal class Remove : Module
 	{
 		[Value(0, Required = true, HelpText = "plugin name")]
@@ -32,6 +34,8 @@ namespace NFive.PluginManager.Modules
 				if (!this.Quiet) Console.WriteLine("- ", name.ToString().White());
 
 				definition.Dependencies.Remove(name);
+
+				Directory.Delete(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, name.Vendor, name.Project), true);
 			}
 
 			var graph = new DefinitionGraph();

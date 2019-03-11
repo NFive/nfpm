@@ -51,6 +51,8 @@ namespace NFive.PluginManager.Models
 					if (loadedDefinition.Name.ToString() == definition.Name.ToString() && loadedDefinition.Version.ToString() == definition.Version.ToString()) continue;
 				}
 
+				// TODO: Remove extra plugin folders/files
+
 				// Missing or outdated
 
 				var dir = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project);
