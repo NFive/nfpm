@@ -14,7 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Version = NFive.SDK.Core.Plugins.Version;
+using Version = NFive.PluginManager.Models.Version;
 
 namespace NFive.PluginManager.Adapters
 {

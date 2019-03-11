@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Plugin = NFive.SDK.Plugins.Plugin;
-using Version = NFive.SDK.Core.Plugins.Version;
+using Version = NFive.PluginManager.Models.Version;
 
 namespace NFive.PluginManager.Adapters
 {
@@ -46,7 +46,7 @@ namespace NFive.PluginManager.Adapters
 
 			if (definition.Version == null) return new List<Version> { new Models.Version("latest") }; // TODO: Default version?
 
-			return await Task.FromResult(new List<Version> { definition.Version });
+			return await Task.FromResult(new List<Version> { new Version(definition.Version.ToString()) });
 		}
 
 		public Task<string> Cache(Version version) => Task.FromResult(Path.Combine(Path.GetFullPath(this.repo.Path), this.repo.Path));

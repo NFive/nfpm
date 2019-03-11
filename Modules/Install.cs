@@ -6,13 +6,14 @@ using NFive.PluginManager.Models;
 using NFive.PluginManager.Utilities;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Plugin = NFive.SDK.Plugins.Plugin;
-using Version = NFive.SDK.Core.Plugins.Version;
+using Version = NFive.PluginManager.Models.Version;
 
 namespace NFive.PluginManager.Modules
 {
@@ -58,8 +59,35 @@ namespace NFive.PluginManager.Modules
 					}
 
 					var parts = input.Split(new[] { '@' }, 2);
-					var name = new Name(parts[0]);
-					var version = parts.Length == 2 ? new Models.VersionRange(parts[1]) : new Models.VersionRange("*");
+					var name = new Name(parts[0].Trim());
+
+					var versionInput = parts.Length == 2 ? parts[1].Trim() : "*";
+
+					Models.VersionRange range = null;
+					Version version = null;
+					PartialVersion partial = null;
+
+
+					try
+					{
+						partial = new PartialVersion(versionInput);
+					}
+					catch (Exception ex) { }
+
+					var isSpecific = partial?.Major != null && partial.Minor.HasValue && partial.Patch.HasValue;
+
+					try
+					{
+						range = new Models.VersionRange(versionInput);
+					}
+					catch (Exception ex) { }
+
+					try
+					{
+						version = new Version(versionInput);
+					}
+					catch (Exception ex) { }
+
 
 					List<Version> versions;
 					try
@@ -74,26 +102,18 @@ namespace NFive.PluginManager.Modules
 						return 1;
 					}
 
-					var versionMatch = version.Latest(versions);
+					var versionMatch = range.MaxSatisfying(versions);
 					if (versionMatch == null)
 					{
-						Console.WriteLine("Error ".DarkRed(), $"{name}@{version}".Red(), " not found, available versions: ".DarkRed(), string.Join(" ", versions.Select(v => v.ToString())).Red());
+						Console.WriteLine("Error ".DarkRed(), $"{name}@{range}".Red(), " not found, available versions: ".DarkRed(), string.Join(" ", versions.Select(v => v.ToString())).Red());
 
 						return 1;
 					}
 
 					if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
+					definition.Dependencies[name] = new Models.VersionRange("^" + (isSpecific ? partial.ToZeroVersion() : version ?? versionMatch));
 
-					Console.WriteLine("+ ", $"{name}@{versionMatch}".White());
-
-					if (definition.Dependencies.ContainsKey(name))
-					{
-						definition.Dependencies[name] = new Models.VersionRange($"^{versionMatch}");
-					}
-					else
-					{
-						definition.Dependencies.Add(name, new Models.VersionRange($"^{versionMatch}"));
-					}
+					Console.WriteLine("+ ", $"{name}@{definition.Dependencies[name]}".White());
 				}
 
 				graph = new DefinitionGraph();
@@ -121,6 +141,36 @@ namespace NFive.PluginManager.Modules
 			if (PathManager.IsResource()) ResourceGenerator.Serialize(graph);
 
 			return 0;
+		}
+
+		private void ParseVersion(string input)
+		{
+			if (string.IsNullOrWhiteSpace(input)) input = "*";
+
+			Models.VersionRange range = null;
+			Version version = null;
+			PartialVersion partial = null;
+
+			try
+			{
+				partial = new PartialVersion(input);
+			}
+			catch (Exception ex) { }
+
+			var isSpecific = partial?.Major != null && partial.Minor.HasValue && partial.Patch.HasValue;
+
+			try
+			{
+				range = new Models.VersionRange(input);
+			}
+			catch (Exception ex) { }
+
+			try
+			{
+				version = new Version(input);
+			}
+			catch (Exception ex) { }
+
 		}
 	}
 }

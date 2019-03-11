@@ -61,7 +61,7 @@ namespace NFive.PluginManager.Models
 
 				var repo = baseDefinition?.Repositories?.FirstOrDefault(r => r.Name == definition.Name);
 				var adapter = new AdapterBuilder(definition.Name, repo).Adapter();
-				await adapter.Download(definition.Version);
+				await adapter.Download(new Version(definition.Version.ToString()));
 
 				var dependencyDefinition = Plugin.Load(Path.Combine(dir, ConfigurationManager.DefinitionFile));
 
