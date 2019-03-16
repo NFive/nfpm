@@ -50,6 +50,7 @@
     <Compile Include="Console.cs" />
     <Compile Include="Exceptions\GraphLoadException.cs" />
     <Compile Include="Exceptions\DefinitionLoadException.cs" />
+    <Compile Include="Models\PartialVersion.cs" />
     <Compile Include="Modules\Module.cs" />
     <Compile Include="Utilities\Console\ColorToken.cs" />
     <Compile Include="Extensions\ColorTokenExtensions.cs" />
