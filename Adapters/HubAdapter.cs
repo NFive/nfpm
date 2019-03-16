@@ -50,24 +50,15 @@ namespace NFive.PluginManager.Adapters
 			return releases.Select(v => v.Version);
 		}
 
-		/// <inheritdoc />
-		/// <summary>
-		/// Downloads and unpacks the specified release version.
-		/// </summary>
-		/// <param name="version">The version to download.</param>
 		public async Task Download(Version version)
 		{
 			var cacheDir = new DirectoryInfo(Path.Combine(PathManager.CachePath, this.name.Vendor, this.name.Project, version.ToString()));
 			var targetDir = new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, this.name.Vendor, this.name.Project));
 
-			if (cacheDir.Exists)
+			if (!cacheDir.Exists)
 			{
-				cacheDir.Copy(targetDir.FullName);
-
-				return;
+				await Cache(version);
 			}
-
-			await Cache(version);
 
 			targetDir.Copy(cacheDir.FullName);
 		}
