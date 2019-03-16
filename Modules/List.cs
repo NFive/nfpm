@@ -15,7 +15,13 @@ namespace NFive.PluginManager.Modules
 		internal override async Task<int> Main()
 		{
 			var definition = LoadDefinition();
-			var graph = LoadGraph(); // TODO: Check null?
+			var graph = LoadGraph();
+
+			if (graph == null)
+			{
+				Console.WriteLine("You must run ".Red(), "nfpm install".Yellow(), " before using this command.".Red());
+				return 1;
+			}
 
 			Console.WriteLine(definition.FullName.Yellow());
 

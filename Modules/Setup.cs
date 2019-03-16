@@ -146,7 +146,7 @@ namespace NFive.PluginManager.Modules
 				dbYml = Regex.Replace(dbYml, "(\\s*password\\: ).+", $"${{1}}{dbPass}");
 				File.WriteAllText(Path.Combine(this.Location, "config", "database.yml"), dbYml);
 
-				// TODO: Ask to include stock plugins
+				// TODO: Ask to include stock plugins?
 			}
 
 			Console.WriteLine("Installation is complete, you can now start the server with `nfpm start`!");

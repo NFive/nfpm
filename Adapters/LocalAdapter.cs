@@ -44,7 +44,7 @@ namespace NFive.PluginManager.Adapters
 
 			var definition = Plugin.Load(path);
 
-			if (definition.Version == null) return new List<Version> { new Version("latest") }; // TODO: Default version?
+			if (definition.Version == null) return new List<Version> { new Version("*") };
 
 			return await Task.FromResult(new List<Version> { new Version(definition.Version.ToString()) });
 		}

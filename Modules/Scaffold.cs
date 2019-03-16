@@ -210,7 +210,7 @@ namespace NFive.PluginManager.Modules
 				{
 					Console.WriteLine("Copying plugin skeleton...");
 
-					DirectoryCopy(uri.AbsolutePath, directory);
+					new DirectoryInfo(uri.AbsolutePath).Copy(directory);
 				}
 				else
 				{
@@ -260,28 +260,6 @@ namespace NFive.PluginManager.Modules
 						ExtractFullPath = true
 					});
 				}
-			}
-		}
-
-		// TODO: Use helper
-		private static void DirectoryCopy(string source, string dest, bool recursive = true)
-		{
-			var dir = new DirectoryInfo(source);
-
-			if (!dir.Exists) throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + source);
-
-			if (!Directory.Exists(dest)) Directory.CreateDirectory(dest);
-
-			foreach (var file in dir.GetFiles())
-			{
-				file.CopyTo(Path.Combine(dest, file.Name), false);
-			}
-
-			if (!recursive) return;
-
-			foreach (var sub in dir.GetDirectories())
-			{
-				DirectoryCopy(sub.FullName, Path.Combine(dest, sub.Name));
 			}
 		}
 	}
