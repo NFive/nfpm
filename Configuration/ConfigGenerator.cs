@@ -30,7 +30,6 @@ namespace NFive.PluginManager.Configuration
 			var output = new StringBuilder();
 
 			output.AppendLine($"endpoint_add_tcp \"{this.Endpoint}\"");
-			output.AppendLine($"endpoint_add_tcp \"{this.Endpoint}\"");
 			output.AppendLine($"endpoint_add_udp \"{this.Endpoint}\"");
 			output.AppendLine();
 			output.AppendLine($"sv_hostname \"{this.Hostname}\"");
