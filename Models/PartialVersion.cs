@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace NFive.PluginManager.Models
@@ -14,7 +13,7 @@ namespace NFive.PluginManager.Models
 
 		public string PreRelease { get; set; }
 
-		private static Regex regex = new Regex(@"^
+		private static readonly Regex regex = new Regex(@"^
                 [v=\s]*
                 (\d+|[Xx\*])                      # major version
                 (

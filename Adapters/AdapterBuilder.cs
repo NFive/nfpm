@@ -19,19 +19,13 @@ namespace NFive.PluginManager.Adapters
 		/// <exception cref="ArgumentOutOfRangeException">Unknown repository type.</exception>
 		public AdapterBuilder(Name name, Repository repo)
 		{
-			if (repo == null)
-			{
-				this.adapter = new HubAdapter(name);
-
-				return;
-			}
-
-			switch (repo.Type)
+			switch (repo?.Type)
 			{
 				case "local":
 					this.adapter = new LocalAdapter(name, repo);
 					break;
 
+				case null:
 				case "hub":
 					this.adapter = new HubAdapter(name);
 					break;

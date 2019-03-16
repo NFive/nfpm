@@ -42,7 +42,7 @@ namespace NFive.PluginManager.Adapters
 
 			return releases
 				.Where(r => !r.Prerelease && !r.Draft && r.Assets.Any(a => a.Name.EndsWith(".zip")))
-				.Select(r => new Models.Version(r.TagName))
+				.Select(r => new Version(r.TagName))
 				.OrderBy(v => v.ToString());
 		}
 

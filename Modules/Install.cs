@@ -72,7 +72,10 @@ namespace NFive.PluginManager.Modules
 					{
 						partial = new PartialVersion(versionInput);
 					}
-					catch (Exception ex) { }
+					catch (Exception)
+					{
+						// ignored
+					}
 
 					var isSpecific = partial?.Major != null && partial.Minor.HasValue && partial.Patch.HasValue;
 
@@ -80,13 +83,19 @@ namespace NFive.PluginManager.Modules
 					{
 						range = new Models.VersionRange(versionInput);
 					}
-					catch (Exception ex) { }
+					catch (Exception)
+					{
+						// ignored
+					}
 
 					try
 					{
 						version = new Version(versionInput);
 					}
-					catch (Exception ex) { }
+					catch (Exception)
+					{
+						// ignored
+					}
 
 
 					List<Version> versions;
@@ -141,36 +150,6 @@ namespace NFive.PluginManager.Modules
 			if (PathManager.IsResource()) ResourceGenerator.Serialize(graph);
 
 			return 0;
-		}
-
-		private void ParseVersion(string input)
-		{
-			if (string.IsNullOrWhiteSpace(input)) input = "*";
-
-			Models.VersionRange range = null;
-			Version version = null;
-			PartialVersion partial = null;
-
-			try
-			{
-				partial = new PartialVersion(input);
-			}
-			catch (Exception ex) { }
-
-			var isSpecific = partial?.Major != null && partial.Minor.HasValue && partial.Patch.HasValue;
-
-			try
-			{
-				range = new Models.VersionRange(input);
-			}
-			catch (Exception ex) { }
-
-			try
-			{
-				version = new Version(input);
-			}
-			catch (Exception ex) { }
-
 		}
 	}
 }
