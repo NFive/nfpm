@@ -60,7 +60,7 @@ namespace NFive.PluginManager.Adapters
 				await Cache(version);
 			}
 
-			targetDir.Copy(cacheDir.FullName);
+			cacheDir.Copy(targetDir.FullName);
 		}
 
 		/// <summary>
