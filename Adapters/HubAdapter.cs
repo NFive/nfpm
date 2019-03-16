@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NFive.PluginManager.Adapters.Hub;
 using NFive.PluginManager.Extensions;
+using NFive.PluginManager.Utilities;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using SharpCompress.Archives;
@@ -13,7 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Version = NFive.SDK.Core.Plugins.Version;
+using Version = NFive.PluginManager.Models.Version;
 
 namespace NFive.PluginManager.Adapters
 {
@@ -24,6 +25,8 @@ namespace NFive.PluginManager.Adapters
 	/// <seealso cref="T:NFive.PluginManager.Adapters.IDownloadAdapter" />
 	public class HubAdapter : IDownloadAdapter
 	{
+		private static readonly Dictionary<Name, List<HubShortVersion>> CachedReleases = new Dictionary<Name, List<HubShortVersion>>();
+
 		private readonly Name name;
 
 		/// <summary>
@@ -39,6 +42,7 @@ namespace NFive.PluginManager.Adapters
 		/// <summary>
 		/// Gets the valid release versions.
 		/// </summary>
+		/// <returns>List of release versions.</returns>
 		public async Task<IEnumerable<Version>> GetVersions()
 		{
 			var releases = await GetReleases();
@@ -46,26 +50,35 @@ namespace NFive.PluginManager.Adapters
 			return releases.Select(v => v.Version);
 		}
 
-		/// <inheritdoc />
-		/// <summary>
-		/// Downloads and unpacks the specified release version.
-		/// </summary>
-		/// <param name="version">The version to download.</param>
 		public async Task Download(Version version)
 		{
-			var cacheDir = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", ConfigurationManager.PluginPath, this.name.Vendor, this.name.Project, version.ToString()));
-			var targetDir = new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", this.name.Vendor, this.name.Project));
+			var cacheDir = new DirectoryInfo(Path.Combine(PathManager.CachePath, this.name.Vendor, this.name.Project, version.ToString()));
+			var targetDir = new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, this.name.Vendor, this.name.Project));
 
-			if (cacheDir.Exists)
+			if (!cacheDir.Exists)
 			{
-				cacheDir.Copy(targetDir.FullName);
-
-				return;
+				await Cache(version);
 			}
 
+			targetDir.Copy(cacheDir.FullName);
+		}
+
+		/// <summary>
+		/// Ensures the specified version exists in the local cache, downloading it if necessary.
+		/// </summary>
+		/// <param name="version">The version to cache.</param>
+		/// <returns>The full path to the local cache directory.</returns>
+		public async Task<string> Cache(Version version)
+		{
+			var cacheDir = new DirectoryInfo(Path.Combine(PathManager.CachePath, this.name.Vendor, this.name.Project, version.ToString()));
+			if (cacheDir.Exists) return cacheDir.FullName;
+
+			cacheDir.Create();
+
 			var releases = await GetReleases();
-			var release = releases.First(r => r.Version.ToString() == version.ToString());
-			var file = Path.Combine(targetDir.FullName, Path.GetFileName(release.DownloadUrl));
+			var release = releases.First(r => r.Version.ToString() == version.ToString()); // TODO: IComparable
+
+			var file = Path.Combine(cacheDir.FullName, Path.GetFileName(release.DownloadUrl));
 
 			using (var client = new WebClient())
 			{
@@ -74,7 +87,7 @@ namespace NFive.PluginManager.Adapters
 
 			using (var zip = ZipArchive.Open(file))
 			{
-				zip.WriteToDirectory(targetDir.FullName, new ExtractionOptions
+				zip.WriteToDirectory(cacheDir.FullName, new ExtractionOptions
 				{
 					Overwrite = true,
 					ExtractFullPath = true
@@ -83,14 +96,19 @@ namespace NFive.PluginManager.Adapters
 
 			File.Delete(file);
 
-			targetDir.Copy(cacheDir.FullName);
+			return cacheDir.FullName;
 		}
 
-		public async Task<List<HubShortVersion>> GetReleases()
+		private async Task<List<HubShortVersion>> GetReleases()
 		{
-			var result = await Get<HubProject>($"project/{this.name.Vendor}/{this.name.Project}.json");
+			if (CachedReleases.ContainsKey(this.name)) return CachedReleases[this.name];
 
-			return result.Versions.OrderBy(v => v.Version.ToString()).ToList();
+			var result = await Get<HubProject>($"project/{this.name.Vendor}/{this.name.Project}.json");
+			var releases = result.Versions.OrderBy(v => v.Version.ToString()).ToList();
+
+			CachedReleases.Add(this.name, releases);
+
+			return releases;
 		}
 
 		public static async Task<List<HubSearchResult>> Search(string query)
@@ -121,6 +139,8 @@ namespace NFive.PluginManager.Adapters
 
 			using (var client = new WebClient())
 			{
+				Console.WriteLine($"https://hub.nfive.io/api/{endpoint}".DarkGray());
+
 				var json = await client.DownloadStringTaskAsync($"https://hub.nfive.io/api/{endpoint}");
 
 				return JsonConvert.DeserializeObject<T>(json, serializer);

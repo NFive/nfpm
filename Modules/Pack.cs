@@ -1,72 +1,58 @@
 using CommandLine;
-using JetBrains.Annotations;
-using NFive.SDK.Plugins.Configuration;
+using NFive.PluginManager.Extensions;
 using SharpCompress.Archives.Zip;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NFive.PluginManager.Utilities;
-using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
 	/// List installed NFive plugins.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("pack", HelpText = "Packs a NFive plugin from source.")]
-	internal class Pack
+	internal class Pack : Module
 	{
+		protected readonly string[] StandardFiles = {
+			"nfive.yml",
+			"nfive.lock",
+			"readme*",
+			"license*"
+		};
+
 		[Value(0, Default = "{project}.zip", Required = false, HelpText = "Zip file to pack plugin into.")]
 		public string Output { get; set; }
 
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
-			Plugin definition;
-
-			try
-			{
-				Environment.CurrentDirectory = PathManager.FindResource();
-
-				definition = Plugin.Load(ConfigurationManager.DefinitionFile);
-			}
-			catch (FileNotFoundException ex)
-			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine("Use `nfpm setup` to setup NFive in this directory");
-
-				return 1;
-			}
+			var definition = LoadDefinition(this.Verbose);
 
 			var outputPath = string.Equals(this.Output, "{project}.zip") ? $"{definition.Name.Project}.zip" : this.Output;
 
-			Console.WriteLine($"Packing {definition.FullName} in {outputPath}");
+			if (!this.Quiet) Console.WriteLine("Packing ", definition.FullName.White(), " as ", outputPath.White());
 
-			var standardFiles = new[]
+			if (File.Exists(outputPath))
 			{
-				"nfive.yml",
-				"nfive.lock",
-				"readme*",
-				"license*"
-			};
+				if (this.Verbose) Console.WriteLine("Deleting existing file: ".DarkGray(), outputPath.Gray());
 
-			File.Delete(outputPath);
+				File.Delete(outputPath);
+			}
 
 			using (var zip = ZipArchive.Create())
 			{
-				foreach (var file in standardFiles)
+				foreach (var file in this.StandardFiles)
 				{
 					var matches = Directory.EnumerateFiles(Environment.CurrentDirectory, file).ToList();
 
 					if (!matches.Any()) continue;
 
-					foreach (var match in matches) 
+					foreach (var match in matches)
 					{
 						var fileName = Path.GetFileName(match);
 
-						Console.WriteLine($"Adding {fileName}...");
+						if (!this.Quiet) Console.WriteLine("Adding ", fileName.White(), "...");
 
 						zip.AddEntry(fileName, File.OpenRead(match));
 					}
@@ -75,23 +61,27 @@ namespace NFive.PluginManager.Modules
 				var files = new List<string>();
 
 				if (definition.Server?.Main != null) files.AddRange(definition.Server.Main.Select(f => $"{f}.net.dll"));
-				if (definition.Server?.Include != null) files.AddRange(definition.Server.Include.Select(f => $"{f}.net.dll"));
-
 				if (definition.Client?.Main != null) files.AddRange(definition.Client.Main.Select(f => $"{f}.net.dll"));
+				if (definition.Server?.Include != null) files.AddRange(definition.Server.Include.Select(f => $"{f}.net.dll"));
 				if (definition.Client?.Include != null) files.AddRange(definition.Client.Include.Select(f => $"{f}.net.dll"));
 				if (definition.Client?.Files != null) files.AddRange(definition.Client.Files);
 
 				foreach (var file in files.Distinct().Select(f => f.Replace(Path.DirectorySeparatorChar, '/')))
 				{
-					Console.WriteLine($"Adding {file}...");
+					if (!this.Quiet) Console.WriteLine("Adding ", file.White(), "...");
 
 					zip.AddEntry(file, File.OpenRead(file));
 				}
 
-				zip.SaveTo(File.OpenWrite(outputPath));
+				using (var file = new FileStream(outputPath, FileMode.Create))
+				{
+					if (this.Verbose) Console.WriteLine("Writing to file: ".DarkGray(), file.Name.Gray());
+
+					zip.SaveTo(file);
+				}
 			}
 
-			Console.WriteLine("Packing complete");
+			if (!this.Quiet) Console.WriteLine("Packing complete");
 
 			return await Task.FromResult(0);
 		}

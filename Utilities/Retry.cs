@@ -25,10 +25,7 @@ namespace NFive.PluginManager.Utilities
 			}, retryInterval, maxAttemptCount);
 		}
 
-		public static T Do<T>(Func<T> action, uint retryIntervalMs = 1000, int maxAttemptCount = 3)
-		{
-			return Do(action, TimeSpan.FromMilliseconds(retryIntervalMs), maxAttemptCount);
-		}
+		public static T Do<T>(Func<T> action, uint retryIntervalMs = 1000, int maxAttemptCount = 3) => Do(action, TimeSpan.FromMilliseconds(retryIntervalMs), maxAttemptCount);
 
 		public static T Do<T>(Func<T> action, TimeSpan retryInterval, int maxAttemptCount = 3)
 		{

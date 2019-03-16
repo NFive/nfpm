@@ -1,6 +1,5 @@
 using CommandLine;
 using EnvDTE;
-using JetBrains.Annotations;
 using NFive.PluginManager.Utilities;
 using NFive.SDK.Server;
 using NFive.SDK.Server.Storage;
@@ -23,9 +22,8 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Create a NFive database migration.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("migrate", HelpText = "Create a NFive database migration.")]
-	internal class Migrate
+	internal class Migrate : Module
 	{
 		private bool existingInstance = true;
 
@@ -40,7 +38,7 @@ namespace NFive.PluginManager.Modules
 
 		[SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
 		[SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
 			try
 			{
@@ -295,14 +293,14 @@ namespace NFive.PluginManager.Modules
 			{
 				var exceptions = new IEnumerable<MigrationOperation>[]
 				{
-				operations.OfType<CreateTableOperation>().Where(op => this.ExcludedModels.Contains(op.Name)),
-				operations.OfType<DropTableOperation>().Where(op => this.ExcludedModels.Contains(op.Name)),
+					operations.OfType<CreateTableOperation>().Where(op => this.ExcludedModels.Contains(op.Name)),
+					operations.OfType<DropTableOperation>().Where(op => this.ExcludedModels.Contains(op.Name)),
 
-				operations.OfType<AddForeignKeyOperation>().Where(op => this.ExcludedModels.Contains(op.DependentTable)),
-				operations.OfType<DropForeignKeyOperation>().Where(op => this.ExcludedModels.Contains(op.DependentTable)),
+					operations.OfType<AddForeignKeyOperation>().Where(op => this.ExcludedModels.Contains(op.DependentTable)),
+					operations.OfType<DropForeignKeyOperation>().Where(op => this.ExcludedModels.Contains(op.DependentTable)),
 
-				operations.OfType<CreateIndexOperation>().Where(op => this.ExcludedModels.Contains(op.Table)),
-				operations.OfType<DropIndexOperation>().Where(op => this.ExcludedModels.Contains(op.Table))
+					operations.OfType<CreateIndexOperation>().Where(op => this.ExcludedModels.Contains(op.Table)),
+					operations.OfType<DropIndexOperation>().Where(op => this.ExcludedModels.Contains(op.Table))
 				};
 
 				return operations.Except(exceptions.SelectMany(o => o));

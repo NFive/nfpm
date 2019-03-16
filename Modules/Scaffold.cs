@@ -1,5 +1,4 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
 using Scriban;
 using SharpCompress.Archives;
@@ -19,7 +18,6 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Generate the boilerplate code for a new NFive plugin.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("scaffold", HelpText = "Generate the boilerplate code for a new NFive plugin.")]
 	internal class Scaffold
 	{
@@ -50,7 +48,7 @@ namespace NFive.PluginManager.Modules
 
 			Console.WriteLine("This utility will walk you through generating the boilerplate code for a new plugin.");
 			Console.WriteLine();
-			Console.WriteLine("Press Ctrl+C at any time to quit.");
+			Console.WriteLine("Press ", "Ctrl+C".Yellow(), " at any time to quit.");
 			Console.WriteLine();
 
 			var org = string.IsNullOrWhiteSpace(this.Owner) ? Input.String("Owner", s =>
@@ -143,7 +141,7 @@ namespace NFive.PluginManager.Modules
 
 			if (!string.IsNullOrWhiteSpace(path))
 			{
-				Console.WriteLine("Running \"nuget restore\" to download packages...");
+				Console.WriteLine("Running ", "nuget restore".Yellow(), " to download packages...");
 
 				Process.Start(new ProcessStartInfo(Path.Combine(path, "nuget.exe"), $"restore {directory}")
 				{
@@ -160,7 +158,7 @@ namespace NFive.PluginManager.Modules
 			}
 
 			Console.WriteLine();
-			Console.WriteLine("Scaffolding is complete, you can now write your plugin!");
+			Console.WriteLine("Scaffolding is complete, you can now develop your plugin!");
 
 			return 0;
 		}
@@ -212,7 +210,7 @@ namespace NFive.PluginManager.Modules
 				{
 					Console.WriteLine("Copying plugin skeleton...");
 
-					DirectoryCopy(uri.AbsolutePath, directory);
+					new DirectoryInfo(uri.AbsolutePath).Copy(directory);
 				}
 				else
 				{
@@ -256,29 +254,12 @@ namespace NFive.PluginManager.Modules
 				}
 				else
 				{
-					zip.WriteToDirectory(directory, new ExtractionOptions { Overwrite = true });
+					zip.WriteToDirectory(directory, new ExtractionOptions
+					{
+						Overwrite = true,
+						ExtractFullPath = true
+					});
 				}
-			}
-		}
-
-		private static void DirectoryCopy(string source, string dest, bool recursive = true)
-		{
-			var dir = new DirectoryInfo(source);
-
-			if (!dir.Exists) throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + source);
-
-			if (!Directory.Exists(dest)) Directory.CreateDirectory(dest);
-
-			foreach (var file in dir.GetFiles())
-			{
-				file.CopyTo(Path.Combine(dest, file.Name), false);
-			}
-
-			if (!recursive) return;
-
-			foreach (var sub in dir.GetDirectories())
-			{
-				DirectoryCopy(sub.FullName, Path.Combine(dest, sub.Name));
 			}
 		}
 	}

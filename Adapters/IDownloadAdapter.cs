@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Version = NFive.SDK.Core.Plugins.Version;
+using NFive.PluginManager.Models;
 
 namespace NFive.PluginManager.Adapters
 {
@@ -13,6 +13,8 @@ namespace NFive.PluginManager.Adapters
 		/// Gets the valid release versions.
 		/// </summary>
 		Task<IEnumerable<Version>> GetVersions();
+
+		Task<string> Cache(Version version);
 
 		/// <summary>
 		/// Downloads and unpacks the specified plugin version.

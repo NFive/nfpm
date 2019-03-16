@@ -13,73 +13,69 @@ namespace NFive.PluginManager.Models
 {
 	public class DefinitionGraph : SDK.Plugins.DefinitionGraph
 	{
-		public async Task Build(Plugin definition)
+		public async Task Apply(Plugin baseDefinition = null)
 		{
-			await StageDefinition(definition);
-
-			if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
-
-			var plugins = definition.Dependencies.Select(d => Plugin.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", d.Key.Vendor, d.Key.Project, ConfigurationManager.DefinitionFile))).ToList();
-
-			foreach (var plugin in plugins.Where(d => d.Dependencies != null))
+			if (baseDefinition != null)
 			{
-				foreach (var dependency in plugin.Dependencies)
-				{
-					var dependencyPlugin = plugins.FirstOrDefault(p => p.Name == dependency.Key);
-					if (dependencyPlugin == null) throw new Exception($"Unable to find dependency {dependency.Key}@{dependency.Value} required by {plugin.Name}@{plugin.Version}"); // TODO: DependencyException
-					if (!dependency.Value.IsSatisfied(dependencyPlugin.Version.ToString())) throw new Exception($"{plugin.Name}@{plugin.Version} requires {dependencyPlugin.Name}@{dependency.Value} but {dependencyPlugin.Name}@{dependencyPlugin.Version} was found");
+				var results = await StageDefinition(baseDefinition);
+				var top = results.Item1;
+				var all = top.Concat(results.Item2).Distinct().ToList();
 
-					if (plugin.Server == null) plugin.Server = new Server();
-					if (plugin.DependencyNodes == null) plugin.DependencyNodes = new List<Plugin>();
-					plugin.DependencyNodes.Add(dependencyPlugin);
+				foreach (var plugin in top.Where(d => d.Dependencies != null))
+				{
+					foreach (var dependency in plugin.Dependencies)
+					{
+						var dependencyPlugin = all.FirstOrDefault(p => p.Name == dependency.Key);
+						if (dependencyPlugin == null) throw new Exception($"Unable to find dependency {dependency.Key}@{dependency.Value} required by {plugin.Name}@{plugin.Version}"); // TODO: DependencyException
+						if (!dependency.Value.IsSatisfied(dependencyPlugin.Version)) throw new Exception($"{plugin.Name}@{plugin.Version} requires {dependencyPlugin.Name}@{dependency.Value} but {dependencyPlugin.Name}@{dependencyPlugin.Version} was found");
+
+						if (plugin.DependencyNodes == null) plugin.DependencyNodes = new List<Plugin>();
+						plugin.DependencyNodes.Add(dependencyPlugin);
+					}
 				}
+
+				this.Plugins = top;
 			}
 
-			this.Plugins = Sort(plugins);
-		}
-
-		public async Task Apply(Plugin baseDefinition)
-		{
-			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) DeleteDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"));
+			this.Plugins = Sort(this.Plugins); // TODO: Don't store nested dependencies but still load them
 
 			foreach (var definition in this.Plugins)
 			{
 				var path = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile);
 
-				if (File.Exists(path)) // TODO: Test this ever occurs
+				if (File.Exists(path))
 				{
 					var loadedDefinition = Plugin.Load(path);
 
-					if (loadedDefinition.Name == definition.Name && loadedDefinition.Version == definition.Version) continue;
+					// TODO: IEquality
+					if (loadedDefinition.Name.ToString() == definition.Name.ToString() && loadedDefinition.Version.ToString() == definition.Version.ToString()) continue;
 				}
+
+				// TODO: Remove extra plugin folders/files
 
 				// Missing or outdated
 
 				var dir = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project);
 				if (Directory.Exists(dir)) DeleteDirectory(dir);
+				Directory.CreateDirectory(dir);
 
-				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project));
-
-				var repo = baseDefinition.Repositories?.FirstOrDefault(r => r.Name == definition.Name);
+				var repo = baseDefinition?.Repositories?.FirstOrDefault(r => r.Name == definition.Name);
 				var adapter = new AdapterBuilder(definition.Name, repo).Adapter();
-				await adapter.Download(definition.Version);
+				await adapter.Download(new Version(definition.Version.ToString()));
 
-				var dependencyDefinition = Plugin.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project, ConfigurationManager.DefinitionFile));
+				var dependencyDefinition = Plugin.Load(Path.Combine(dir, ConfigurationManager.DefinitionFile));
 
 				if (dependencyDefinition.Name != definition.Name) throw new Exception("Downloaded package does not match requested.");
 				if (dependencyDefinition.Version.ToString() != definition.Version.ToString()) throw new Exception("Downloaded package does not match requested.");
 
-				var src = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", definition.Name.Vendor, definition.Name.Project);
-				var dst = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, definition.Name.Vendor, definition.Name.Project);
-				var configSrc = Path.Combine(src, ConfigurationManager.ConfigurationPath);
+				var configSrc = Path.Combine(dir, ConfigurationManager.ConfigurationPath);
 				var configDst = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.ConfigurationPath, definition.Name.Vendor, definition.Name.Project);
 
-				new DirectoryInfo(src).Copy(dst);
-
 				if (!Directory.Exists(configSrc)) continue;
+				if (!Directory.Exists(configDst)) Directory.CreateDirectory(configDst);
 
-				Directory.CreateDirectory(configDst);
-
+				// TODO: More files?
+				// TODO: Ask user to replace
 				foreach (var yml in Directory.EnumerateFiles(configSrc, "*.yml", SearchOption.TopDirectoryOnly))
 				{
 					try
@@ -92,35 +88,48 @@ namespace NFive.PluginManager.Models
 					}
 				}
 			}
-
-			if (Directory.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"))) DeleteDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging"));
 		}
 
-		private static async Task StageDefinition(SDK.Core.Plugins.Plugin definition)
+		private static async Task<Tuple<List<Plugin>, List<Plugin>>> StageDefinition(SDK.Core.Plugins.Plugin definition, IDictionary<Name, Tuple<SDK.Core.Plugins.VersionRange, Plugin>> loaded = null)
 		{
+			var top = new List<Plugin>();
+			var nested = new List<Plugin>();
+
 			foreach (var dependency in definition.Dependencies ?? new Dictionary<Name, SDK.Core.Plugins.VersionRange>())
 			{
 				var repo = definition.Repositories?.FirstOrDefault(r => r.Name.ToString() == dependency.Key.ToString());
-
 				var adapter = new AdapterBuilder(dependency.Key, repo).Adapter();
 
 				var versions = await adapter.GetVersions();
-
-				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version.ToString()));
+				var versionMatch = versions.LastOrDefault(version => dependency.Value.IsSatisfied(version));
 				if (versionMatch == null) throw new Exception("No matching version found");
 
-				Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project));
+				if (loaded == null) loaded = new Dictionary<Name, Tuple<SDK.Core.Plugins.VersionRange, Plugin>>();
 
-				await adapter.Download(versionMatch);
+				if (loaded.ContainsKey(dependency.Key))
+				{
+					if (dependency.Value.Value != "*" && loaded[dependency.Key].Item1.Value != "*" && !dependency.Value.IsSatisfied(loaded[dependency.Key].Item2.Version)) throw new Exception($"{dependency.Key} was found");
+				}
 
-				var dependencyDefinition = Plugin.Load(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, ".staging", dependency.Key.Vendor, dependency.Key.Project, ConfigurationManager.DefinitionFile));
+				var localPath = await adapter.Cache(versionMatch);
+
+				var plugin = Plugin.Load(Path.Combine(localPath, ConfigurationManager.DefinitionFile));
+
+				if (loaded.ContainsKey(dependency.Key))
+				{
+					loaded.Add(dependency.Key, new Tuple<SDK.Core.Plugins.VersionRange, Plugin>(dependency.Value, plugin));
+				}
+
+				top.Add(plugin);
 
 				// TODO: What should be validated?
-				//if (dependencyDefinition.Name != dependency.Key) throw new Exception("Downloaded package does not match requested.");
-				//if (dependencyDefinition.Version != versionMatch) throw new Exception("Downloaded package does not match requested.");
+				//if (plugin.Name != dependency.Key) throw new Exception("Downloaded package does not match requested.");
+				//if (plugin.Version != versionMatch) throw new Exception("Downloaded package does not match requested.");
 
-				await StageDefinition(dependencyDefinition);
+				nested.AddRange((await StageDefinition(plugin, loaded)).Item1);
 			}
+
+			return new Tuple<List<Plugin>, List<Plugin>>(top, nested);
 		}
 
 		private static List<Plugin> Sort(IEnumerable<Plugin> plugins)

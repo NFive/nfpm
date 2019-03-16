@@ -1,74 +1,50 @@
 using CommandLine;
-using JetBrains.Annotations;
+using NFive.PluginManager.Configuration;
+using NFive.PluginManager.Extensions;
+using NFive.PluginManager.Models;
+using NFive.PluginManager.Utilities;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using NFive.PluginManager.Configuration;
-using NFive.PluginManager.Utilities;
-using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
-using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
-	/// Uninstall a NFive plugin.
+	/// Uninstall NFive plugins.
 	/// </summary>
-	[UsedImplicitly]
-	[Verb("remove", HelpText = "Uninstall a NFive plugin.")]
-	internal class Remove
+	[Verb("remove", HelpText = "Uninstall NFive plugins.")]
+	internal class Remove : Module
 	{
-		[PublicAPI]
 		[Value(0, Required = true, HelpText = "plugin name")]
-		public string Plugin { get; set; }
+		public IEnumerable<string> Plugins { get; set; } = new List<string>();
 
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
-			var plugin = new Name(this.Plugin);
+			var definition = LoadDefinition(this.Verbose);
 
-			Plugin definition;
-
-			try
+			foreach (var plugin in this.Plugins)
 			{
-				Environment.CurrentDirectory = PathManager.FindResource();
+				var name = new Name(plugin); // TODO: Handle
 
-				definition = NFive.SDK.Plugins.Plugin.Load(ConfigurationManager.DefinitionFile);
+				if (definition.Dependencies == null || !definition.Dependencies.ContainsKey(name)) continue;
+
+				if (!this.Quiet) Console.WriteLine("- ", name.ToString().White());
+
+				definition.Dependencies.Remove(name);
+
+				Directory.Delete(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, name.Vendor, name.Project), true);
 			}
-			catch (FileNotFoundException ex)
-			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine("Use `nfpm setup` to setup NFive in this directory");
-
-				return 1;
-			}
-
-			definition.Dependencies?.Remove(plugin);
-
-			var venderPath = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, plugin.Vendor);
-
-			if (Directory.Exists(venderPath))
-			{
-				var projectPath = Path.Combine(venderPath, plugin.Project);
-
-				if (Directory.Exists(projectPath))
-				{
-					Directory.Delete(projectPath, true);
-				}
-
-				if (!Directory.EnumerateFileSystemEntries(venderPath).Any()) Directory.Delete(venderPath);
-			}
-
-			// TODO: Remove orphaned child dependencies
 
 			var graph = new DefinitionGraph();
-			await graph.Build(definition);
 			await graph.Apply(definition);
 
 			definition.Save(ConfigurationManager.DefinitionFile);
 			graph.Save();
-			ResourceGenerator.Serialize(graph).Save();
+
+			if (PathManager.IsResource()) ResourceGenerator.Serialize(graph);
 
 			return 0;
 		}

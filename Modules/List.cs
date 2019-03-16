@@ -1,12 +1,7 @@
 using CommandLine;
-using JetBrains.Annotations;
-using NFive.SDK.Plugins.Configuration;
-using System;
-using System.IO;
+using NFive.PluginManager.Extensions;
 using System.Linq;
 using System.Threading.Tasks;
-using NFive.PluginManager.Utilities;
-using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
 using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Modules
@@ -14,51 +9,21 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// List installed NFive plugins.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("list", HelpText = "List installed NFive plugins.")]
-	internal class List
+	internal class List : Module
 	{
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
-			Plugin definition;
+			var definition = LoadDefinition();
+			var graph = LoadGraph();
 
-			try
+			if (graph == null)
 			{
-				Environment.CurrentDirectory = PathManager.FindResource();
-
-				definition = Plugin.Load(ConfigurationManager.DefinitionFile);
-			}
-			catch (FileNotFoundException ex)
-			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine("Use `nfpm setup` to setup NFive in this directory");
-
+				Console.WriteLine("You must run ".Red(), "nfpm install".Yellow(), " before using this command.".Red());
 				return 1;
 			}
 
-			DefinitionGraph graph;
-
-			try
-			{
-				graph = DefinitionGraph.Load();
-			}
-			catch (FileNotFoundException ex)
-			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine("Use `nfpm install` to install some dependencies first");
-
-				return 1;
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine("Unable to build definition graph (PANIC):");
-				Console.WriteLine(ex.Message);
-				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message);
-
-				return 1;
-			}
-
-			Console.WriteLine($"{definition.FullName}");
+			Console.WriteLine(definition.FullName.Yellow());
 
 			foreach (var plugin in graph.Plugins)
 			{
@@ -70,20 +35,27 @@ namespace NFive.PluginManager.Modules
 
 		private static void RecurseDependencies(Plugin plugin, string prefix, bool last)
 		{
-			Console.Write(prefix);
+			Console.Write(prefix.DarkGray());
 
 			if (last)
 			{
-				Console.Write("└── ");
-				prefix += "   ";
+				Console.Write("└─ ".DarkGray());
+				prefix += "  ";
 			}
 			else
 			{
-				Console.Write("├── ");
-				prefix += "│   ";
+				Console.Write("├─ ".DarkGray());
+				prefix += "│  ";
 			}
 
-			Console.WriteLine(plugin.FullName);
+			if (prefix.Length <= 3)
+			{
+				Console.WriteLine(plugin.FullName.White());
+			}
+			else
+			{
+				Console.WriteLine(plugin.FullName.Gray());
+			}
 
 			if (plugin.DependencyNodes == null) return;
 

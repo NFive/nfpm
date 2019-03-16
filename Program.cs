@@ -1,8 +1,10 @@
 using CommandLine;
+using NFive.PluginManager.Exceptions;
+using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Modules;
+using NFive.PluginManager.Utilities;
 using System;
 using System.Threading.Tasks;
-using NFive.PluginManager.Utilities;
 
 namespace NFive.PluginManager
 {
@@ -61,44 +63,61 @@ namespace NFive.PluginManager
 				return await Parser
 					.Default
 					.ParseArguments<
-						Setup,
-						Search,
-						List,
-						Install,
-						Remove,
-						//Update,
-						SelfUpdate,
-						Start,
-						Scaffold,
-						Rcon,
-						Status,
-						Migrate,
 						CleanCache,
-						Pack
+						Install,
+						List,
+						Migrate,
+						Outdated,
+						Pack,
+						Rcon,
+						Remove,
+						Scaffold,
+						Search,
+						SelfUpdate,
+						Setup,
+						Start,
+						Status,
+						Update
 					>(args)
 					.MapResult(
-						(Setup s) => s.Main(),
-						(Search s) => s.Main(),
-						(List l) => l.Main(),
-						(Install i) => i.Main(),
-						(Remove r) => r.Main(),
-						//(Update u) => u.Main(),
-						(SelfUpdate s) => s.Main(),
-						(Start s) => s.Main(),
-						(Scaffold s) => s.Main(),
-						(Rcon r) => r.Main(),
-						(Status s) => s.Main(),
-						(Migrate s) => s.Main(),
-						(CleanCache c) => c.Main(),
-						(Pack p) => p.Main(),
+						(CleanCache m) => m.Main(),
+						(Install m) => m.Main(),
+						(List m) => m.Main(),
+						(Migrate m) => m.Main(),
+						(Outdated m) => m.Main(),
+						(Pack m) => m.Main(),
+						(Rcon m) => m.Main(),
+						(Remove m) => m.Main(),
+						(Scaffold m) => m.Main(),
+						(Search m) => m.Main(),
+						(SelfUpdate m) => m.Main(),
+						(Setup m) => m.Main(),
+						(Start m) => m.Main(),
+						(Status m) => m.Main(),
+						(Update m) => m.Main(),
 						e => Task.FromResult(1)
 					);
 			}
+			catch (DefinitionLoadException)
+			{
+				Console.WriteLine("NFive installation or plugin not found.".DarkRed());
+				Console.WriteLine("Use ", "nfpm setup".Yellow(), " to install NFive in this directory.");
+
+				return 1;
+			}
+			catch (GraphLoadException ex)
+			{
+				Console.WriteLine("Unable to build definition graph (PANIC):".DarkRed());
+				Console.WriteLine(ex.Message.Red());
+				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message.Red());
+
+				return 1;
+			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("An unhandled application error has occured:");
-				Console.WriteLine(ex.Message);
-				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message);
+				Console.WriteLine("An unhandled application error has occured:".DarkRed());
+				Console.WriteLine(ex.Message.Red());
+				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message.Red());
 
 				return 1;
 			}

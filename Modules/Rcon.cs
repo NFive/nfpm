@@ -1,24 +1,20 @@
 using CommandLine;
-using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
+using NFive.PluginManager.Utilities;
 using System;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using NFive.PluginManager.Utilities;
 
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
 	/// Connect to a running FiveM server over RCON.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("rcon", HelpText = "Connect to a running FiveM server over RCON.")]
-	internal class Rcon
+	internal class Rcon : Module
 	{
-		private Network.Rcon rcon;
-
 		[Option('h', "host", Default = "localhost", Required = false, HelpText = "Remote server host.")]
 		public string Host { get; set; }
 
@@ -31,67 +27,91 @@ namespace NFive.PluginManager.Modules
 		[Option('t', "timeout", Required = false, Default = 5, HelpText = "Connection timeout in seconds.")]
 		public int Timeout { get; set; }
 
-		[Option('q', "quiet", Required = false, HelpText = "Less verbose output.")]
-		public bool Quiet { get; set; } = false;
-
 		[Value(0, Required = false, HelpText = "Command to run on the remote server, if unset will be interactive.")]
 		public string Command { get; set; }
 
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
-			if (this.Password == null)
+			if (string.IsNullOrEmpty(this.Password))
 			{
-				this.Password = Input.String("Password");
-				Console.CursorTop--;
-				Console.Write(new string(' ', Console.WindowWidth - 1));
-				Console.CursorLeft = 0;
+				this.Password = Input.Password("Password");
+
+				System.Console.CursorTop = 0;
+				System.Console.CursorLeft = 0;
+				System.Console.Write(new string(' ', System.Console.WindowWidth - 1));
+				System.Console.CursorLeft = 0;
 			}
 
-			if (!this.Quiet) Console.WriteLine($"Connecting to {this.Host}:{this.Port}...");
+			if (!this.Quiet) Console.WriteLine("Connecting to ", $"{this.Host}:{this.Port}".White(), "...");
 
-			this.rcon = new Network.Rcon(Dns.GetHostEntry(this.Host).AddressList.First(a => a.AddressFamily == AddressFamily.InterNetwork), this.Port, this.Password);
+			var result = 1;
 
-			if (this.Command == null)
+			var ip = Dns.GetHostEntry(this.Host).AddressList.First(a => a.AddressFamily == AddressFamily.InterNetwork);
+
+			if (this.Verbose) Console.WriteLine("Connecting to ".DarkGray(), $"{ip}:{this.Port}".Gray(), "...".DarkGray());
+
+			using (var rcon = new Network.Rcon(ip, this.Port, this.Password))
 			{
-				while (true)
+				if (this.Command == null)
 				{
-					if (await RunCommand(Input.String("#")))
+					if (this.Verbose) Console.WriteLine("Testing connection...".DarkGray());
+
+					var connected = !await RunCommand(rcon, "version", false);
+
+					if (this.Verbose)
 					{
-						return 1;
+						if (connected)
+						{
+							Console.WriteLine("Connection successful".DarkGray());
+
+							Console.WriteLine("Running interactively".DarkGray());
+						}
+						else
+						{
+							Console.WriteLine("Connection failed".DarkGray());
+						}
 					}
+
+					while (connected && !await RunCommand(rcon, Input.String("#"))) { }
+				}
+				else
+				{
+					result = await RunCommand(rcon, this.Command) ? 1 : 0;
 				}
 			}
 
-			await RunCommand(this.Command);
+			if (!this.Quiet) Console.WriteLine("Closing connection to server");
 
-			return 0;
+			return result;
 		}
 
-		private async Task<bool> RunCommand(string command)
+		private async Task<bool> RunCommand(Network.Rcon rcon, string command, bool output = true)
 		{
-			var response = await this.rcon.Command(command, TimeSpan.FromSeconds(Math.Max(this.Timeout, 1)));
-
-			var lines = response
-				.Split('\n')
-				.Select(l => l.TrimEnd("^7")) // Why FiveM? Why?
-				.ToList();
-
-			var output = string.Join(Environment.NewLine, lines); // Correct line endings
-
-			if (lines.Any(l =>
-				l.Equals("Invalid password.", StringComparison.InvariantCultureIgnoreCase) ||
-				l.Equals("The server must set rcon_password to be able to use this command.", StringComparison.InvariantCultureIgnoreCase) ||
-				l.StartsWith("No such command ", StringComparison.InvariantCultureIgnoreCase)
-			))
+			try
 			{
-				Console.Write(output);
+				if (this.Verbose) Console.WriteLine("Running command: ".DarkGray(), command.Gray());
+
+				var response = await rcon.Command(command, TimeSpan.FromSeconds(Math.Max(this.Timeout, 1)));
+
+				if (response.Equals($"Invalid password.{Environment.NewLine}", StringComparison.InvariantCulture) ||
+					response.Equals($"The server must set rcon_password to be able to use this command.{Environment.NewLine}", StringComparison.InvariantCulture) ||
+					response.StartsWith("No such command ", StringComparison.InvariantCulture))
+				{
+					Console.Write(response.DarkRed());
+
+					return !response.StartsWith("No such command ", StringComparison.InvariantCulture);
+				}
+
+				if (output) Console.Write(response);
+
+				return false;
+			}
+			catch (TimeoutException ex)
+			{
+				Console.WriteLine("Unable to communicate with ".DarkRed(), $"{this.Host}:{this.Port}".Red(), $": {ex.Message}".DarkRed());
 
 				return true;
 			}
-
-			Console.Write(output);
-
-			return false;
 		}
 	}
 }

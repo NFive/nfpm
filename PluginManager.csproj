@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="packages\Costura.Fody.3.3.2\build\Costura.Fody.props" Condition="Exists('packages\Costura.Fody.3.3.2\build\Costura.Fody.props')" />
+  <Import Project="packages\Costura.Fody.3.3.3\build\Costura.Fody.props" Condition="Exists('packages\Costura.Fody.3.3.3\build\Costura.Fody.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -47,9 +47,18 @@
     <Compile Include="Adapters\Hub\SearchResults.cs" />
     <Compile Include="Adapters\IDownloadAdapter.cs" />
     <Compile Include="Adapters\LocalAdapter.cs" />
+    <Compile Include="Console.cs" />
+    <Compile Include="Exceptions\GraphLoadException.cs" />
+    <Compile Include="Exceptions\DefinitionLoadException.cs" />
+    <Compile Include="Models\PartialVersion.cs" />
+    <Compile Include="Modules\Module.cs" />
+    <Compile Include="Utilities\Console\ColorToken.cs" />
+    <Compile Include="Extensions\ColorTokenExtensions.cs" />
     <Compile Include="Extensions\DirectoryExtensions.cs" />
     <Compile Include="Extensions\VersionRangeExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Modules\Outdated.cs" />
+    <Compile Include="Extensions\StringColorExtensions.cs" />
     <Compile Include="Utilities\Input.cs" />
     <Compile Include="Models\DefinitionGraph.cs" />
     <Compile Include="Models\VersionRange.cs" />
@@ -76,7 +85,6 @@
     <Compile Include="Configuration\ConfigGenerator.cs" />
     <Compile Include="Network\Rcon.cs" />
     <Compile Include="Configuration\ResourceGenerator.cs" />
-    <Compile Include="Configuration\ResourceString.cs" />
     <Compile Include="Utilities\RuntimeEnvironment.cs" />
     <Compile Include="Utilities\VisualStudio.cs" />
   </ItemGroup>
@@ -84,8 +92,8 @@
     <Reference Include="CommandLine, Version=2.3.0.0, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
       <HintPath>packages\CommandLineParser.2.3.0\lib\net45\CommandLine.dll</HintPath>
     </Reference>
-    <Reference Include="Costura, Version=3.3.2.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
-      <HintPath>packages\Costura.Fody.3.3.2\lib\net40\Costura.dll</HintPath>
+    <Reference Include="Costura, Version=3.3.3.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
+      <HintPath>packages\Costura.Fody.3.3.3\lib\net40\Costura.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
@@ -114,33 +122,39 @@
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NFive.SDK.Client.net, Version=0.1.0.28, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\NFive.SDK.Client.0.1.0.28\lib\net452\NFive.SDK.Client.net.dll</HintPath>
+    <Reference Include="NFive.SDK.Client.net, Version=0.1.0.31, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NFive.SDK.Client.0.1.0.31\lib\net452\NFive.SDK.Client.net.dll</HintPath>
     </Reference>
-    <Reference Include="NFive.SDK.Core.net, Version=0.1.0.33, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\NFive.SDK.Core.0.1.0.33\lib\net452\NFive.SDK.Core.net.dll</HintPath>
+    <Reference Include="NFive.SDK.Core.net, Version=0.1.0.34, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NFive.SDK.Core.0.1.0.34\lib\net452\NFive.SDK.Core.net.dll</HintPath>
     </Reference>
-    <Reference Include="NFive.SDK.Plugins, Version=0.1.0.21, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\NFive.SDK.Plugins.0.1.0.21\lib\net452\NFive.SDK.Plugins.dll</HintPath>
+    <Reference Include="NFive.SDK.Plugins, Version=0.1.0.26, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NFive.SDK.Plugins.0.1.0.26\lib\net452\NFive.SDK.Plugins.dll</HintPath>
     </Reference>
-    <Reference Include="NFive.SDK.Server.net, Version=0.1.0.30, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\NFive.SDK.Server.0.1.0.30\lib\net452\NFive.SDK.Server.net.dll</HintPath>
+    <Reference Include="NFive.SDK.Server.net, Version=0.1.0.34, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NFive.SDK.Server.0.1.0.34\lib\net452\NFive.SDK.Server.net.dll</HintPath>
     </Reference>
     <Reference Include="Octokit, Version=0.32.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Octokit.0.32.0\lib\net45\Octokit.dll</HintPath>
     </Reference>
-    <Reference Include="Scriban, Version=1.2.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Scriban.1.2.9\lib\net40\Scriban.dll</HintPath>
+    <Reference Include="Scriban, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Scriban.2.0.0\lib\net45\Scriban.dll</HintPath>
     </Reference>
     <Reference Include="SemVer, Version=1.2.0.0, Culture=neutral, PublicKeyToken=a89bb7dc6f7a145c, processorArchitecture=MSIL">
       <HintPath>packages\SemanticVersioning.1.2.0\lib\net45\SemVer.dll</HintPath>
     </Reference>
-    <Reference Include="SharpCompress, Version=0.22.0.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
-      <HintPath>packages\SharpCompress.0.22.0\lib\net45\SharpCompress.dll</HintPath>
+    <Reference Include="SharpCompress, Version=0.23.0.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
+      <HintPath>packages\SharpCompress.0.23.0\lib\net45\SharpCompress.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="YamlDotNet, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\YamlDotNet.5.4.0\lib\net45\YamlDotNet.dll</HintPath>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Threading.Tasks.Extensions.4.5.2\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="YamlDotNet, Version=6.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
+      <HintPath>packages\YamlDotNet.6.0.0\lib\net45\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -156,6 +170,6 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('packages\Fody.4.0.2\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Fody.4.0.2\build\Fody.targets'))" />
-    <Error Condition="!Exists('packages\Costura.Fody.3.3.2\build\Costura.Fody.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Costura.Fody.3.3.2\build\Costura.Fody.props'))" />
+    <Error Condition="!Exists('packages\Costura.Fody.3.3.3\build\Costura.Fody.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Costura.Fody.3.3.3\build\Costura.Fody.props'))" />
   </Target>
 </Project>

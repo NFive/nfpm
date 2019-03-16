@@ -29,28 +29,24 @@ namespace NFive.PluginManager.Configuration
 		{
 			var output = new StringBuilder();
 
-			WriteLine(ref output, $"endpoint_add_tcp \"{this.Endpoint}\"");
-			WriteLine(ref output, $"endpoint_add_udp \"{this.Endpoint}\"");
-			WriteLine(ref output);
-			WriteLine(ref output, $"sv_hostname \"{this.Hostname}\"");
-			WriteLine(ref output, $"sets tags \"{string.Join(", ", this.Tags)}\"");
-			WriteLine(ref output, $"sv_maxclients {this.MaxPlayers}");
-			WriteLine(ref output);
-			WriteLine(ref output, $"sv_licensekey {this.LicenseKey}");
-			WriteLine(ref output, $"rcon_password \"{this.RconPassword}\"");
-			WriteLine(ref output);
-			WriteLine(ref output, "sv_endpointPrivacy true");
-			WriteLine(ref output, "sv_enhancedHostSupport true");
-			WriteLine(ref output, $"sv_scriptHookAllowed {this.ScriptHookAllowed.ToString().ToLowerInvariant()}");
-			WriteLine(ref output);
-			WriteLine(ref output, "start nfive");
+			output.AppendLine($"endpoint_add_tcp \"{this.Endpoint}\"");
+			output.AppendLine($"endpoint_add_tcp \"{this.Endpoint}\"");
+			output.AppendLine($"endpoint_add_udp \"{this.Endpoint}\"");
+			output.AppendLine();
+			output.AppendLine($"sv_hostname \"{this.Hostname}\"");
+			output.AppendLine($"sets tags \"{string.Join(", ", this.Tags)}\"");
+			output.AppendLine($"sv_maxclients {this.MaxPlayers}");
+			output.AppendLine();
+			output.AppendLine($"sv_licensekey {this.LicenseKey}");
+			output.AppendLine($"rcon_password \"{this.RconPassword}\"");
+			output.AppendLine();
+			output.AppendLine("sv_endpointPrivacy true");
+			output.AppendLine("sv_enhancedHostSupport true");
+			output.AppendLine($"sv_scriptHookAllowed {this.ScriptHookAllowed.ToString().ToLowerInvariant()}");
+			output.AppendLine();
+			output.AppendLine("start nfive");
 
 			File.WriteAllText(path, output.ToString());
-		}
-
-		private static void WriteLine(ref StringBuilder builder, string line = "")
-		{
-			builder.AppendLine(line);
 		}
 	}
 }

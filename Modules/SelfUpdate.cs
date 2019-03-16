@@ -1,5 +1,5 @@
 using CommandLine;
-using JetBrains.Annotations;
+using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Utilities;
 using System;
 using System.IO;
@@ -13,30 +13,29 @@ namespace NFive.PluginManager.Modules
 	/// <summary>
 	/// Update nfpm.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("self-update", HelpText = "Update nfpm.")]
-	internal class SelfUpdate
+	internal class SelfUpdate : Module
 	{
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
 			var asm = Assembly.GetEntryAssembly();
 			var name = Path.GetFileName(asm.Location);
 			var file = Path.GetFullPath(asm.Location);
 			var fileVersion = ((AssemblyFileVersionAttribute)Attribute.GetCustomAttribute(asm, typeof(AssemblyFileVersionAttribute), false)).Version;
 
-			Console.WriteLine($"Currently running {name} {fileVersion}");
+			Console.WriteLine("Currently running ", $"{name} {fileVersion}".White());
 			Console.WriteLine("Checking for updates...");
 
 			var version = (await Version.Get("nfive/nfpm/nfpm")).Name;
 
 			if (version == fileVersion)
 			{
-				Console.WriteLine($"{name} is up to date");
+				Console.WriteLine(name.White(), " is up to date");
 
 				return 0;
 			}
 
-			Console.WriteLine($"Updating {name} to {version}...");
+			Console.WriteLine("Updating ", name.White(), " to ", version.White(), "...");
 
 			using (var client = new WebClient())
 			{

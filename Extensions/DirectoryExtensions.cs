@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Linq;
 
@@ -14,7 +13,8 @@ namespace NFive.PluginManager.Extensions
 		/// </summary>
 		/// <param name="dir">The directory to copy.</param>
 		/// <param name="dest">The destination directory.</param>
-		/// <exception cref="DirectoryNotFoundException">The source directory could not be found.</exception>
+		/// <exception cref="DirectoryNotFoundException">Source directory does not exist or could not be found.</exception>
+		/// <exception cref="IOException">Unable to create directory.</exception>
 		public static void Copy(this DirectoryInfo dir, string dest)
 		{
 			if (!dir.Exists) throw new DirectoryNotFoundException($"Source directory does not exist or could not be found: {dir.FullName}");
@@ -23,16 +23,11 @@ namespace NFive.PluginManager.Extensions
 
 			foreach (var file in files)
 			{
-				try
-				{
-					Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(dest, file)) ?? throw new InvalidOperationException());
+				var destFile = Path.Combine(dest, file);
 
-					File.Copy(Path.Combine(dir.FullName, file), Path.Combine(dest, file), true);
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex.Message);
-				}
+				Directory.CreateDirectory(Path.GetDirectoryName(destFile) ?? throw new IOException($"Unable to create directory: {Path.GetDirectoryName(destFile)}"));
+
+				File.Copy(Path.Combine(dir.FullName, file), destFile, true);
 			}
 		}
 	}

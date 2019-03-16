@@ -1,182 +1,153 @@
 using CommandLine;
-using JetBrains.Annotations;
+using NFive.PluginManager.Adapters;
+using NFive.PluginManager.Configuration;
+using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Models;
+using NFive.PluginManager.Utilities;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
-using NFive.PluginManager.Configuration;
-using NFive.PluginManager.Utilities;
 using Plugin = NFive.SDK.Plugins.Plugin;
+using Version = NFive.PluginManager.Models.Version;
 
 namespace NFive.PluginManager.Modules
 {
 	/// <summary>
-	/// Installs a plugin or processes the lock file.
+	/// Installs new plugins or processes the existing lock file.
 	/// </summary>
-	[UsedImplicitly]
 	[Verb("install", HelpText = "Install NFive plugins.")]
-	internal class Install
+	internal class Install : Module
 	{
-		[PublicAPI]
-		[Value(0, Required = false, HelpText = "plugin name")]
+		[Value(0, Required = false, HelpText = "plugin name and optional version")]
 		public IEnumerable<string> Plugins { get; set; } = new List<string>();
 
-		internal async Task<int> Main()
+		internal override async Task<int> Main()
 		{
-			Plugin definition;
+			var definition = LoadDefinition();
+			var graph = LoadGraph();
 
-			try
+			// New plugins
+			if (this.Plugins.Any())
 			{
-				Environment.CurrentDirectory = PathManager.FindResource();
-
-				definition = Plugin.Load(ConfigurationManager.DefinitionFile);
-			}
-			catch (FileNotFoundException ex)
-			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine("Use `nfpm setup` to setup NFive in this directory");
-
-				return 1;
-			}
-
-			DefinitionGraph graph;
-
-			try
-			{
-				Console.WriteLine("Building dependency tree...");
-
-				graph = DefinitionGraph.Load();
-			}
-			catch (FileNotFoundException)
-			{
-				graph = null;
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine("Unable to build definition graph (PANIC):");
-				Console.WriteLine(ex.Message);
-				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message);
-
-				return 1;
-			}
-
-			if (!this.Plugins.Any())
-			{
-				Console.WriteLine("No new plugins to add");
-
-				if (graph != null)
+				foreach (var plugin in this.Plugins)
 				{
-					Console.WriteLine("Applying dependencies...");
+					var input = plugin;
 
-					await graph.Apply(definition);
-
-					if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
-				}
-				else
-				{
-					Console.WriteLine("Building new tree...");
-
-					graph = new DefinitionGraph();
-					await graph.Build(definition);
-
-					Console.WriteLine("Applying dependencies...");
-
-					await graph.Apply(definition);
-
-					graph.Save(ConfigurationManager.LockFile);
-
-					if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
-				}
-
-				Console.WriteLine("Finished");
-
-				return 0;
-			}
-
-			foreach (var plugin in this.Plugins)
-			{
-				var input = plugin;
-
-				if (Directory.Exists(plugin) && File.Exists(Path.Combine(plugin, ConfigurationManager.DefinitionFile)))
-				{
-					var path = Path.GetFullPath(plugin);
-
-					var pluginDef = Plugin.Load(Path.Combine(path, ConfigurationManager.DefinitionFile));
-
-					if (definition.Repositories == null) definition.Repositories = new List<Repository>();
-					definition.Repositories.Add(new Repository
+					// Local install
+					if (Directory.Exists(plugin) && File.Exists(Path.Combine(plugin, ConfigurationManager.DefinitionFile)))
 					{
-						Name = pluginDef.Name,
-						Type = "local",
-						Path = path
-					});
+						var path = Path.GetFullPath(plugin);
 
-					input = pluginDef.Name;
-				}
+						var pluginDefinition = Plugin.Load(Path.Combine(path, ConfigurationManager.DefinitionFile));
 
-				var parts = input.Split(new[] { '@' }, 2);
-				Name name;
-				var version = new Models.VersionRange("*");
+						if (definition.Repositories == null) definition.Repositories = new List<Repository>();
 
-				try
-				{
-					name = new Name(parts[0]);
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex);
-					return 1;
-				}
+						definition.Repositories.RemoveAll(r => r.Name == pluginDefinition.Name);
+						definition.Repositories.Add(new Repository
+						{
+							Name = pluginDefinition.Name,
+							Type = "local",
+							Path = path
+						});
 
-				if (parts.Length == 2)
-				{
+						input = pluginDefinition.Name;
+					}
+
+					var parts = input.Split(new[] { '@' }, 2);
+					var name = new Name(parts[0].Trim());
+
+					var versionInput = parts.Length == 2 ? parts[1].Trim() : "*";
+
+					Models.VersionRange range = null;
+					Version version = null;
+					PartialVersion partial = null;
+
+
 					try
 					{
-						version = new Models.VersionRange(parts[1]);
+						partial = new PartialVersion(versionInput);
 					}
-					catch (Exception ex)
+					catch (Exception)
 					{
-						Console.WriteLine(ex);
+						// ignored
+					}
+
+					var isSpecific = partial?.Major != null && partial.Minor.HasValue && partial.Patch.HasValue;
+
+					try
+					{
+						range = new Models.VersionRange(versionInput);
+					}
+					catch (Exception)
+					{
+						// ignored
+					}
+
+					try
+					{
+						version = new Version(versionInput);
+					}
+					catch (Exception)
+					{
+						// ignored
+					}
+
+
+					List<Version> versions;
+					try
+					{
+						var adapter = new AdapterBuilder(name, definition).Adapter();
+						versions = (await adapter.GetVersions()).ToList();
+					}
+					catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound)
+					{
+						Console.WriteLine("Error ".DarkRed(), $"{name}".Red(), " not found.".DarkRed());
+
 						return 1;
 					}
-				}
 
-				if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
-
-				if (definition.Dependencies.ContainsKey(name))
-				{
-					if (definition.Dependencies[name] == version)
+					var versionMatch = range.MaxSatisfying(versions);
+					if (versionMatch == null)
 					{
-						Console.WriteLine($"Plugin \"{name}@{version}\" is already installed");
-						continue;
+						Console.WriteLine("Error ".DarkRed(), $"{name}@{range}".Red(), " not found, available versions: ".DarkRed(), string.Join(" ", versions.Select(v => v.ToString())).Red());
+
+						return 1;
 					}
 
-					Console.WriteLine($"Updating plugin \"{name}\" from \"{definition.Dependencies[name]}\" to \"{version}\"");
-					definition.Dependencies[name] = version;
+					if (definition.Dependencies == null) definition.Dependencies = new Dictionary<Name, SDK.Core.Plugins.VersionRange>();
+					definition.Dependencies[name] = new Models.VersionRange("^" + (isSpecific ? partial.ToZeroVersion() : version ?? versionMatch));
+
+					Console.WriteLine("+ ", $"{name}@{definition.Dependencies[name]}".White());
+				}
+
+				graph = new DefinitionGraph();
+				await graph.Apply(definition);
+
+				definition.Save(ConfigurationManager.DefinitionFile);
+				graph.Save();
+			}
+			else
+			{
+				if (graph != null)
+				{
+					await graph.Apply();
 				}
 				else
 				{
-					Console.WriteLine($"Adding new plugin \"{name}@{version}\"");
-					definition.Dependencies.Add(name, version);
+					graph = new DefinitionGraph();
+
+					await graph.Apply(definition);
+
+					graph.Save();
 				}
 			}
 
-			Console.WriteLine("Applying dependencies...");
-
-			graph = new DefinitionGraph();
-			await graph.Build(definition);
-			await graph.Apply(definition);
-
-			definition.Save(ConfigurationManager.DefinitionFile);
-			graph.Save(ConfigurationManager.LockFile);
-
-			if (PathManager.IsResource()) ResourceGenerator.Serialize(graph).Save();
-
-			Console.WriteLine("Finished");
+			if (PathManager.IsResource()) ResourceGenerator.Serialize(graph);
 
 			return 0;
 		}

@@ -22,6 +22,10 @@ namespace NFive.PluginManager.Utilities
 		/// </summary>
 		public const string ConfigFile = "server.cfg";
 
+		// TODO: Move to ConfigurationManager
+		public static string CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", ConfigurationManager.PluginPath);
+
+
 		/// <summary>
 		/// Finds the FiveM server binary in the current directory tree.
 		/// </summary>
