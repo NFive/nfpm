@@ -54,6 +54,8 @@ namespace NFive.PluginManager.Utilities
 
 		public static string Password(string prompt, string @default = null)
 		{
+			if (System.Console.IsOutputRedirected) return String(prompt, @default);
+
 			System.Console.Write($"{prompt}: ");
 			if (@default != null) System.Console.Write($"({@default}) ");
 
