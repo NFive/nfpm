@@ -2,13 +2,14 @@ using CommandLine;
 using NFive.PluginManager.Adapters;
 using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Utilities.Console;
-using NFive.SDK.Plugins;
+using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Plugin = NFive.SDK.Plugins.Plugin;
 
 namespace NFive.PluginManager.Modules
 {
@@ -36,7 +37,7 @@ namespace NFive.PluginManager.Modules
 
 			var definition = LoadDefinition();
 
-			foreach (var dependency in definition.Dependencies)
+			foreach (var dependency in definition?.Dependencies ?? new Dictionary<Name, VersionRange>())
 			{
 				var repo = definition.Repositories?.FirstOrDefault(r => r.Name.ToString() == dependency.Key.ToString());
 				var adapter = new AdapterBuilder(dependency.Key, repo).Adapter();
