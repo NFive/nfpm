@@ -47,11 +47,13 @@
     <Compile Include="Adapters\Hub\SearchResults.cs" />
     <Compile Include="Adapters\IDownloadAdapter.cs" />
     <Compile Include="Adapters\LocalAdapter.cs" />
+    <Compile Include="Extensions\WebClientExtensions.cs" />
     <Compile Include="Console.cs" />
     <Compile Include="Exceptions\GraphLoadException.cs" />
     <Compile Include="Exceptions\DefinitionLoadException.cs" />
     <Compile Include="Models\PartialVersion.cs" />
     <Compile Include="Modules\Module.cs" />
+    <Compile Include="Utilities\ProgressBar.cs" />
     <Compile Include="Utilities\Console\ColorToken.cs" />
     <Compile Include="Extensions\ColorTokenExtensions.cs" />
     <Compile Include="Extensions\DirectoryExtensions.cs" />
