@@ -90,7 +90,7 @@ namespace NFive.PluginManager.Modules
 						Console.Write("Please enter a valid license key: ");
 						return false;
 					}).ToLowerInvariant() : this.LicenseKey,
-					RconPassword = string.IsNullOrWhiteSpace(this.RconPassword) ? Regex.Replace(Input.String("RCON password", "<disabled>"), "^<disabled>$", string.Empty) : this.RconPassword
+					RconPassword = string.IsNullOrWhiteSpace(this.RconPassword) ? Regex.Replace(Input.Password("RCON password", "<disabled>"), "^<disabled>$", string.Empty) : this.RconPassword
 				};
 
 				Directory.CreateDirectory(RuntimeEnvironment.IsWindows ? this.Location : Path.Combine(this.Location, "alpine", "opt", "cfx-server"));

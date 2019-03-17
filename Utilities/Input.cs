@@ -82,6 +82,8 @@ namespace NFive.PluginManager.Utilities
 				}
 			} while (true);
 
+			System.Console.WriteLine();
+
 			return input;
 		}
 	}
