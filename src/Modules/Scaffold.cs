@@ -19,7 +19,7 @@ namespace NFive.PluginManager.Modules
 	/// Generate the boilerplate code for a new NFive plugin.
 	/// </summary>
 	[Verb("scaffold", HelpText = "Generate the boilerplate code for a new NFive plugin.")]
-	internal class Scaffold
+	internal class Scaffold : Module
 	{
 		[Option("owner", Required = false, HelpText = "Set plugin owner.")]
 		public string Owner { get; set; } = null;
@@ -42,7 +42,7 @@ namespace NFive.PluginManager.Modules
 		[Value(0, Default = "NFive/skeleton-plugin-default", Required = false, HelpText = "Location of skeleton files, can be a local or remote zip file, local directory or Github short link (user/repo#branch).")]
 		public string Source { get; set; }
 
-		internal async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			var uri = ValidateSource(this.Source);
 

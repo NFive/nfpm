@@ -80,21 +80,7 @@ namespace NFive.PluginManager
 						Update
 					>(args)
 					.MapResult(
-						(CleanCache m) => m.Main(),
-						(Install m) => m.Main(),
-						(List m) => m.Main(),
-						(Migrate m) => m.Main(),
-						(Outdated m) => m.Main(),
-						(Pack m) => m.Main(),
-						(Rcon m) => m.Main(),
-						(Remove m) => m.Main(),
-						(Scaffold m) => m.Main(),
-						(Search m) => m.Main(),
-						(SelfUpdate m) => m.Main(),
-						(Setup m) => m.Main(),
-						(Start m) => m.Main(),
-						(Status m) => m.Main(),
-						(Update m) => m.Main(),
+						(Module m) => m.Main(),
 						e => Task.FromResult(1)
 					);
 			}

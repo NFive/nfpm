@@ -13,9 +13,9 @@ namespace NFive.PluginManager.Modules
 	/// Show the status of the current directory.
 	/// </summary>
 	[Verb("status", HelpText = "Show the status of the current directory.")]
-	internal class Status
+	internal class Status : Module
 	{
-		internal async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			var cd = Path.GetFullPath(Environment.CurrentDirectory);
 			Console.WriteLine($"Current directory: {cd}");
