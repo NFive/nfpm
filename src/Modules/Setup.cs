@@ -214,7 +214,7 @@ namespace NFive.PluginManager.Modules
 					{
 						data = await client.DownloadDataTaskAsync(url, new Progress<Tuple<long, int, long>>(tuple => progress.Report(tuple.Item2 * 0.01)));
 					}
-					
+
 					Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
 					File.WriteAllBytes(cacheFile, data);
 				}

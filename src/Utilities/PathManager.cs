@@ -1,7 +1,7 @@
+using NFive.SDK.Plugins.Configuration;
 using System;
 using System.IO;
 using System.Linq;
-using NFive.SDK.Plugins.Configuration;
 
 namespace NFive.PluginManager.Utilities
 {
@@ -61,7 +61,7 @@ namespace NFive.PluginManager.Utilities
 			{
 				throw new DirectoryNotFoundException("Unable to locate resource in the directory tree.", ex);
 			}
-			
+
 			throw new DirectoryNotFoundException("Unable to locate resource in the directory tree.");
 		}
 

@@ -6,4 +6,4 @@ services:
     entrypoint: mono nfpm.exe
     working_dir: /app
     volumes:
-     - ./bin/Debug:/app:Z
+      - ./PluginManager/bin/Debug:/app:Z

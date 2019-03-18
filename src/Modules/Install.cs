@@ -67,7 +67,6 @@ namespace NFive.PluginManager.Modules
 					Version version = null;
 					PartialVersion partial = null;
 
-
 					try
 					{
 						partial = new PartialVersion(versionInput);
