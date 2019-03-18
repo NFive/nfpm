@@ -275,7 +275,7 @@ namespace NFive.PluginManager.Modules
 
 							if (skip.Contains(reader.Entry.Key) && File.Exists(Path.Combine(path, reader.Entry.Key)))
 							{
-								opts.Overwrite = false;
+								//opts.Overwrite = false; // TODO: Prompt to overwrite existing config?
 							}
 
 							reader.WriteEntryToDirectory(path, opts);
