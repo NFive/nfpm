@@ -22,7 +22,7 @@ namespace NFive.PluginManager.Modules
 		[Option('a', "all", Required = false, HelpText = "Show all dependencies, including up to date.")]
 		public bool All { get; set; } = false;
 
-		internal override async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			var results = new List<ColorToken[]>
 			{

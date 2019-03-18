@@ -25,7 +25,7 @@ namespace NFive.PluginManager.Modules
 		[Value(0, Default = "{project}.zip", Required = false, HelpText = "Zip file to pack plugin into.")]
 		public string Output { get; set; }
 
-		internal override async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			var definition = LoadDefinition(this.Verbose);
 

@@ -16,7 +16,7 @@ namespace NFive.PluginManager.Modules
 	[Verb("self-update", HelpText = "Update nfpm.")]
 	internal class SelfUpdate : Module
 	{
-		internal override async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			var asm = Assembly.GetEntryAssembly();
 			var name = Path.GetFileName(asm.Location);

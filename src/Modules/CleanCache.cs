@@ -1,6 +1,6 @@
 using CommandLine;
 using System;
-using System.IO;
+using System.IO.Abstractions;
 using System.Threading.Tasks;
 using NFive.PluginManager.Extensions;
 
@@ -10,17 +10,19 @@ namespace NFive.PluginManager.Modules
 	/// Remove locally cached nfpm packages.
 	/// </summary>
 	[Verb("clean-cache", HelpText = "Remove locally cached nfpm packages.")]
-	internal class CleanCache : Module
+	public class CleanCache : Module
 	{
-		internal override async Task<int> Main()
-		{
-			var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache"); // TODO: CachePath
+		public CleanCache(IFileSystem fs) : base(fs) { }
 
-			if (Directory.Exists(path))
+		public override async Task<int> Main()
+		{
+			var path = this.fs.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache"); // TODO: CachePath
+
+			if (this.fs.Directory.Exists(path))
 			{
 				if (this.Verbose) Console.WriteLine("Deleting cache: ".DarkGray(), path.Gray());
 
-				Directory.Delete(path, true);
+				this.fs.Directory.Delete(path, true);
 			}
 			else
 			{

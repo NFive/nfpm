@@ -38,7 +38,7 @@ namespace NFive.PluginManager.Modules
 
 		[SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
 		[SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-		internal override async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			try
 			{

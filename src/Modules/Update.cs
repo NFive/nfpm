@@ -12,7 +12,7 @@ namespace NFive.PluginManager.Modules
 	[Verb("update", HelpText = "Update installed NFive plugins.")]
 	internal class Update : Module
 	{
-		internal override async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			// TODO: Output changes
 

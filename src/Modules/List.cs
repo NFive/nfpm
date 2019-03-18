@@ -12,7 +12,7 @@ namespace NFive.PluginManager.Modules
 	[Verb("list", HelpText = "List installed NFive plugins.")]
 	internal class List : Module
 	{
-		internal override async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			var definition = LoadDefinition();
 			var graph = LoadGraph();

@@ -17,7 +17,7 @@ namespace NFive.PluginManager.Modules
 		[Value(0, Required = false, HelpText = "search query")]
 		public IEnumerable<string> Query { get; set; }
 
-		internal override async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			var results = await HubAdapter.Search(string.Join(" ", this.Query));
 

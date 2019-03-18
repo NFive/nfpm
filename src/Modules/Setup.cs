@@ -62,7 +62,7 @@ namespace NFive.PluginManager.Modules
 		[Value(0, Default = "server", Required = false, HelpText = "Path to install server at.")]
 		public string Location { get; set; }
 
-		internal override async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			this.Location = Path.GetFullPath(this.Location);
 

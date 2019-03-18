@@ -19,7 +19,7 @@ namespace NFive.PluginManager.Modules
 		[Option('w', "window", Default = false, Required = false, HelpText = "Start server in separate window.")]
 		public bool Window { get; set; } = false;
 
-		internal override async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			var start = new ProcessStartInfo(Path.Combine(PathManager.FindServer(), PathManager.ServerFileWindows), $"+set citizen_dir citizen +exec {PathManager.ConfigFile}")
 			{

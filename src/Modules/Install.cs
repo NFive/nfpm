@@ -26,7 +26,7 @@ namespace NFive.PluginManager.Modules
 		[Value(0, Required = false, HelpText = "plugin name and optional version")]
 		public IEnumerable<string> Plugins { get; set; } = new List<string>();
 
-		internal override async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			var definition = LoadDefinition();
 			var graph = LoadGraph();

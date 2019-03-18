@@ -30,7 +30,7 @@ namespace NFive.PluginManager.Modules
 		[Value(0, Required = false, HelpText = "Command to run on the remote server, if unset will be interactive.")]
 		public string Command { get; set; }
 
-		internal override async Task<int> Main()
+		public override async Task<int> Main()
 		{
 			if (string.IsNullOrEmpty(this.Password))
 			{

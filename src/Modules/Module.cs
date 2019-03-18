@@ -4,6 +4,7 @@ using NFive.SDK.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading.Tasks;
 using CommandLine;
 using NFive.PluginManager.Extensions;
@@ -11,13 +12,22 @@ using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
 
 namespace NFive.PluginManager.Modules
 {
-	internal abstract class Module
+	public abstract class Module
 	{
+		protected readonly IFileSystem fs;
+
 		[Option('q', "quiet", Default = false, Required = false, HelpText = "Quiet output.")]
 		public bool Quiet { get; set; }
 
 		[Option('v', "verbose", Default = false, Required = false, HelpText = "Verbose output.")]
 		public bool Verbose { get; set; }
+
+		protected Module() : this(new FileSystem()) { }
+
+		protected Module(IFileSystem fileSystem)
+		{
+			this.fs = fileSystem;
+		}
 
 		protected Plugin LoadDefinition(bool verbose = false)
 		{
@@ -59,6 +69,6 @@ namespace NFive.PluginManager.Modules
 			}
 		}
 
-		internal abstract Task<int> Main();
+		public abstract Task<int> Main();
 	}
 }
