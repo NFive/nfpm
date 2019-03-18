@@ -13,7 +13,7 @@ namespace NFive.PluginManager.Models
 
 		public string PreRelease { get; set; }
 
-		private static readonly Regex regex = new Regex(@"^
+		private static readonly Regex Regex = new Regex(@"^
 				[v=\s]*
 				(\d+|[Xx\*])						# major version
 				(
@@ -33,7 +33,7 @@ namespace NFive.PluginManager.Models
 		{
 			if (input.Trim() == "") return;
 
-			var match = regex.Match(input);
+			var match = Regex.Match(input);
 			if (!match.Success)
 			{
 				throw new ArgumentException($"Invalid version string: \"{input}\"");

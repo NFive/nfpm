@@ -16,13 +16,13 @@ namespace NFive.PluginManager.Modules
 
 		public override async Task<int> Main()
 		{
-			var path = this.fs.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache"); // TODO: CachePath
+			var path = this.Fs.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache"); // TODO: CachePath
 
-			if (this.fs.Directory.Exists(path))
+			if (this.Fs.Directory.Exists(path))
 			{
 				if (this.Verbose) Console.WriteLine("Deleting cache: ".DarkGray(), path.Gray());
 
-				this.fs.Directory.Delete(path, true);
+				this.Fs.Directory.Delete(path, true);
 			}
 			else
 			{

@@ -48,14 +48,7 @@ namespace NFive.PluginManager.Modules
 				prefix += "│  ";
 			}
 
-			if (prefix.Length <= 3)
-			{
-				Console.WriteLine(plugin.FullName.White());
-			}
-			else
-			{
-				Console.WriteLine(plugin.FullName.Gray());
-			}
+			Console.WriteLine(prefix.Length <= 3 ? plugin.FullName.White() : plugin.FullName.Gray());
 
 			if (plugin.DependencyNodes == null) return;
 

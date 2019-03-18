@@ -14,7 +14,7 @@ namespace NFive.PluginManager.Modules
 {
 	public abstract class Module
 	{
-		protected readonly IFileSystem fs;
+		protected readonly IFileSystem Fs;
 
 		[Option('q', "quiet", Default = false, Required = false, HelpText = "Quiet output.")]
 		public bool Quiet { get; set; }
@@ -26,7 +26,7 @@ namespace NFive.PluginManager.Modules
 
 		protected Module(IFileSystem fileSystem)
 		{
-			this.fs = fileSystem;
+			this.Fs = fileSystem;
 		}
 
 		protected Plugin LoadDefinition(bool verbose = false)

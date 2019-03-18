@@ -19,7 +19,7 @@ namespace NFive.PluginManager.Tests.Modules
 			fs.AddDirectory(cacheDir);
 			fs.AddFile(cacheFile, new MockFileData(string.Empty));
 
-			var module = new NFive.PluginManager.Modules.CleanCache(fs);
+			var module = new PluginManager.Modules.CleanCache(fs);
 
 			Assert.AreEqual(await module.Main(), 0);
 			Assert.IsFalse(fs.Directory.Exists(cacheDir));
@@ -39,7 +39,7 @@ namespace NFive.PluginManager.Tests.Modules
 		{
 			using (var console = new ConsoleOutput())
 			{
-				var module = new NFive.PluginManager.Modules.CleanCache(new MockFileSystem())
+				var module = new PluginManager.Modules.CleanCache(new MockFileSystem())
 				{
 					Quiet = true,
 					Verbose = false
@@ -56,7 +56,7 @@ namespace NFive.PluginManager.Tests.Modules
 		{
 			using (var console = new ConsoleOutput())
 			{
-				var module = new NFive.PluginManager.Modules.CleanCache(new MockFileSystem())
+				var module = new PluginManager.Modules.CleanCache(new MockFileSystem())
 				{
 					Quiet = true,
 					Verbose = true

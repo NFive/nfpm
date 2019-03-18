@@ -39,7 +39,7 @@ namespace NFive.PluginManager.Modules
 
 			foreach (var dependency in definition?.Dependencies ?? new Dictionary<Name, VersionRange>())
 			{
-				var repo = definition.Repositories?.FirstOrDefault(r => r.Name.ToString() == dependency.Key.ToString());
+				var repo = definition?.Repositories?.FirstOrDefault(r => r.Name.ToString() == dependency.Key.ToString());
 				var adapter = new AdapterBuilder(dependency.Key, repo).Adapter();
 
 				var versions = (await adapter.GetVersions()).ToList();
