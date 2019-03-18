@@ -1,3 +1,5 @@
+using NFive.PluginManager.Extensions;
+using NFive.PluginManager.Utilities;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Plugins.Configuration;
 using Octokit;
@@ -10,8 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using NFive.PluginManager.Extensions;
-using NFive.PluginManager.Utilities;
 using Version = NFive.PluginManager.Models.Version;
 
 namespace NFive.PluginManager.Adapters
@@ -52,7 +52,7 @@ namespace NFive.PluginManager.Adapters
 		{
 			var cacheDir = new DirectoryInfo(Path.Combine(PathManager.CachePath, this.name.Vendor, this.name.Project, version.ToString()));
 			if (cacheDir.Exists) return cacheDir.FullName;
-			
+
 			cacheDir.Create();
 
 			var releases = await GetReleases();

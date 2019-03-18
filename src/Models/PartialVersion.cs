@@ -14,19 +14,19 @@ namespace NFive.PluginManager.Models
 		public string PreRelease { get; set; }
 
 		private static readonly Regex regex = new Regex(@"^
-                [v=\s]*
-                (\d+|[Xx\*])                      # major version
-                (
-                    \.
-                    (\d+|[Xx\*])                  # minor version
-                    (
-                        \.
-                        (\d+|[Xx\*])              # patch version
-                        (\-?([0-9A-Za-z\-\.]+))?  # pre-release version
-                        (\+([0-9A-Za-z\-\.]+))?   # build version (ignored)
-                    )?
-                )?
-                $",
+				[v=\s]*
+				(\d+|[Xx\*])						# major version
+				(
+					\.
+					(\d+|[Xx\*])					# minor version
+					(
+						\.
+						(\d+|[Xx\*])				# patch version
+						(\-?([0-9A-Za-z\-\.]+))?	# pre-release version
+						(\+([0-9A-Za-z\-\.]+))?		# build version (ignored)
+					)?
+				)?
+				$",
 			RegexOptions.IgnorePatternWhitespace);
 
 		public PartialVersion(string input)
