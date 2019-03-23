@@ -158,7 +158,7 @@ namespace NFive.PluginManager.Modules
 					{
 						AutomaticMigrationDataLossAllowed = false,
 						AutomaticMigrationsEnabled = false,
-						CodeGenerator = new NFiveMigrationCodeGenerator(this.Sdk ? default(IEnumerable<string>) : props),
+						CodeGenerator = new NFiveMigrationCodeGenerator(this.Sdk ? new string[] { } : props),
 						ContextType = contextType,
 						ContextKey = @namespace,
 						MigrationsAssembly = asm,
