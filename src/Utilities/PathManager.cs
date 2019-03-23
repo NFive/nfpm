@@ -23,7 +23,7 @@ namespace NFive.PluginManager.Utilities
 		public const string ConfigFile = "server.cfg";
 
 		// TODO: Move to ConfigurationManager
-		public static string CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", ConfigurationManager.PluginPath);
+		public static string CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache");
 
 
 		/// <summary>

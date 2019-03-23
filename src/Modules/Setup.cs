@@ -196,7 +196,7 @@ namespace NFive.PluginManager.Modules
 		{
 			using (var client = new WebClient())
 			{
-				var cacheFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache", cacheName);
+				var cacheFile = Path.Combine(PathManager.CachePath, cacheName);
 
 				byte[] data;
 
