@@ -1,8 +1,10 @@
 using CommandLine;
+using JetBrains.Annotations;
+using NFive.PluginManager.Extensions;
+using NFive.PluginManager.Utilities;
 using System;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
-using NFive.PluginManager.Extensions;
 
 namespace NFive.PluginManager.Modules
 {
@@ -12,24 +14,25 @@ namespace NFive.PluginManager.Modules
 	[Verb("clean-cache", HelpText = "Remove locally cached nfpm packages.")]
 	public class CleanCache : Module
 	{
+		[UsedImplicitly]
+		public CleanCache() { }
+
 		public CleanCache(IFileSystem fs) : base(fs) { }
 
 		public override async Task<int> Main()
 		{
-			var path = this.Fs.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache"); // TODO: CachePath
-
-			if (this.Fs.Directory.Exists(path))
+			if (this.Fs.Directory.Exists(PathManager.CachePath))
 			{
-				if (this.Verbose) Console.WriteLine("Deleting cache: ".DarkGray(), path.Gray());
+				Output.Debug("Deleting cache: ".DarkGray(), PathManager.CachePath.Gray());
 
-				this.Fs.Directory.Delete(path, true);
+				this.Fs.Directory.Delete(PathManager.CachePath, true);
 			}
 			else
 			{
-				if (this.Verbose) Console.WriteLine("Cache directory does not exist: ".DarkGray(), path.Gray());
+				Output.Debug("Cache directory does not exist: ".DarkGray(), PathManager.CachePath.Gray());
 			}
 
-			if (!this.Quiet) Console.WriteLine("Cache directory emptied.");
+			Output.Info("Cache directory emptied.");
 
 			return await Task.FromResult(0);
 		}

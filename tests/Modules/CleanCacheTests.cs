@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO.Abstractions.TestingHelpers;
 using System.Threading.Tasks;
+using NFive.PluginManager.Utilities;
 
 namespace NFive.PluginManager.Tests.Modules
 {
@@ -12,18 +13,14 @@ namespace NFive.PluginManager.Tests.Modules
 		public async Task Main_WithCache_Deleted()
 		{
 			var fs = new MockFileSystem();
-
-			var cacheDir = fs.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache");
-			var cacheFile = fs.Path.Combine(cacheDir, "test");
-
-			fs.AddDirectory(cacheDir);
-			fs.AddFile(cacheFile, new MockFileData(string.Empty));
+			fs.AddDirectory(PathManager.CachePath);
+			fs.AddFile(fs.Path.Combine(PathManager.CachePath, "test"), new MockFileData(string.Empty));
 
 			var module = new PluginManager.Modules.CleanCache(fs);
 
 			Assert.AreEqual(await module.Main(), 0);
-			Assert.IsFalse(fs.Directory.Exists(cacheDir));
-			Assert.IsFalse(fs.File.Exists(cacheFile));
+			Assert.IsFalse(fs.Directory.Exists(PathManager.CachePath));
+			Assert.IsFalse(fs.File.Exists(fs.Path.Combine(PathManager.CachePath, "test")));
 		}
 
 		[TestMethod]
@@ -35,7 +32,7 @@ namespace NFive.PluginManager.Tests.Modules
 		}
 
 		[TestMethod]
-		public async Task Main_Quiet_Silent()
+		public async Task Main_QuietFlag_IsSilent()
 		{
 			using (var console = new ConsoleOutput())
 			{
@@ -52,7 +49,7 @@ namespace NFive.PluginManager.Tests.Modules
 		}
 
 		[TestMethod]
-		public async Task Main_Verbose_Loud()
+		public async Task Main_VerboseFlag_HasOutput()
 		{
 			using (var console = new ConsoleOutput())
 			{
