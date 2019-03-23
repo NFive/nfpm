@@ -160,7 +160,7 @@ namespace NFive.PluginManager.Modules
 						AutomaticMigrationsEnabled = false,
 						CodeGenerator = new NFiveMigrationCodeGenerator(this.Sdk ? new string[] { } : props),
 						ContextType = contextType,
-						ContextKey = @namespace,
+						ContextKey = $"{@namespace}.Configuration",
 						MigrationsAssembly = asm,
 						MigrationsDirectory = migrationsPath,
 						MigrationsNamespace = @namespace,
