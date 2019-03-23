@@ -36,6 +36,9 @@ namespace NFive.PluginManager.Modules
 		[Option("sln", Required = false, HelpText = "Visual Studio SLN solution file.")]
 		public string Sln { get; set; }
 
+		[Option("migrate", Required = false, HelpText = "Run existing migrations if necessary.")]
+		public bool RunMigrations { get; set; } = false;
+
 		[Option("sdk", Required = false, HelpText = "Internal use only, do not exclude SDK types.")]
 		public bool Sdk { get; set; } = false;
 
@@ -168,6 +171,26 @@ namespace NFive.PluginManager.Modules
 					};
 
 					var ms = new MigrationScaffolder(migrationsConfiguration);
+					
+					if (this.RunMigrations)
+					{
+						var migrator = new DbMigrator(migrationsConfiguration);
+
+						if (migrator.GetPendingMigrations().Any())
+						{
+							Console.WriteLine("    Running existing migrations...");
+
+							foreach (var migration in migrator.GetPendingMigrations())
+							{
+								Console.WriteLine($"        Running migration: {migration}");
+
+								migrator.Update(migration);
+							}
+						}
+					}
+
+					Console.WriteLine("    Scaffolding migration...");
+
 					var src = ms.Scaffold(this.Name, false);
 
 					var file = Path.Combine(projectPath, migrationsPath, $"{src.MigrationId}.{src.Language}");
