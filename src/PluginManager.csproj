@@ -53,6 +53,7 @@
     <Compile Include="Exceptions\DefinitionLoadException.cs" />
     <Compile Include="Models\PartialVersion.cs" />
     <Compile Include="Modules\Module.cs" />
+    <Compile Include="Utilities\Output.cs" />
     <Compile Include="Utilities\ProgressBar.cs" />
     <Compile Include="Utilities\Console\ColorToken.cs" />
     <Compile Include="Extensions\ColorTokenExtensions.cs" />

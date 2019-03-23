@@ -1,4 +1,6 @@
+using CommandLine;
 using NFive.PluginManager.Exceptions;
+using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Utilities;
 using NFive.SDK.Plugins;
 using NFive.SDK.Plugins.Configuration;
@@ -6,8 +8,7 @@ using System;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
-using CommandLine;
-using NFive.PluginManager.Extensions;
+using JetBrains.Annotations;
 using DefinitionGraph = NFive.PluginManager.Models.DefinitionGraph;
 
 namespace NFive.PluginManager.Modules
@@ -17,17 +18,48 @@ namespace NFive.PluginManager.Modules
 		protected readonly IFileSystem Fs;
 
 		[Option('q', "quiet", Default = false, Required = false, HelpText = "Quiet output.")]
-		public bool Quiet { get; set; }
+		public bool Quiet
+		{
+			get => Output.Quiet;
+			set => Output.Quiet = value;
+		}
 
 		[Option('v', "verbose", Default = false, Required = false, HelpText = "Verbose output.")]
-		public bool Verbose { get; set; }
+		public bool Verbose
+		{
+			get => Output.Verbose;
+			set => Output.Verbose = value;
+		}
 
+		[UsedImplicitly]
 		protected Module() : this(new FileSystem()) { }
 
-		protected Module(IFileSystem fileSystem)
+		protected Module(IFileSystem fileSystem) => this.Fs = fileSystem;
+
+		public async Task<int> Run()
 		{
-			this.Fs = fileSystem;
+			try
+			{
+				return await this.Main();
+			}
+			catch (DefinitionLoadException)
+			{
+				Output.Error("NFive installation or plugin not found.".DarkRed());
+				Output.Error("Use ", "nfpm setup".Yellow(), " to install NFive in this directory.");
+
+				return 1;
+			}
+			catch (GraphLoadException ex)
+			{
+				Output.Error("Unable to build definition graph (PANIC):".DarkRed());
+				Output.Error(ex.Message.Red());
+				if (ex.InnerException != null) Output.Error(ex.InnerException.Message.Red());
+
+				return 1;
+			}
 		}
+
+		public abstract Task<int> Main();
 
 		protected Plugin LoadDefinition(bool verbose = false)
 		{
@@ -68,7 +100,5 @@ namespace NFive.PluginManager.Modules
 				throw new GraphLoadException(ex);
 			}
 		}
-
-		public abstract Task<int> Main();
 	}
 }
