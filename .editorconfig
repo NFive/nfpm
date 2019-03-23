@@ -8,12 +8,12 @@ end_of_line = crlf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.{csproj,config,md,yml}]
+[*.{csproj,csproj.user,config,md,yml}]
 indent_style = space
 indent_size = 2
 
-[*.{csproj,config}]
+[*.{csproj,csproj.user,config}]
 insert_final_newline = false
 
-[*.{csproj,config,sln.DotSettings}]
+[*.{csproj,csproj.user,config,sln.DotSettings}]
 charset = utf-8-bom

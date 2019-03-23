@@ -2,7 +2,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginManager", "PluginManager.csproj", "{D1C37F69-C811-4BFF-90F1-1F6401FC99E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginManager", "src\PluginManager.csproj", "{D1C37F69-C811-4BFF-90F1-1F6401FC99E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginManager.Tests", "tests\PluginManager.Tests.csproj", "{C2128307-F1D9-407F-9F16-84925E6AF430}"
 EndProject
 Global
 	GlobalSection(Performance) = preSolution
@@ -17,6 +19,10 @@ Global
 		{D1C37F69-C811-4BFF-90F1-1F6401FC99E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1C37F69-C811-4BFF-90F1-1F6401FC99E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1C37F69-C811-4BFF-90F1-1F6401FC99E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2128307-F1D9-407F-9F16-84925E6AF430}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2128307-F1D9-407F-9F16-84925E6AF430}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2128307-F1D9-407F-9F16-84925E6AF430}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2128307-F1D9-407F-9F16-84925E6AF430}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

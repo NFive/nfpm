@@ -10,7 +10,7 @@ cache:
 
 install:
 - ps: >-
-    $env:BUILD_VERSION = Select-String -Path Properties\AssemblyInfo.cs -Pattern 'AssemblyFileVersion\(\"(.*)\"\)' | %{ $_.Matches[0].Groups[1].Value }
+    $env:BUILD_VERSION = Select-String -Path src\Properties\AssemblyInfo.cs -Pattern 'AssemblyFileVersion\(\"(.*)\"\)' | %{ $_.Matches[0].Groups[1].Value }
 
     If ($env:APPVEYOR_REPO_TAG -eq $true) {
       $env:BUILD_VERSION = $env:APPVEYOR_REPO_TAG_NAME.TrimStart("v")
@@ -50,7 +50,7 @@ build:
   verbosity: minimal
 
 artifacts:
-- path: bin\Release\nfpm.exe
+- path: src\bin\Release\nfpm.exe
 
 deploy:
 - provider: GitHub
@@ -73,4 +73,4 @@ for:
       secure: piTpGhOfvdvWqMnPTWkLyuX/b1lHDazzSWt37UbgqUHCAdfsEb+0exY7AUnYzT7Z
 
   deploy_script:
-  - curl -s -w "\n" -T "bin\Release\nfpm.exe" -u"%BT_USER%:%BT_KEY%" "https://api.bintray.com/content/nfive/nfpm/nfpm/%BUILD_VERSION_FILE%/%BUILD_VERSION_FILE%/nfpm.exe?publish=1"
+  - curl -s -w "\n" -T "src\bin\Release\nfpm.exe" -u"%BT_USER%:%BT_KEY%" "https://api.bintray.com/content/nfive/nfpm/nfpm/%BUILD_VERSION_FILE%/%BUILD_VERSION_FILE%/nfpm.exe?publish=1"
