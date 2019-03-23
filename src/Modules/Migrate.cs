@@ -278,7 +278,7 @@ namespace NFive.PluginManager.Modules
 				writer.Write($"string IMigrationMetadata.Id => \"{this.MigrationId}\";");
 				writer.WriteLine();
 				writer.WriteLine();
-				writer.Write("string IMigrationMetadata.Source => null;"); // TODO
+				writer.Write($"string IMigrationMetadata.Source => {(this.SourceModel == null ? "null" : $"\"{this.TargetModel}\"")};");
 				writer.WriteLine();
 				writer.WriteLine();
 				writer.Write($"string IMigrationMetadata.Target => \"{this.TargetModel}\";");
