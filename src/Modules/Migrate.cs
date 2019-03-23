@@ -36,6 +36,9 @@ namespace NFive.PluginManager.Modules
 		[Option("sln", Required = false, HelpText = "Visual Studio SLN solution file.")]
 		public string Sln { get; set; }
 
+		[Option("sdk", Required = false, HelpText = "Internal use only, do not exclude SDK types.")]
+		public bool Sdk { get; set; } = false;
+
 		[SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
 		[SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
 		public override async Task<int> Main()
@@ -116,7 +119,7 @@ namespace NFive.PluginManager.Modules
 					var outputPath = Path.GetFullPath(Path.Combine(projectPath, Retry.Do(() => project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString()), Retry.Do(() => project.Properties.Item("OutputFileName").Value.ToString())));
 
 					var asm = Assembly.Load(File.ReadAllBytes(outputPath));
-					if (asm.GetCustomAttribute<ServerPluginAttribute>() == null) continue;
+					if (!this.Sdk && asm.GetCustomAttribute<ServerPluginAttribute>() == null) continue;
 
 					var contextType = asm.DefinedTypes.FirstOrDefault(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == typeof(EFContext<>));
 					if (contextType == default) continue;
@@ -136,7 +139,7 @@ namespace NFive.PluginManager.Modules
 						.Select(t => $"dbo.{t.Name}") // TODO
 						.ToArray();
 
-					Console.WriteLine($"    Excluding tables: {string.Join(", ", props)}");
+					if (!this.Sdk) Console.WriteLine($"    Excluding tables: {string.Join(", ", props)}");
 
 					var migrationsPath = "Migrations";
 
@@ -155,7 +158,7 @@ namespace NFive.PluginManager.Modules
 					{
 						AutomaticMigrationDataLossAllowed = false,
 						AutomaticMigrationsEnabled = false,
-						CodeGenerator = new NFiveMigrationCodeGenerator(props),
+						CodeGenerator = new NFiveMigrationCodeGenerator(this.Sdk ? default(IEnumerable<string>) : props),
 						ContextType = contextType,
 						ContextKey = @namespace,
 						MigrationsAssembly = asm,
