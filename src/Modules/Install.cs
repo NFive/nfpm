@@ -96,7 +96,6 @@ namespace NFive.PluginManager.Modules
 						// ignored
 					}
 
-
 					List<Version> versions;
 					try
 					{
