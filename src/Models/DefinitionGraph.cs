@@ -48,7 +48,9 @@ namespace NFive.PluginManager.Models
 					var loadedDefinition = Plugin.Load(path);
 
 					// TODO: IEquality
-					if (loadedDefinition.Name.ToString() == definition.Name.ToString() && loadedDefinition.Version.ToString() == definition.Version.ToString()) continue;
+					if (loadedDefinition.Name.ToString() == definition.Name.ToString() &&
+					    loadedDefinition.Version.ToString() == definition.Version.ToString() &&
+					    baseDefinition?.Repositories?.FirstOrDefault(r => r.Name == definition.Name && r.Type == "local") == null) continue;
 				}
 
 				// TODO: Remove extra plugin folders/files
