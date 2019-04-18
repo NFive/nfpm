@@ -40,19 +40,22 @@ namespace NFive.PluginManager.Modules
 
 			using (var client = new WebClient())
 			{
-				if (RuntimeEnvironment.IsWindows)
+				var data = await client.DownloadDataTaskAsync($"https://dl.bintray.com/nfive/nfpm/{version}/nfpm.exe");
+
+				try
 				{
-					try
+					File.Delete($"{file}.old");
+
+					if (RuntimeEnvironment.IsWindows)
 					{
-						File.Delete($"{file}.old");
-
-						var data = await client.DownloadDataTaskAsync($"https://dl.bintray.com/nfive/nfpm/{version}/nfpm.exe");
-
 						File.Move(file, $"{file}.old");
-
-						File.WriteAllBytes(file, data);
 					}
-					catch (UnauthorizedAccessException)
+
+					File.WriteAllBytes(file, data);
+				}
+				catch (UnauthorizedAccessException)
+				{
+					if (RuntimeEnvironment.IsWindows)
 					{
 						var process = new Process
 						{
