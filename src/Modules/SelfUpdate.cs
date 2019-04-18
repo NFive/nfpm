@@ -53,25 +53,22 @@ namespace NFive.PluginManager.Modules
 
 					File.WriteAllBytes(file, data);
 				}
-				catch (UnauthorizedAccessException)
+				catch (UnauthorizedAccessException) when (RuntimeEnvironment.IsWindows)
 				{
-					if (RuntimeEnvironment.IsWindows)
+					var process = new Process
 					{
-						var process = new Process
+						StartInfo = new ProcessStartInfo
 						{
-							StartInfo = new ProcessStartInfo
-							{
-								FileName = file,
-								Arguments = "self-update -q",
-								Verb = "runas",
-								CreateNoWindow = false,
-								WindowStyle = ProcessWindowStyle.Hidden
-							}
-						};
+							FileName = file,
+							Arguments = "self-update -q",
+							Verb = "runas",
+							CreateNoWindow = false,
+							WindowStyle = ProcessWindowStyle.Hidden
+						}
+					};
 
-						process.Start();
-						process.WaitForExit();
-					}
+					process.Start();
+					process.WaitForExit();
 				}
 			}
 
