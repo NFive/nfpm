@@ -2,6 +2,7 @@ using CommandLine;
 using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Utilities;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -39,16 +40,36 @@ namespace NFive.PluginManager.Modules
 
 			using (var client = new WebClient())
 			{
-				var data = await client.DownloadDataTaskAsync($"https://dl.bintray.com/nfive/nfpm/{version}/nfpm.exe");
-
-				File.Delete($"{file}.old");
-
 				if (RuntimeEnvironment.IsWindows)
 				{
-					File.Move(file, $"{file}.old");
-				}
+					try
+					{
+						File.Delete($"{file}.old");
 
-				File.WriteAllBytes(file, data);
+						var data = await client.DownloadDataTaskAsync($"https://dl.bintray.com/nfive/nfpm/{version}/nfpm.exe");
+
+						File.Move(file, $"{file}.old");
+
+						File.WriteAllBytes(file, data);
+					}
+					catch (UnauthorizedAccessException)
+					{
+						var process = new Process
+						{
+							StartInfo = new ProcessStartInfo
+							{
+								FileName = file,
+								Arguments = "self-update -q",
+								Verb = "runas",
+								CreateNoWindow = false,
+								WindowStyle = ProcessWindowStyle.Hidden
+							}
+						};
+
+						process.Start();
+						process.WaitForExit();
+					}
+				}
 			}
 
 			Console.WriteLine("Update successful");
