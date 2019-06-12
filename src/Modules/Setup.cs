@@ -6,6 +6,7 @@ using NFive.SDK.Plugins.Configuration;
 using SharpCompress.Common;
 using SharpCompress.Readers;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -25,8 +26,14 @@ namespace NFive.PluginManager.Modules
 		[Option("fivem", Required = false, HelpText = "Install FiveM server.")]
 		public bool? FiveM { get; set; } = null;
 
+		[Option("fivem-source", Required = false, HelpText = "Location of FiveM server install files.")]
+		public string FiveMSource { get; set; } = null;
+
 		[Option("nfive", Required = false, HelpText = "Install NFive.")]
 		public bool? NFive { get; set; } = null;
+
+		[Option("nfive-source", Required = false, HelpText = "Location of NFive server install files.")]
+		public string NFiveSource { get; set; } = null;
 
 		[Option("servername", Required = false, HelpText = "Set server name.")]
 		public string ServerName { get; set; } = null;
@@ -98,7 +105,7 @@ namespace NFive.PluginManager.Modules
 
 				if (!this.FiveM.HasValue) Console.WriteLine();
 
-				await InstallFiveM(this.Location);
+				await InstallFiveM(this.Location, this.FiveMSource);
 
 				if (!RuntimeEnvironment.IsWindows) this.Location = Path.Combine(this.Location, "alpine", "opt", "cfx-server");
 				this.Location = Path.Combine(this.Location, "resources", "nfive");
@@ -153,14 +160,61 @@ namespace NFive.PluginManager.Modules
 			return 0;
 		}
 
-		private static async Task InstallFiveM(string path)
+		private static async Task InstallFiveM(string path, string source)
 		{
 			var platformName = RuntimeEnvironment.IsWindows ? "Windows" : "Linux";
+			var platformUrl = RuntimeEnvironment.IsWindows ? "build_server_windows" : "build_proot_linux";
 			var platformFile = RuntimeEnvironment.IsWindows ? "server.zip" : "fx.tar.xz";
+			var platformPath = RuntimeEnvironment.IsWindows ? Path.Combine(path) : Path.Combine(path, "alpine", "opt", "cfx-server");
 
-			var serverFile = Input.String("Enter FiveM server archive path", platformFile);
+			if (!string.IsNullOrWhiteSpace(source) && File.Exists(source))
+			{
+				Install(path, $"FiveM {platformName} server", File.ReadAllBytes(source));
 
-			await Install(path, $"FiveM {platformName} server", serverFile);
+				return;
+			}
+			
+			Console.WriteLine($"Finding latest FiveM {platformName} server version...");
+
+			try
+			{
+				var versions = new List<Tuple<uint, string>>();
+
+				using (var client = new WebClient())
+				{
+					var page = await client.DownloadStringTaskAsync($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
+
+					for (var match = new Regex("href=\"(\\d+)-([a-f0-9]{40})/\"", RegexOptions.IgnoreCase).Match(page); match.Success; match = match.NextMatch())
+					{
+						versions.Add(new Tuple<uint, string>(uint.Parse(match.Groups[1].Value), match.Groups[2].Value));
+					}
+				}
+
+				var latest = versions.Max();
+
+				var platformCache = RuntimeEnvironment.IsWindows ? $"fivem_server_{latest.Item1}.zip" : $"fivem_server_{latest.Item1}.tar.xz";
+
+				var data = await DownloadCached($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/{latest.Item1}-{latest.Item2}/{platformFile}", $"FiveM {platformName} server", latest.Item1.ToString(), platformCache);
+				Install(path, $"FiveM {platformName} server", data);
+
+				File.WriteAllText(Path.Combine(platformPath, "version"), latest.Item1.ToString());
+			}
+			catch (WebException ex)
+			{
+				Console.WriteLine($"Error downloading FiveM server archive: {ex.Message}");
+				Console.WriteLine();
+				Console.WriteLine("Reverting to local install");
+
+				if (string.IsNullOrWhiteSpace(source) || !File.Exists(source)) source = Input.String("Local FiveM server archive path", platformFile, s =>
+				{
+					if (File.Exists(s)) return true;
+
+					Console.Write("Please enter a local path: ");
+					return false;
+				});
+
+				Install(path, $"FiveM {platformName} server", File.ReadAllBytes(source));
+			}
 		}
 
 		private static async Task InstallNFive(string path)
@@ -169,43 +223,42 @@ namespace NFive.PluginManager.Modules
 
 			var version = (await Adapters.Bintray.Version.Get("nfive/NFive/NFive")).Name;
 
-			var cachePath = await Download("NFive", version, $"nfive_{version}.zip", $"https://dl.bintray.com/nfive/NFive/{version}/nfive.zip");
+			var data = await DownloadCached($"https://dl.bintray.com/nfive/NFive/{version}/nfive.zip", "NFive", version, $"nfive_{version}.zip");
 
-			await Install(path, "NFive", cachePath);
+			Install(path, "NFive", data);
 		}
 
-		private static async Task<string> Download(string name, string version, string cacheName, string url)
+		private static async Task<byte[]> Download(string url)
 		{
 			using (var client = new WebClient())
+			using (var progress = new ProgressBar())
 			{
-				var cacheFile = Path.Combine(PathManager.CachePath, cacheName);
-
-				byte[] data;
-
-				if (File.Exists(cacheFile))
-				{
-					Console.WriteLine($"Reading {name} v{version} from cache...");
-
-					data = File.ReadAllBytes(cacheFile);
-				}
-				else
-				{
-					Console.WriteLine($"Downloading {name} v{version}...");
-
-					using (var progress = new ProgressBar())
-					{
-						data = await client.DownloadDataTaskAsync(url, new Progress<Tuple<long, int, long>>(tuple => progress.Report(tuple.Item2 * 0.01)));
-					}
-
-					Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
-					File.WriteAllBytes(cacheFile, data);
-				}
-
-				return cacheFile;
+				return await client.DownloadDataTaskAsync(url, new Progress<Tuple<long, int, long>>(tuple => progress.Report(tuple.Item2 * 0.01)));
 			}
 		}
 
-		private static async Task Install(string path, string name, string archive)
+		private static async Task<byte[]> DownloadCached(string url, string name, string version, string cacheName)
+		{
+			var cacheFile = Path.Combine(PathManager.CachePath, cacheName);
+
+			if (File.Exists(cacheFile))
+			{
+				Console.WriteLine($"Reading {name} v{version} from cache...");
+
+				return File.ReadAllBytes(cacheFile);
+			}
+
+			Console.WriteLine($"Downloading {name} v{version}...");
+
+			var data = await Download(url);
+
+			Directory.CreateDirectory(PathManager.CachePath);
+			File.WriteAllBytes(cacheFile, data);
+
+			return data;
+		}
+
+		private static void Install(string path, string name, byte[] data)
 		{
 			Console.WriteLine($"Installing {name}...");
 
@@ -213,15 +266,15 @@ namespace NFive.PluginManager.Modules
 
 			var skip = new[]
 			{
-				"server.cfg",
-				"__resource.lua",
-				"nfive.yml",
-				"nfive.lock",
-				"config/nfive.yml",
-				"config/database.yml"
-			};
+					"server.cfg",
+					"__resource.lua",
+					"nfive.yml",
+					"nfive.lock",
+					"config/nfive.yml",
+					"config/database.yml"
+				};
 
-			using (var stream = new FileStream(archive, FileMode.Open, FileAccess.Read))
+			using (var stream = new MemoryStream(data))
 			using (var reader = ReaderFactory.Open(stream))
 			{
 				if (reader.ArchiveType == ArchiveType.Tar && RuntimeEnvironment.IsLinux)
