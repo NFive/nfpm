@@ -173,7 +173,7 @@ namespace NFive.PluginManager.Modules
 
 				return;
 			}
-			
+
 			Console.WriteLine($"Finding latest FiveM {platformName} server version...");
 
 			try
@@ -266,13 +266,13 @@ namespace NFive.PluginManager.Modules
 
 			var skip = new[]
 			{
-					"server.cfg",
-					"__resource.lua",
-					"nfive.yml",
-					"nfive.lock",
-					"config/nfive.yml",
-					"config/database.yml"
-				};
+				"server.cfg",
+				"__resource.lua",
+				"nfive.yml",
+				"nfive.lock",
+				"config/nfive.yml",
+				"config/database.yml"
+			};
 
 			using (var stream = new MemoryStream(data))
 			using (var reader = ReaderFactory.Open(stream))
