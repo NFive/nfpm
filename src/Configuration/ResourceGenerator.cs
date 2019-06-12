@@ -51,6 +51,7 @@ namespace NFive.PluginManager.Configuration
 		/// </value>
 		public static IEnumerable<string> DefaultClientFiles => new List<string>
 		{
+			"DotNetZip.dll",
 			"Newtonsoft.Json.dll",
 			"System.ComponentModel.DataAnnotations.dll",
 
