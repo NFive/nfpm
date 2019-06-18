@@ -41,6 +41,9 @@ namespace NFive.PluginManager.Modules
 		[Option("maxplayers", Required = false, HelpText = "Set server max players.")]
 		public ushort? MaxPlayers { get; set; } = null;
 
+		[Option("onesync", Required = false, HelpText = "Enable OneSync.")]
+		public bool? OneSync { get; set; } = null;
+
 		[Option("tags", Required = false, HelpText = "Set server tags.")]
 		public string Tags { get; set; } = null;
 
@@ -87,7 +90,8 @@ namespace NFive.PluginManager.Modules
 				var config = new ConfigGenerator
 				{
 					Hostname = string.IsNullOrWhiteSpace(this.ServerName) ? Input.String("server name", "NFive") : this.ServerName,
-					MaxPlayers = this.MaxPlayers ?? Convert.ToUInt16(Input.Int("server max players", 1, 32, 32)),
+					MaxPlayers = this.MaxPlayers ?? Convert.ToUInt16(Input.Int("server max players", 1, 128, 32)),
+					OneSync = this.OneSync ?? Input.Bool("enable OneSync", true),
 					Tags = (string.IsNullOrWhiteSpace(this.Tags) ? Input.String("server tags (separate with space)", "nfive") : this.Tags).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
 					LicenseKey = string.IsNullOrWhiteSpace(this.LicenseKey) ? Input.String("server license key (https://keymaster.fivem.net/)", s =>
 					{
