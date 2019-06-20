@@ -37,7 +37,7 @@ namespace NFive.PluginManager.Configuration
 			output.AppendLine($"sv_hostname \"{this.Hostname}\"");
 			output.AppendLine($"sets tags \"{string.Join(", ", this.Tags)}\"");
 			output.AppendLine($"sv_maxclients {this.MaxPlayers}");
-			output.AppendLine($"set onesync_enabled {(this.OneSync ? 1 : 0)}");
+			output.AppendLine($"set onesync_enabled {this.OneSync.ToString().ToLowerInvariant()}");
 			output.AppendLine();
 			output.AppendLine($"sv_licensekey {this.LicenseKey}");
 			output.AppendLine($"rcon_password \"{this.RconPassword}\"");
