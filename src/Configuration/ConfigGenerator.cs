@@ -24,7 +24,7 @@ namespace NFive.PluginManager.Configuration
 
 		public bool ScriptHookAllowed { get; set; } = false;
 
-		public List<string> Tags { get; set; } = new List<string> { "nfive" };
+		public List<string> Tags { get; set; } = new List<string> { "NFive" };
 
 		[SuppressMessage("ReSharper", "StringLiteralTypo")]
 		public void Serialize(string path)

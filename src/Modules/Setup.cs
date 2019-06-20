@@ -92,7 +92,7 @@ namespace NFive.PluginManager.Modules
 					Hostname = string.IsNullOrWhiteSpace(this.ServerName) ? Input.String("server name", "NFive") : this.ServerName,
 					MaxPlayers = this.MaxPlayers ?? Convert.ToUInt16(Input.Int("server max players", 1, 128, 32)),
 					OneSync = this.OneSync ?? Input.Bool("enable OneSync", true),
-					Tags = (string.IsNullOrWhiteSpace(this.Tags) ? Input.String("server tags (separate with space)", "nfive") : this.Tags).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
+					Tags = (string.IsNullOrWhiteSpace(this.Tags) ? Input.String("server tags (separate with space)", "NFive") : this.Tags).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList(),
 					LicenseKey = string.IsNullOrWhiteSpace(this.LicenseKey) ? Input.String("server license key (https://keymaster.fivem.net/)", s =>
 					{
 						if (Regex.IsMatch(s, @"[\d\w]{32}")) return true;
