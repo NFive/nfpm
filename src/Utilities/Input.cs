@@ -32,7 +32,7 @@ namespace NFive.PluginManager.Utilities
 
 		public static bool Bool(string prompt, bool? @default = null)
 		{
-			var input = String(prompt, @default?.ToString()).ToLowerInvariant();
+			var input = String(prompt, !@default.HasValue ? null : @default.Value ? "yes" : "no").ToLowerInvariant();
 
 			return input == "1" || input == "true" || input == "yes" || input == "y";
 		}
