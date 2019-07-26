@@ -21,13 +21,15 @@ namespace NFive.PluginManager.Modules
 
 		public override async Task<int> Main()
 		{
-			var start = new ProcessStartInfo(Path.Combine(PathManager.FindServer(), PathManager.ServerFileWindows), $"+set citizen_dir citizen +exec {PathManager.ConfigFile}")
+			var serverDirectory = PathManager.FindServer();
+
+			var start = new ProcessStartInfo(Path.Combine(serverDirectory, PathManager.ServerFileWindows), $@"+set citizen_dir {Path.Combine(serverDirectory, "citizen")} +exec {PathManager.ConfigFile}")
 			{
 				UseShellExecute = this.Window,
 				RedirectStandardOutput = !this.Window,
 				RedirectStandardError = !this.Window,
 				ErrorDialog = false,
-				WorkingDirectory = PathManager.FindServer()
+				WorkingDirectory = serverDirectory
 			};
 
 			if (!RuntimeEnvironment.IsWindows)
