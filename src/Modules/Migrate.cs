@@ -16,6 +16,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using ConfigurationManager = NFive.SDK.Plugins.Configuration.ConfigurationManager;
+using NFive.PluginManager.Models;
 
 namespace NFive.PluginManager.Modules
 {
@@ -30,7 +32,10 @@ namespace NFive.PluginManager.Modules
 		[Option("name", Required = true, HelpText = "Migration name.")]
 		public string Name { get; set; } = null;
 
-		[Option("db", Required = true, HelpText = "MySQL database connection string.")]
+		[Option("path", Required = true, HelpText = "NFive server path.")]
+		public string ServerPath { get; set; } = null;
+
+		[Option("db", Required = false, HelpText = "MySQL database connection string.")]
 		public string Database { get; set; } = null;
 
 		[Option("sln", Required = false, HelpText = "Visual Studio SLN solution file.")]
@@ -46,8 +51,44 @@ namespace NFive.PluginManager.Modules
 		[SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
 		public override async Task<int> Main()
 		{
+			string originalDirectoty = Environment.CurrentDirectory;
+
+			if (this.Database == null)
+			{
+				try
+				{
+					Console.WriteLine($"Path: {this.ServerPath}");
+					Environment.CurrentDirectory = this.ServerPath;
+					PathManager.FindServer();
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(ex.Message);
+					Console.WriteLine("Make sure the path provided is a valid NFive server path.");
+				}
+				
+				string dataBaseConfigYaml = Path.Combine(Environment.CurrentDirectory, "resources", "nfive", ConfigurationManager.ConfigurationPath, "database.yml");
+				DatabaseConfiguration databaseConfiguration = null;
+
+				try
+				{
+					databaseConfiguration = ConfigurationManager.Load<DatabaseConfiguration>(dataBaseConfigYaml);
+				}
+				catch(Exception ex)
+				{
+					Console.WriteLine(ex.Message);
+					Console.WriteLine("Make sure NFive is properly installed.");
+				}
+
+				this.Database = $"Host={databaseConfiguration.Connection.Host};Port={databaseConfiguration.Connection.Port};" +
+					$"Database={databaseConfiguration.Connection.Database};User Id={databaseConfiguration.Connection.User};" +
+					$"Password={databaseConfiguration.Connection.Password};CharSet={databaseConfiguration.Connection.Charset};SSL Mode=None";
+				Console.WriteLine(this.Database);
+			}
+
 			try
 			{
+				Environment.CurrentDirectory = originalDirectoty;
 				Environment.CurrentDirectory = PathManager.FindResource();
 			}
 			catch (FileNotFoundException ex)
@@ -56,7 +97,7 @@ namespace NFive.PluginManager.Modules
 				Console.WriteLine("Use `nfpm scaffold` to generate a NFive plugin in this directory");
 
 				return 1;
-			}
+			}		
 
 			AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
 			{
