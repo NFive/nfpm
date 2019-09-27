@@ -116,6 +116,7 @@ namespace NFive.PluginManager.Modules
 					SteamKey = string.IsNullOrWhiteSpace(this.SteamKey) ? Regex.Replace(Input.String("Steam API license key (https://steamcommunity.com/dev/apikey)", "<disabled>", s =>
 					{
 						if (s == "<disabled>") return true;
+						if (s == "none") return true;
 						if (Regex.IsMatch(s, @"[0-9a-fA-F]{32}")) return true;
 
 						Console.Write("Please enter a valid Steam API license key: ");
