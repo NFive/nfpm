@@ -50,6 +50,9 @@ namespace NFive.PluginManager.Modules
 		[Option("licensekey", Required = false, HelpText = "Set server license key.")]
 		public string LicenseKey { get; set; } = null;
 
+		[Option("steamkey", Required = false, HelpText = "Set Steam API license key.")]
+		public string SteamKey { get; set; } = null;
+
 		[Option("rcon-password", Required = false, HelpText = "Set RCON password.")]
 		public string RconPassword { get; set; } = null;
 
@@ -100,6 +103,14 @@ namespace NFive.PluginManager.Modules
 						Console.Write("Please enter a valid license key: ");
 						return false;
 					}).ToLowerInvariant() : this.LicenseKey,
+					SteamKey = string.IsNullOrWhiteSpace(this.SteamKey) ? Regex.Replace(Input.String("Steam API license key (https://steamcommunity.com/dev/apikey)", "<disabled>", s =>
+					{
+						if (s == "<disabled>") return true;
+						if (Regex.IsMatch(s, @"[0-9a-fA-F]{32}")) return true;
+
+						Console.Write("Please enter a valid Steam API license key: ");
+						return false;
+					}), "^<disabled>$", "none") : this.SteamKey,
 					RconPassword = string.IsNullOrWhiteSpace(this.RconPassword) ? Regex.Replace(Input.Password("RCON password", "<disabled>"), "^<disabled>$", string.Empty) : this.RconPassword
 				};
 

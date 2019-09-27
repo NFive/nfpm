@@ -16,6 +16,8 @@ namespace NFive.PluginManager.Configuration
 
 		public string LicenseKey { get; set; } = null;
 
+		public string SteamKey { get; set; } = "none";
+
 		public string RconPassword { get; set; } = null;
 
 		public ushort MaxPlayers { get; set; } = 32;
@@ -40,6 +42,7 @@ namespace NFive.PluginManager.Configuration
 			output.AppendLine($"set onesync_enabled {this.OneSync.ToString().ToLowerInvariant()}");
 			output.AppendLine();
 			output.AppendLine($"sv_licensekey {this.LicenseKey}");
+			output.AppendLine($"set steam_webApiKey {this.SteamKey}");
 			output.AppendLine($"rcon_password \"{this.RconPassword}\"");
 			output.AppendLine();
 			output.AppendLine("sv_endpointPrivacy true");
