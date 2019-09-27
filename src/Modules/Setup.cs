@@ -41,6 +41,9 @@ namespace NFive.PluginManager.Modules
 		[Option("maxplayers", Required = false, HelpText = "Set server max players.")]
 		public ushort? MaxPlayers { get; set; } = null;
 
+		[Option("locale", Required = false, HelpText = "Set server locale.")]
+		public string Locale { get; set; } = null;
+
 		[Option("onesync", Required = false, HelpText = "Enable OneSync.")]
 		public bool? OneSync { get; set; } = null;
 
@@ -94,6 +97,13 @@ namespace NFive.PluginManager.Modules
 				{
 					Hostname = string.IsNullOrWhiteSpace(this.ServerName) ? Input.String("server name", "NFive") : this.ServerName,
 					MaxPlayers = this.MaxPlayers ?? Convert.ToUInt16(Input.Int("server max players", 1, 128, 32)),
+					Locale = string.IsNullOrWhiteSpace(this.Locale) ? Input.String("server locale", "en-US", s =>
+					{
+						if (Regex.IsMatch(s, @"[a-z]{2}-[A-Z]{2}")) return true;
+
+						Console.Write("Please enter a valid locale (xx-XX format): ");
+						return false;
+					}) : this.Locale,
 					OneSync = this.OneSync ?? Input.Bool("enable OneSync", true),
 					Tags = (string.IsNullOrWhiteSpace(this.Tags) ? Input.String("server tags (separate with space)", "NFive") : this.Tags).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList(),
 					LicenseKey = string.IsNullOrWhiteSpace(this.LicenseKey) ? Input.String("server license key (https://keymaster.fivem.net/)", s =>
