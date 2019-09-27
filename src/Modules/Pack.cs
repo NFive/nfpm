@@ -22,6 +22,8 @@ namespace NFive.PluginManager.Modules
 			"license*"
 		};
 
+		protected readonly string ConfigDir = "config";
+
 		[Value(0, Default = "{project}.zip", Required = false, HelpText = "Zip file to pack plugin into.")]
 		public string Output { get; set; }
 
@@ -71,6 +73,19 @@ namespace NFive.PluginManager.Modules
 					if (!this.Quiet) Console.WriteLine("Adding ", file.White(), "...");
 
 					zip.AddEntry(file, File.OpenRead(file));
+				}
+
+				var configMatches = Directory.EnumerateFiles(Environment.CurrentDirectory, Path.Combine(this.ConfigDir, "*.yml")).ToList();
+				if (configMatches.Any())
+				{
+					foreach (var match in configMatches)
+					{
+						var fileName = Path.GetFileName(match);
+
+						if (!this.Quiet) Console.WriteLine("Adding default config ", fileName.White(), "...");
+
+						zip.AddEntry(Path.Combine(this.ConfigDir, fileName), File.OpenRead(match));
+					}
 				}
 
 				using (var file = new FileStream(outputPath, FileMode.Create))
