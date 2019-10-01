@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NFive.SDK.Plugins.Configuration;
 
 namespace NFive.PluginManager.Modules
 {
@@ -21,8 +22,6 @@ namespace NFive.PluginManager.Modules
 			"readme*",
 			"license*"
 		};
-
-		protected readonly string ConfigDir = "config";
 
 		[Value(0, Default = "{project}.zip", Required = false, HelpText = "Zip file to pack plugin into.")]
 		public string Output { get; set; }
@@ -75,7 +74,7 @@ namespace NFive.PluginManager.Modules
 					zip.AddEntry(file, File.OpenRead(file));
 				}
 
-				var configMatches = Directory.EnumerateFiles(Environment.CurrentDirectory, Path.Combine(this.ConfigDir, "*")).ToList();
+				var configMatches = Directory.EnumerateFiles(Environment.CurrentDirectory, Path.Combine(ConfigurationManager.ConfigurationPath, "*")).ToList();
 				if (configMatches.Any())
 				{
 					foreach (var match in configMatches)
@@ -84,7 +83,7 @@ namespace NFive.PluginManager.Modules
 
 						if (!this.Quiet) Console.WriteLine("Adding default config ", fileName.White(), "...");
 
-						zip.AddEntry(Path.Combine(this.ConfigDir, fileName), File.OpenRead(match));
+						zip.AddEntry(Path.Combine(ConfigurationManager.ConfigurationPath, fileName), File.OpenRead(match));
 					}
 				}
 
