@@ -75,7 +75,7 @@ namespace NFive.PluginManager.Modules
 					zip.AddEntry(file, File.OpenRead(file));
 				}
 
-				var configMatches = Directory.EnumerateFiles(Environment.CurrentDirectory, Path.Combine(this.ConfigDir, "*.yml")).ToList();
+				var configMatches = Directory.EnumerateFiles(Environment.CurrentDirectory, Path.Combine(this.ConfigDir, "*")).ToList();
 				if (configMatches.Any())
 				{
 					foreach (var match in configMatches)
