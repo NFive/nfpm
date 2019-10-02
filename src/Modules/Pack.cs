@@ -74,7 +74,7 @@ namespace NFive.PluginManager.Modules
 					zip.AddEntry(file, File.OpenRead(file));
 				}
 
-				var configMatches = Directory.EnumerateFiles(Environment.CurrentDirectory, Path.Combine(ConfigurationManager.ConfigurationPath, "*")).ToList();
+				var configMatches = Directory.EnumerateFiles(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.ConfigurationPath), "*", SearchOption.AllDirectories).ToList();
 				if (configMatches.Any())
 				{
 					foreach (var match in configMatches)
