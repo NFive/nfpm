@@ -74,16 +74,20 @@ namespace NFive.PluginManager.Modules
 					zip.AddEntry(file, File.OpenRead(file));
 				}
 
-				var configMatches = Directory.EnumerateFiles(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.ConfigurationPath), "*", SearchOption.AllDirectories).ToList();
+				var sourceConfigDir = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.ConfigurationPath));
+				var configMatches = Directory.EnumerateFiles(sourceConfigDir, "*", SearchOption.AllDirectories).ToList();
 				if (configMatches.Any())
 				{
+					var sourceConfigDirDepth = sourceConfigDir.Split(Path.DirectorySeparatorChar).Length;
 					foreach (var match in configMatches)
 					{
-						var fileName = Path.GetFileName(match);
+						var relativePath = string.Join(Path.DirectorySeparatorChar.ToString(),
+							Path.GetFullPath(match).Split(Path.DirectorySeparatorChar).Skip(sourceConfigDirDepth)
+							);
 
-						if (!this.Quiet) Console.WriteLine("Adding default config ", fileName.White(), "...");
+						if (!this.Quiet) Console.WriteLine("Adding default config ", relativePath.White(), "...");
 
-						zip.AddEntry(Path.Combine(ConfigurationManager.ConfigurationPath, fileName), File.OpenRead(match));
+						zip.AddEntry(Path.Combine(ConfigurationManager.ConfigurationPath, relativePath), File.OpenRead(match));
 					}
 				}
 
