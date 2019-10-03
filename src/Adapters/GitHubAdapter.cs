@@ -91,6 +91,17 @@ namespace NFive.PluginManager.Adapters
 			}
 
 			targetDir.Copy(cacheDir.FullName);
+
+			var pluginConfigDir = new DirectoryInfo(Path.Combine(targetDir.FullName, ConfigurationManager.ConfigurationPath));
+			if (!pluginConfigDir.Exists) return;
+			var targetConfigDir = new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.ConfigurationPath, this.name.Vendor, this.name.Project));
+
+			foreach (var file in pluginConfigDir.EnumerateFiles())
+			{
+				var targetFile = Path.Combine(targetConfigDir.FullName, file.Name);
+				if (File.Exists(targetFile)) continue;
+				file.MoveTo(targetFile);
+			}
 		}
 
 		/// <summary>

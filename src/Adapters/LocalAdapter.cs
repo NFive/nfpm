@@ -125,9 +125,20 @@ namespace NFive.PluginManager.Adapters
 
 			foreach (var file in files)
 			{
-				Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(dst, file).Replace(Path.DirectorySeparatorChar, '/')));
+				Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(dst, file).Replace(Path.DirectorySeparatorChar, '/')) ?? throw new InvalidOperationException());
 
 				File.Copy(Path.Combine(src, file).Replace(Path.DirectorySeparatorChar, '/'), Path.Combine(dst, file).Replace(Path.DirectorySeparatorChar, '/'), true);
+			}
+
+			var pluginConfigDir = new DirectoryInfo(Path.Combine(src, ConfigurationManager.ConfigurationPath));
+			if (!pluginConfigDir.Exists) return;
+			var targetConfigDir = new DirectoryInfo(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.ConfigurationPath, this.name.Vendor, this.name.Project));
+
+			foreach (var file in pluginConfigDir.EnumerateFiles())
+			{
+				var targetFile = Path.Combine(targetConfigDir.FullName, file.Name);
+				if (File.Exists(targetFile)) continue;
+				file.MoveTo(targetFile);
 			}
 
 			await Task.FromResult(0);

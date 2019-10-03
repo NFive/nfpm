@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NFive.SDK.Plugins.Configuration;
 
 namespace NFive.PluginManager.Modules
 {
@@ -71,6 +72,23 @@ namespace NFive.PluginManager.Modules
 					if (!this.Quiet) Console.WriteLine("Adding ", file.White(), "...");
 
 					zip.AddEntry(file, File.OpenRead(file));
+				}
+
+				var sourceConfigDir = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.ConfigurationPath));
+				var configMatches = Directory.EnumerateFiles(sourceConfigDir, "*", SearchOption.AllDirectories).ToList();
+				if (configMatches.Any())
+				{
+					var sourceConfigDirDepth = sourceConfigDir.Split(Path.DirectorySeparatorChar).Length;
+					foreach (var match in configMatches)
+					{
+						var relativePath = string.Join(Path.DirectorySeparatorChar.ToString(),
+							Path.GetFullPath(match).Split(Path.DirectorySeparatorChar).Skip(sourceConfigDirDepth)
+							);
+
+						if (!this.Quiet) Console.WriteLine("Adding default config ", relativePath.White(), "...");
+
+						zip.AddEntry(Path.Combine(ConfigurationManager.ConfigurationPath, relativePath), File.OpenRead(match));
+					}
 				}
 
 				using (var file = new FileStream(outputPath, FileMode.Create))
