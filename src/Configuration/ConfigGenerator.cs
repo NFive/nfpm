@@ -10,7 +10,7 @@ namespace NFive.PluginManager.Configuration
 	/// </summary>
 	public class ConfigGenerator
 	{
-		public string Endpoint { get; set; } = "0.0.0.0:30120";
+		public string Endpoint { get; set; } = "[::]:30120";
 
 		public string Hostname { get; set; } = "NFive";
 
