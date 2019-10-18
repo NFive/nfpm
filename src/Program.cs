@@ -1,9 +1,9 @@
+using System;
+using System.Threading.Tasks;
 using CommandLine;
 using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Modules;
 using NFive.PluginManager.Utilities;
-using System;
-using System.Threading.Tasks;
 
 namespace NFive.PluginManager
 {
