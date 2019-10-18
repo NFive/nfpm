@@ -75,19 +75,24 @@ namespace NFive.PluginManager.Modules
 				}
 
 				var sourceConfigDir = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.ConfigurationPath));
-				var configMatches = Directory.EnumerateFiles(sourceConfigDir, "*", SearchOption.AllDirectories).ToList();
-				if (configMatches.Any())
+				if (Directory.Exists(sourceConfigDir))
 				{
-					var sourceConfigDirDepth = sourceConfigDir.Split(Path.DirectorySeparatorChar).Length;
-					foreach (var match in configMatches)
+					var configMatches = Directory.EnumerateFiles(sourceConfigDir, "*", SearchOption.AllDirectories)
+						.ToList();
+					if (configMatches.Any())
 					{
-						var relativePath = string.Join(Path.DirectorySeparatorChar.ToString(),
-							Path.GetFullPath(match).Split(Path.DirectorySeparatorChar).Skip(sourceConfigDirDepth)
+						var sourceConfigDirDepth = sourceConfigDir.Split(Path.DirectorySeparatorChar).Length;
+						foreach (var match in configMatches)
+						{
+							var relativePath = string.Join(Path.DirectorySeparatorChar.ToString(),
+								Path.GetFullPath(match).Split(Path.DirectorySeparatorChar).Skip(sourceConfigDirDepth)
 							);
 
-						if (!this.Quiet) Console.WriteLine("Adding default config ", relativePath.White(), "...");
+							if (!this.Quiet) Console.WriteLine("Adding default config ", relativePath.White(), "...");
 
-						zip.AddEntry(Path.Combine(ConfigurationManager.ConfigurationPath, relativePath), File.OpenRead(match));
+							zip.AddEntry(Path.Combine(ConfigurationManager.ConfigurationPath, relativePath),
+								File.OpenRead(match));
+						}
 					}
 				}
 
