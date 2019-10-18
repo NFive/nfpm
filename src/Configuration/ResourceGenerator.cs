@@ -53,6 +53,7 @@ namespace NFive.PluginManager.Configuration
 		{
 			"DotNetZip.dll",
 			"Newtonsoft.Json.dll",
+			"NGettext.dll",
 			"System.ComponentModel.DataAnnotations.dll",
 
 			"NFive.SDK.Core.net.dll",
