@@ -90,6 +90,10 @@ namespace NFive.PluginManager.Modules
 
 			if (this.FiveM.HasValue && this.FiveM.Value || !this.FiveM.HasValue && Input.Bool("Install FiveM server?", true))
 			{
+				this.FiveMSource = string.IsNullOrWhiteSpace(this.FiveMSource)
+					? Input.String("location of FiveM server install files", Location)
+					: this.FiveMSource;
+
 				if (!this.FiveM.HasValue) Console.WriteLine();
 				Console.WriteLine("FiveM server configuration...");
 
@@ -139,6 +143,10 @@ namespace NFive.PluginManager.Modules
 
 			if (this.NFive.HasValue && this.NFive.Value || !this.NFive.HasValue && Input.Bool("Install NFive?", true))
 			{
+				this.NFiveSource = string.IsNullOrWhiteSpace(this.NFiveSource)
+					? Input.String("location of FiveM server install files", Location)
+					: this.NFiveSource;
+
 				if (!this.FiveM.HasValue) Console.WriteLine();
 				Console.WriteLine("NFive database configuration...");
 
@@ -157,7 +165,7 @@ namespace NFive.PluginManager.Modules
 
 				if (!this.FiveM.HasValue) Console.WriteLine();
 
-				await InstallNFive(this.Location);
+				await InstallNFive(this.Location, this.NFiveSource);
 
 				File.WriteAllText(Path.Combine(this.Location, ConfigurationManager.DefinitionFile), Yaml.Serialize(new
 				{
@@ -221,7 +229,7 @@ namespace NFive.PluginManager.Modules
 				var platformCache = RuntimeEnvironment.IsWindows ? $"fivem_server_{latest.Item1}.zip" : $"fivem_server_{latest.Item1}.tar.xz";
 
 				var data = await DownloadCached($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/{latest.Item1}-{latest.Item2}/{platformFile}", $"FiveM {platformName} server", latest.Item1.ToString(), platformCache);
-				Install(path, $"FiveM {platformName} server", data);
+				Install(Path.Combine(path,source), $"FiveM {platformName} server", data);
 
 				File.WriteAllText(Path.Combine(platformPath, "version"), latest.Item1.ToString());
 			}
@@ -243,7 +251,7 @@ namespace NFive.PluginManager.Modules
 			}
 		}
 
-		private static async Task InstallNFive(string path)
+		private static async Task InstallNFive(string path, string source)
 		{
 			Console.WriteLine("Finding latest NFive version...");
 

@@ -130,8 +130,8 @@
     <Reference Include="NFive.SDK.Client.net, Version=0.1.0.53, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NFive.SDK.Client.0.1.0.53\lib\net452\NFive.SDK.Client.net.dll</HintPath>
     </Reference>
-    <Reference Include="NFive.SDK.Core.net, Version=0.1.0.50, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\NFive.SDK.Core.0.1.0.50\lib\net452\NFive.SDK.Core.net.dll</HintPath>
+    <Reference Include="NFive.SDK.Core.net, Version=0.1.0.51, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NFive.SDK.Core.0.1.0.51\lib\net452\NFive.SDK.Core.net.dll</HintPath>
     </Reference>
     <Reference Include="NFive.SDK.Plugins, Version=0.1.0.37, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NFive.SDK.Plugins.0.1.0.37\lib\net452\NFive.SDK.Plugins.dll</HintPath>
@@ -175,6 +175,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
