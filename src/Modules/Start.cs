@@ -19,11 +19,18 @@ namespace NFive.PluginManager.Modules
 		[Option('w', "window", Default = false, Required = false, HelpText = "Start server in separate window.")]
 		public bool Window { get; set; } = false;
 
+		[Option('S', "fivem-source", Required = false, HelpText = "Location of FiveM server core files.")]
+		public string FiveMSource { get; set; } = "core";
+
+		[Option('D', "fivem-data", Required = false, HelpText = "Location of FiveM server data files.")]
+		public string FiveMData { get; set; } = "data";
+
 		public override async Task<int> Main()
 		{
-			var serverDirectory = PathManager.FindServer();
+			var serverDirectory = PathManager.FindServer(this.FiveMSource);
+			var resourceDirectory = PathManager.FindResource(this.FiveMData);
 
-			var start = new ProcessStartInfo(Path.Combine(serverDirectory, PathManager.ServerFileWindows), $@"+set citizen_dir {Path.Combine(serverDirectory, "citizen")} +exec {PathManager.ConfigFile}")
+			var start = new ProcessStartInfo(Path.Combine(serverDirectory, PathManager.ServerFileWindows), $@"+set citizen_dir {Path.Combine(serverDirectory, "citizen")} +exec {Path.Combine(resourceDirectory, "..", "..", PathManager.ConfigFile)}")
 			{
 				UseShellExecute = this.Window,
 				RedirectStandardOutput = !this.Window,
@@ -34,11 +41,11 @@ namespace NFive.PluginManager.Modules
 
 			if (!RuntimeEnvironment.IsWindows)
 			{
-				start = new ProcessStartInfo("sh", $"{Path.GetFullPath(Path.Combine(PathManager.FindServer(), "..", "..", "..", "run.sh"))} +exec {PathManager.ConfigFile}")
+				start = new ProcessStartInfo("sh", $"{Path.GetFullPath(Path.Combine(serverDirectory, FiveMData, "..", "..", "..", "run.sh"))} +exec {PathManager.ConfigFile}")
 				{
 					UseShellExecute = false,
 					ErrorDialog = false,
-					WorkingDirectory = PathManager.FindServer()
+					WorkingDirectory = PathManager.FindServer(FiveMSource)
 				};
 			}
 
@@ -48,6 +55,7 @@ namespace NFive.PluginManager.Modules
 			})
 			{
 				Console.WriteLine("Starting server...");
+				Console.WriteLine(resourceDirectory);
 
 				if (this.Window)
 				{

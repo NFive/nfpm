@@ -13,8 +13,15 @@ namespace NFive.PluginManager.Modules
 	/// Show the status of the current directory.
 	/// </summary>
 	[Verb("status", HelpText = "Show the status of the current directory.")]
+
 	internal class Status : Module
 	{
+		[Option('S', "fivem-source", Required = false, HelpText = "Location of FiveM server core files.")]
+		public string FiveMSource { get; set; } = "core";
+
+		[Option('D', "fivem-data", Required = false, HelpText = "Location of FiveM server data files.")]
+		public string FiveMData { get; set; } = "data";
+
 		public override async Task<int> Main()
 		{
 			var cd = Path.GetFullPath(Environment.CurrentDirectory);
@@ -93,11 +100,11 @@ namespace NFive.PluginManager.Modules
 			return await Task.FromResult(0);
 		}
 
-		private static string FindServer()
+		private string FindServer()
 		{
 			try
 			{
-				return PathManager.FindServer();
+				return PathManager.FindServer(this.FiveMSource);
 			}
 			catch (Exception)
 			{
@@ -105,11 +112,11 @@ namespace NFive.PluginManager.Modules
 			}
 		}
 
-		private static string FindResource()
+		private string FindResource()
 		{
 			try
 			{
-				return PathManager.FindResource();
+				return PathManager.FindResource(this.FiveMData);
 			}
 			catch (Exception)
 			{

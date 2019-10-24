@@ -23,11 +23,14 @@ namespace NFive.PluginManager.Modules
 	[Verb("setup", HelpText = "Install and configure a new FiveM server with NFive installed.")]
 	internal class Setup : Module
 	{
-		[Option("fivem", Required = false, HelpText = "Install FiveM server.")]
+		[Option( "fivem", Required = false, HelpText = "Install FiveM server.")]
 		public bool? FiveM { get; set; } = null;
 
-		[Option("fivem-source", Required = false, HelpText = "Location of FiveM server install files.")]
-		public string FiveMSource { get; set; } = null;
+		[Option('S', "fivem-source", Required = false, HelpText = "Location of FiveM server install files.")]
+		public string FiveMSource { get; set; }
+
+		[Option('D', "fivem-data", Required = false, HelpText = "Location of FiveM server data files.")]
+		public string FiveMData { get; set; }
 
 		[Option("nfive", Required = false, HelpText = "Install NFive.")]
 		public bool? NFive { get; set; } = null;
@@ -88,11 +91,16 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine("Press ", "Ctrl+C".Yellow(), " at any time to quit.");
 			Console.WriteLine();
 
+			//Install FiveM
 			if (this.FiveM.HasValue && this.FiveM.Value || !this.FiveM.HasValue && Input.Bool("Install FiveM server?", true))
 			{
 				this.FiveMSource = string.IsNullOrWhiteSpace(this.FiveMSource)
-					? Input.String("location of FiveM server install files", Location)
+					? Input.String("Location of FiveM server install files", "core")
 					: this.FiveMSource;
+
+				this.FiveMData = string.IsNullOrWhiteSpace(this.FiveMData)
+					? Input.String("Location of FiveM server data files", "data")
+					: this.FiveMData;
 
 				if (!this.FiveM.HasValue) Console.WriteLine();
 				Console.WriteLine("FiveM server configuration...");
@@ -129,24 +137,22 @@ namespace NFive.PluginManager.Modules
 					RconPassword = string.IsNullOrWhiteSpace(this.RconPassword) ? Regex.Replace(Input.Password("RCON password", "<disabled>"), "^<disabled>$", string.Empty) : this.RconPassword
 				};
 
-				Directory.CreateDirectory(RuntimeEnvironment.IsWindows ? this.Location : Path.Combine(this.Location, "alpine", "opt", "cfx-server"));
+				Directory.CreateDirectory(RuntimeEnvironment.IsWindows ? Path.Combine(this.Location, this.FiveMData) : Path.Combine(this.Location, this.FiveMData, "alpine", "opt", "cfx-server"));
 
-				config.Serialize(Path.Combine(this.Location, RuntimeEnvironment.IsWindows ? PathManager.ConfigFile : Path.Combine("alpine", "opt", "cfx-server", PathManager.ConfigFile)));
+				config.Serialize(Path.Combine(this.Location, this.FiveMData, RuntimeEnvironment.IsWindows ? PathManager.ConfigFile : Path.Combine("alpine", "opt", "cfx-server", PathManager.ConfigFile)));
 
 				if (!this.FiveM.HasValue) Console.WriteLine();
 
 				await InstallFiveM(this.Location, this.FiveMSource);
 
-				if (!RuntimeEnvironment.IsWindows) this.Location = Path.Combine(this.Location, "alpine", "opt", "cfx-server");
-				this.Location = Path.Combine(this.Location, "resources", "nfive");
+				if (!RuntimeEnvironment.IsWindows) this.Location = Path.Combine(this.Location, this.FiveMData, "alpine", "opt", "cfx-server");
+
+				this.Location = Path.Combine(this.Location, this.FiveMData, "resources", "nfive");
 			}
 
+			// Install NFive
 			if (this.NFive.HasValue && this.NFive.Value || !this.NFive.HasValue && Input.Bool("Install NFive?", true))
 			{
-				this.NFiveSource = string.IsNullOrWhiteSpace(this.NFiveSource)
-					? Input.String("location of FiveM server install files", Location)
-					: this.NFiveSource;
-
 				if (!this.FiveM.HasValue) Console.WriteLine();
 				Console.WriteLine("NFive database configuration...");
 
@@ -165,7 +171,7 @@ namespace NFive.PluginManager.Modules
 
 				if (!this.FiveM.HasValue) Console.WriteLine();
 
-				await InstallNFive(this.Location, this.NFiveSource);
+				await InstallNFive(this.Location);
 
 				File.WriteAllText(Path.Combine(this.Location, ConfigurationManager.DefinitionFile), Yaml.Serialize(new
 				{
@@ -199,9 +205,9 @@ namespace NFive.PluginManager.Modules
 			var platformName = RuntimeEnvironment.IsWindows ? "Windows" : "Linux";
 			var platformUrl = RuntimeEnvironment.IsWindows ? "build_server_windows" : "build_proot_linux";
 			var platformFile = RuntimeEnvironment.IsWindows ? "server.zip" : "fx.tar.xz";
-			var platformPath = RuntimeEnvironment.IsWindows ? Path.Combine(path) : Path.Combine(path, "alpine", "opt", "cfx-server");
+			var platformPath = RuntimeEnvironment.IsWindows ? Path.Combine(path) : Path.Combine(path ,"alpine", "opt", "cfx-server");
 
-			if (!string.IsNullOrWhiteSpace(source) && File.Exists(source))
+			if (File.Exists(source))
 			{
 				Install(path, $"FiveM {platformName} server", File.ReadAllBytes(source));
 
@@ -231,7 +237,7 @@ namespace NFive.PluginManager.Modules
 				var data = await DownloadCached($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/{latest.Item1}-{latest.Item2}/{platformFile}", $"FiveM {platformName} server", latest.Item1.ToString(), platformCache);
 				Install(Path.Combine(path,source), $"FiveM {platformName} server", data);
 
-				File.WriteAllText(Path.Combine(platformPath, "version"), latest.Item1.ToString());
+				File.WriteAllText(Path.Combine(platformPath, source, "version"), latest.Item1.ToString());
 			}
 			catch (WebException ex)
 			{
@@ -251,7 +257,7 @@ namespace NFive.PluginManager.Modules
 			}
 		}
 
-		private static async Task InstallNFive(string path, string source)
+		private static async Task InstallNFive(string path)
 		{
 			Console.WriteLine("Finding latest NFive version...");
 

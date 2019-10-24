@@ -42,13 +42,19 @@ namespace NFive.PluginManager.Modules
 		[Option("sdk", Required = false, HelpText = "Internal use only, do not exclude SDK types.")]
 		public bool Sdk { get; set; } = false;
 
+		[Option('S', "fivem-source", Required = false, HelpText = "Location of FiveM server core files.")]
+		public string FiveMSource { get; set; } = "core";
+
+		[Option('D', "fivem-data", Required = false, HelpText = "Location of FiveM server data files.")]
+		public string FiveMData { get; set; } = "data";
+
 		[SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
 		[SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
 		public override async Task<int> Main()
 		{
 			try
 			{
-				Environment.CurrentDirectory = PathManager.FindResource();
+				Environment.CurrentDirectory = PathManager.FindResource(this.FiveMData);
 			}
 			catch (FileNotFoundException ex)
 			{

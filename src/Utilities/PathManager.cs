@@ -32,13 +32,13 @@ namespace NFive.PluginManager.Utilities
 		/// <remarks>Searches 10 directories up from the current directory.</remarks>
 		/// <returns>Full path to the FiveM server directory.</returns>
 		/// <exception cref="FileNotFoundException">Unable to locate FiveM server in the directory tree.</exception>
-		public static string FindServer()
+		public static string FindServer(string source)
 		{
 			var osPath = RuntimeEnvironment.IsWindows ? "." : Path.Combine("alpine", "opt", "cfx-server");
 
 			for (var i = 0; i < 10; i++)
 			{
-				var path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, osPath, string.Concat(Enumerable.Repeat($"..{Path.DirectorySeparatorChar}", i))));
+				var path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, source, osPath, string.Concat(Enumerable.Repeat($"..{Path.DirectorySeparatorChar}", i))));
 
 				if (File.Exists(Path.Combine(path, RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux))) return path;
 			}
@@ -46,18 +46,18 @@ namespace NFive.PluginManager.Utilities
 			throw new FileNotFoundException("Unable to locate FiveM server in the directory tree.", RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux);
 		}
 
-		public static string FindResource()
+		public static string FindResource(string data)
 		{
 			if (File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.LockFile))) return Environment.CurrentDirectory;
 			if (File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.DefinitionFile))) return Environment.CurrentDirectory;
 
 			try
 			{
-				var path = Path.Combine(FindServer(), "resources", "nfive");
-
+				var path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, data));
+				path = Path.Combine(path, "resources", "nfive");
 				if (Directory.Exists(path)) return path;
 			}
-			catch (FileNotFoundException ex)
+			catch (DirectoryNotFoundException ex)
 			{
 				throw new DirectoryNotFoundException("Unable to locate resource in the directory tree.", ex);
 			}

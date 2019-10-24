@@ -31,6 +31,12 @@ namespace NFive.PluginManager.Modules
 			set => Output.Verbose = value;
 		}
 
+		[Option('S', "fivem-source", Required = false, HelpText = "Location of FiveM server core files.")]
+		public string FiveMSource { get; set; } = "core";
+
+		[Option('D', "fivem-data", Required = false, HelpText = "Location of FiveM server data files.")]
+		public string FiveMData { get; set; } = "data";
+
 		[UsedImplicitly]
 		protected Module() : this(new FileSystem()) { }
 
@@ -67,7 +73,7 @@ namespace NFive.PluginManager.Modules
 			{
 				if (verbose) Console.WriteLine("Searching directory tree for NFive definition...".DarkGray());
 
-				Environment.CurrentDirectory = PathManager.FindResource();
+				Environment.CurrentDirectory = PathManager.FindResource(this.FiveMData);
 
 				if (verbose) Console.WriteLine("Setting working directory: ".DarkGray(), Environment.CurrentDirectory.Gray());
 
