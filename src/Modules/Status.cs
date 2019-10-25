@@ -19,9 +19,6 @@ namespace NFive.PluginManager.Modules
 		[Option('S', "fivem-source", Required = false, HelpText = "Location of FiveM server core files.")]
 		public string FiveMSource { get; set; } = "core";
 
-		[Option('D', "fivem-data", Required = false, HelpText = "Location of FiveM server data files.")]
-		public string FiveMData { get; set; } = "data";
-
 		public override async Task<int> Main()
 		{
 			var cd = Path.GetFullPath(Environment.CurrentDirectory);
@@ -116,7 +113,7 @@ namespace NFive.PluginManager.Modules
 		{
 			try
 			{
-				return PathManager.FindResource(this.FiveMData);
+				return PathManager.FindResource();
 			}
 			catch (Exception)
 			{

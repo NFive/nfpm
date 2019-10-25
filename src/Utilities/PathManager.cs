@@ -23,7 +23,8 @@ namespace NFive.PluginManager.Utilities
 		public const string ConfigFile = "server.cfg";
 
 		// TODO: Move to ConfigurationManager
-		public static string CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nfpm", "cache");
+		public static string CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+			".nfpm", "cache");
 
 
 		/// <summary>
@@ -38,23 +39,26 @@ namespace NFive.PluginManager.Utilities
 
 			for (var i = 0; i < 10; i++)
 			{
-				var path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, source, osPath, string.Concat(Enumerable.Repeat($"..{Path.DirectorySeparatorChar}", i))));
-
-				if (File.Exists(Path.Combine(path, RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux))) return path;
+				var path = Path.Combine(Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, osPath,
+					string.Concat(Enumerable.Repeat($"..{Path.DirectorySeparatorChar}", i)))), source);
+				if (File.Exists(Path.Combine(path, RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux)))
+					return path;
 			}
 
-			throw new FileNotFoundException("Unable to locate FiveM server in the directory tree.", RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux);
+			throw new FileNotFoundException("Unable to locate FiveM server in the directory tree.",
+				RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux);
 		}
 
-		public static string FindResource(string data)
+		public static string FindResource()
 		{
-			if (File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.LockFile))) return Environment.CurrentDirectory;
-			if (File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.DefinitionFile))) return Environment.CurrentDirectory;
+			if (File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.LockFile)))
+				return Environment.CurrentDirectory;
+			if (File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.DefinitionFile)))
+				return Environment.CurrentDirectory;
 
 			try
 			{
-				var path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, data));
-				path = Path.Combine(path, "resources", "nfive");
+				string path = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "resources", "nfive"));
 				if (Directory.Exists(path)) return path;
 			}
 			catch (DirectoryNotFoundException ex)
@@ -70,9 +74,12 @@ namespace NFive.PluginManager.Utilities
 			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.LockFile))) return false;
 
 			// ReSharper disable once ConvertIfStatementToReturnStatement
-			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.DefinitionFile))) return false;
+			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, ConfigurationManager.DefinitionFile)))
+				return false;
 
-			return File.Exists(Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, $"..{Path.DirectorySeparatorChar}", $"..{Path.DirectorySeparatorChar}", RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux)));
+			return File.Exists(Path.GetFullPath(Path.Combine(Environment.CurrentDirectory,
+				$"..{Path.DirectorySeparatorChar}", $"..{Path.DirectorySeparatorChar}",
+				RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux)));
 		}
 	}
 }

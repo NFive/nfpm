@@ -45,16 +45,13 @@ namespace NFive.PluginManager.Modules
 		[Option('S', "fivem-source", Required = false, HelpText = "Location of FiveM server core files.")]
 		public string FiveMSource { get; set; } = "core";
 
-		[Option('D', "fivem-data", Required = false, HelpText = "Location of FiveM server data files.")]
-		public string FiveMData { get; set; } = "data";
-
 		[SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
 		[SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
 		public override async Task<int> Main()
 		{
 			try
 			{
-				Environment.CurrentDirectory = PathManager.FindResource(this.FiveMData);
+				Environment.CurrentDirectory = PathManager.FindResource();
 			}
 			catch (FileNotFoundException ex)
 			{

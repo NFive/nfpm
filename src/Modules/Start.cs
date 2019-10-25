@@ -1,3 +1,4 @@
+using System;
 using CommandLine;
 using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Utilities;
@@ -28,15 +29,15 @@ namespace NFive.PluginManager.Modules
 		public override async Task<int> Main()
 		{
 			var serverDirectory = PathManager.FindServer(this.FiveMSource);
-			var resourceDirectory = PathManager.FindResource(this.FiveMData);
+			var workingDirectory = Environment.CurrentDirectory;
 
-			var start = new ProcessStartInfo(Path.Combine(serverDirectory, PathManager.ServerFileWindows), $@"+set citizen_dir {Path.Combine(serverDirectory, "citizen")} +exec {Path.Combine(resourceDirectory, "..", "..", PathManager.ConfigFile)}")
+			var start = new ProcessStartInfo(Path.Combine(serverDirectory, PathManager.ServerFileWindows), $@"+set citizen_dir {Path.Combine(serverDirectory, "citizen")} +exec {PathManager.ConfigFile}")
 			{
 				UseShellExecute = this.Window,
 				RedirectStandardOutput = !this.Window,
 				RedirectStandardError = !this.Window,
 				ErrorDialog = false,
-				WorkingDirectory = serverDirectory
+				WorkingDirectory = workingDirectory
 			};
 
 			if (!RuntimeEnvironment.IsWindows)
@@ -45,7 +46,7 @@ namespace NFive.PluginManager.Modules
 				{
 					UseShellExecute = false,
 					ErrorDialog = false,
-					WorkingDirectory = PathManager.FindServer(FiveMSource)
+					WorkingDirectory = workingDirectory
 				};
 			}
 
@@ -54,8 +55,8 @@ namespace NFive.PluginManager.Modules
 				StartInfo = start
 			})
 			{
+				Console.WriteLine($"{start.WorkingDirectory}");
 				Console.WriteLine("Starting server...");
-				Console.WriteLine(resourceDirectory);
 
 				if (this.Window)
 				{
