@@ -42,7 +42,7 @@ namespace NFive.PluginManager.Modules
 
 			if (!RuntimeEnvironment.IsWindows)
 			{
-				start = new ProcessStartInfo("sh", $"{Path.GetFullPath(Path.Combine(serverDirectory, FiveMData, "..", "..", "..", "run.sh"))} +exec {PathManager.ConfigFile}")
+				start = new ProcessStartInfo("sh", $"{Path.GetFullPath(Path.Combine(serverDirectory, "..", "..", "..", "run.sh"))} +exec {PathManager.ConfigFile}")
 				{
 					UseShellExecute = false,
 					ErrorDialog = false,
