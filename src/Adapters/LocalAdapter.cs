@@ -138,6 +138,7 @@ namespace NFive.PluginManager.Adapters
 			{
 				var targetFile = Path.Combine(targetConfigDir.FullName, file.Name);
 				if (File.Exists(targetFile)) continue;
+				if (!targetConfigDir.Exists) targetConfigDir.Create();
 				file.MoveTo(targetFile);
 			}
 
