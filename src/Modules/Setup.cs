@@ -210,7 +210,7 @@ namespace NFive.PluginManager.Modules
 				{
 					var page = await client.DownloadStringTaskAsync($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
 
-					for (var match = new Regex("href=\"(\\d+)-([a-f0-9]{40})/\"", RegexOptions.IgnoreCase).Match(page); match.Success; match = match.NextMatch())
+					for (var match = new Regex("href=\"\\./(\\d+)-([a-f0-9]{40})/server\\.zip\"", RegexOptions.IgnoreCase).Match(page); match.Success; match = match.NextMatch())
 					{
 						versions.Add(new Tuple<uint, string>(uint.Parse(match.Groups[1].Value), match.Groups[2].Value));
 					}
