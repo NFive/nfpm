@@ -1,3 +1,4 @@
+using System;
 using NFive.PluginManager.Utilities.Console;
 
 namespace NFive.PluginManager
@@ -29,7 +30,7 @@ namespace NFive.PluginManager
 			{
 				foreach (var token in tokens)
 				{
-					if (token.Color.HasValue || token.BackgroundColor.HasValue)
+					if ((token.Color.HasValue || token.BackgroundColor.HasValue) && Environment.GetEnvironmentVariable("NO_COLOR") == null)
 					{
 						var originalColor = System.Console.ForegroundColor;
 						var originalBackgroundColor = System.Console.BackgroundColor;
