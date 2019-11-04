@@ -74,5 +74,10 @@ namespace NFive.PluginManager.Utilities
 
 			return File.Exists(Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, $"..{Path.DirectorySeparatorChar}", $"..{Path.DirectorySeparatorChar}", RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux)));
 		}
+
+		public static bool IsServerInstall()
+		{
+			return File.Exists(Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, $"..{Path.DirectorySeparatorChar}", $"..{Path.DirectorySeparatorChar}", RuntimeEnvironment.IsWindows ? ServerFileWindows : ServerFileLinux)));
+		}
 	}
 }

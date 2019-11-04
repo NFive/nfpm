@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NFive.PluginManager.Utilities;
 using Plugin = NFive.SDK.Plugins.Plugin;
 using Version = NFive.PluginManager.Models.Version;
 
@@ -129,6 +130,8 @@ namespace NFive.PluginManager.Adapters
 
 				File.Copy(Path.Combine(src, file).Replace(Path.DirectorySeparatorChar, '/'), Path.Combine(dst, file).Replace(Path.DirectorySeparatorChar, '/'), true);
 			}
+
+			if (!PathManager.IsServerInstall()) return;
 
 			var pluginConfigDir = new DirectoryInfo(Path.Combine(src, ConfigurationManager.ConfigurationPath));
 			if (!pluginConfigDir.Exists) return;

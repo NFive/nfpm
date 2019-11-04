@@ -58,9 +58,13 @@ namespace NFive.PluginManager.Adapters
 			if (!cacheDir.Exists)
 			{
 				await Cache(version);
+
+				cacheDir.Refresh();
 			}
 
 			cacheDir.Copy(targetDir.FullName);
+
+			if (!PathManager.IsServerInstall()) return;
 
 			var pluginConfigDir = new DirectoryInfo(Path.Combine(targetDir.FullName, ConfigurationManager.ConfigurationPath));
 			if (!pluginConfigDir.Exists) return;
@@ -70,7 +74,8 @@ namespace NFive.PluginManager.Adapters
 			{
 				var targetFile = Path.Combine(targetConfigDir.FullName, file.Name);
 				if (File.Exists(targetFile)) continue;
-				file.MoveTo(targetFile);
+				if (!targetConfigDir.Exists) targetConfigDir.Create();
+				file.CopyTo(targetFile);
 			}
 		}
 

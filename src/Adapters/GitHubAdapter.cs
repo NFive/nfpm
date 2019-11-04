@@ -100,7 +100,7 @@ namespace NFive.PluginManager.Adapters
 			{
 				var targetFile = Path.Combine(targetConfigDir.FullName, file.Name);
 				if (File.Exists(targetFile)) continue;
-				file.MoveTo(targetFile);
+				file.CopyTo(targetFile);
 			}
 		}
 
