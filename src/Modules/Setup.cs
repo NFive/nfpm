@@ -229,15 +229,15 @@ namespace NFive.PluginManager.Modules
 
 				Console.WriteLine($"{versions.Count:N0} versions available, latest v{latestVersion.Item1}, recommended v{recommendedVersion}, optional v{optionalVersion}");
 
-				if (string.IsNullOrWhiteSpace(this.FiveMVersion) || ValidateVersion(this.FiveMVersion, versions) == null) this.FiveMVersion = Input.String("FiveM server version", "latest", s =>
+				if (string.IsNullOrWhiteSpace(this.FiveMVersion) || ValidateVersion(this.FiveMVersion, versions, recommendedVersion, optionalVersion) == null) this.FiveMVersion = Input.String("FiveM server version", "latest", s =>
 				{
-					if (ValidateVersion(s, versions) != null) return true;
+					if (ValidateVersion(s, versions, recommendedVersion, optionalVersion) != null) return true;
 
 					Console.Write("Please enter an available version: ");
 					return false;
 				});
 
-				var targetVersion = ValidateVersion(this.FiveMVersion, versions);
+				var targetVersion = ValidateVersion(this.FiveMVersion, versions, recommendedVersion, optionalVersion);
 
 				var platformCache = RuntimeEnvironment.IsWindows ? $"fivem_server_{targetVersion.Item1}.zip" : $"fivem_server_{targetVersion.Item1}.tar.xz";
 
@@ -264,10 +264,12 @@ namespace NFive.PluginManager.Modules
 			}
 		}
 
-		private static Tuple<uint, string> ValidateVersion(string version, IEnumerable<Tuple<uint, string>> versions)
+		private static Tuple<uint, string> ValidateVersion(string version, IEnumerable<Tuple<uint, string>> versions, uint recommendedVersion, uint optionalVersion)
 		{
 			version = version.Trim().TrimStart('v').ToLowerInvariant();
 			if (version == "latest") return versions.Max();
+			if (version == "recommended") return versions.FirstOrDefault(v => v.Item1 == recommendedVersion);
+			if (version == "optional") return versions.FirstOrDefault(v => v.Item1 == optionalVersion);
 
 			var value = uint.Parse(version);
 			return versions.FirstOrDefault(v => v.Item1 == value);
