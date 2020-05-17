@@ -26,6 +26,9 @@ namespace NFive.PluginManager.Modules
 		[Option("fivem", Required = false, HelpText = "Install FiveM server.")]
 		public bool? FiveM { get; set; } = null;
 
+		[Option("fivem-version", Required = false, HelpText = "FiveM server version.")]
+		public string FiveMVersion { get; set; } = null;
+
 		[Option("fivem-source", Required = false, HelpText = "Location of FiveM server install files.")]
 		public string FiveMSource { get; set; } = null;
 
@@ -186,7 +189,7 @@ namespace NFive.PluginManager.Modules
 			return 0;
 		}
 
-		private static async Task InstallFiveM(string path, string source)
+		private async Task InstallFiveM(string path, string source)
 		{
 			var platformName = RuntimeEnvironment.IsWindows ? "Windows" : "Linux";
 			var platformUrl = RuntimeEnvironment.IsWindows ? "build_server_windows" : "build_proot_linux";
@@ -200,30 +203,48 @@ namespace NFive.PluginManager.Modules
 				return;
 			}
 
-			Console.WriteLine($"Finding latest FiveM {platformName} server version...");
+			Console.WriteLine($"Finding available FiveM {platformName} server versions...");
 
 			try
 			{
 				var versions = new List<Tuple<uint, string>>();
+				var recommendedVersion = 0u;
+				var optionalVersion = 0u;
 
 				using (var client = new WebClient())
 				{
 					var page = await client.DownloadStringTaskAsync($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
 
-					for (var match = new Regex("href=\"\\./(\\d+)-([a-f0-9]{40})/server\\.zip\"", RegexOptions.IgnoreCase).Match(page); match.Success; match = match.NextMatch())
+					for (var match = new Regex($"href=\"\\./(\\d+)-([a-f0-9]{{40}})/{Regex.Escape(platformFile)}\"( class=\"button is-link is-primary)?( class=\"button is-link is-danger)?", RegexOptions.IgnoreCase).Match(page); match.Success; match = match.NextMatch())
 					{
-						versions.Add(new Tuple<uint, string>(uint.Parse(match.Groups[1].Value), match.Groups[2].Value));
+						var version = uint.Parse(match.Groups[1].Value);
+						versions.Add(new Tuple<uint, string>(version, match.Groups[2].Value));
+
+						if (match.Groups[3].Success) recommendedVersion = version;
+						if (match.Groups[4].Success) optionalVersion = version;
 					}
 				}
 
-				var latest = versions.Max();
+				var latestVersion = versions.Max();
 
-				var platformCache = RuntimeEnvironment.IsWindows ? $"fivem_server_{latest.Item1}.zip" : $"fivem_server_{latest.Item1}.tar.xz";
+				Console.WriteLine($"{versions.Count:N0} versions available, latest v{latestVersion.Item1}, recommended v{recommendedVersion}, optional v{optionalVersion}");
 
-				var data = await DownloadCached($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/{latest.Item1}-{latest.Item2}/{platformFile}", $"FiveM {platformName} server", latest.Item1.ToString(), platformCache);
+				if (string.IsNullOrWhiteSpace(this.FiveMVersion) || ValidateVersion(this.FiveMVersion, versions) == null) this.FiveMVersion = Input.String("FiveM server version", "latest", s =>
+				{
+					if (ValidateVersion(s, versions) != null) return true;
+
+					Console.Write("Please enter an available version: ");
+					return false;
+				});
+
+				var targetVersion = ValidateVersion(this.FiveMVersion, versions);
+
+				var platformCache = RuntimeEnvironment.IsWindows ? $"fivem_server_{targetVersion.Item1}.zip" : $"fivem_server_{targetVersion.Item1}.tar.xz";
+
+				var data = await DownloadCached($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/{targetVersion.Item1}-{targetVersion.Item2}/{platformFile}", $"FiveM {platformName} server", targetVersion.Item1.ToString(), platformCache);
 				Install(path, $"FiveM {platformName} server", data);
 
-				File.WriteAllText(Path.Combine(platformPath, "version"), latest.Item1.ToString());
+				File.WriteAllText(Path.Combine(platformPath, "version"), targetVersion.Item1.ToString());
 			}
 			catch (WebException ex)
 			{
@@ -241,6 +262,15 @@ namespace NFive.PluginManager.Modules
 
 				Install(path, $"FiveM {platformName} server", File.ReadAllBytes(source));
 			}
+		}
+
+		private static Tuple<uint, string> ValidateVersion(string version, IEnumerable<Tuple<uint, string>> versions)
+		{
+			version = version.Trim().TrimStart('v').ToLowerInvariant();
+			if (version == "latest") return versions.Max();
+
+			var value = uint.Parse(version);
+			return versions.FirstOrDefault(v => v.Item1 == value);
 		}
 
 		private static async Task InstallNFive(string path)
