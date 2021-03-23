@@ -19,7 +19,7 @@ namespace NFive.PluginManager.Configuration
 		/// <value>
 		/// The resource manifest version.
 		/// </value>
-		public static string FxVersion { get; set; } = "adamant";
+		public static string FxVersion { get; set; } = "cerulean";
 
 		/// <summary>
 		/// Gets or sets the FX resource target games.
