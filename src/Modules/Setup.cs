@@ -325,7 +325,7 @@ namespace NFive.PluginManager.Modules
 			var skip = new[]
 			{
 				"server.cfg",
-				"__resource.lua",
+				"fxmanifest.lua",
 				"nfive.yml",
 				"nfive.lock",
 				"config/nfive.yml",
