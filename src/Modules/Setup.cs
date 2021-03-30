@@ -193,7 +193,8 @@ namespace NFive.PluginManager.Modules
 		{
 			var platformName = RuntimeEnvironment.IsWindows ? "Windows" : "Linux";
 			var platformUrl = RuntimeEnvironment.IsWindows ? "build_server_windows" : "build_proot_linux";
-			var platformFile = RuntimeEnvironment.IsWindows ? "server.zip" : "fx.tar.xz";
+			var platformFile = RuntimeEnvironment.IsWindows ? "server." : "fx.tar.xz";
+			var platformFileRegex = RuntimeEnvironment.IsWindows ? "server.(7z)?(zip)?" : "fx.tar.xz";
 			var platformPath = RuntimeEnvironment.IsWindows ? Path.Combine(path) : Path.Combine(path, "alpine", "opt", "cfx-server");
 
 			if (!string.IsNullOrWhiteSpace(source) && File.Exists(source))
@@ -208,6 +209,7 @@ namespace NFive.PluginManager.Modules
 			try
 			{
 				var versions = new List<Tuple<uint, string>>();
+				var fileExtensions = new Dictionary<uint, string>();
 				var recommendedVersion = 0u;
 				var optionalVersion = 0u;
 
@@ -215,17 +217,25 @@ namespace NFive.PluginManager.Modules
 				{
 					var page = await client.DownloadStringTaskAsync($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
 
-					for (var match = new Regex($"href=\"\\./(\\d+)-([a-f0-9]{{40}})/{Regex.Escape(platformFile)}\"( class=\"button is-link is-primary)?( class=\"button is-link is-danger)?", RegexOptions.IgnoreCase).Match(page); match.Success; match = match.NextMatch())
+					for (var match = new Regex($"href=\"\\./(\\d+)-([a-f0-9]{{40}})/({platformFileRegex})\"( class=\"button is-link is-primary)?( class=\"button is-link is-danger)?", RegexOptions.IgnoreCase).Match(page); match.Success; match = match.NextMatch())
 					{
 						var version = uint.Parse(match.Groups[1].Value);
 						versions.Add(new Tuple<uint, string>(version, match.Groups[2].Value));
 
-						if (match.Groups[3].Success) recommendedVersion = version;
-						if (match.Groups[4].Success) optionalVersion = version;
+						if (RuntimeEnvironment.IsWindows)
+						{
+							if (match.Groups[4].Success) fileExtensions[version] = "7z";
+							if (match.Groups[5].Success) fileExtensions[version] = "zip";
+						}
+
+						if (match.Groups[6].Success) recommendedVersion = version;
+						if (match.Groups[7].Success) optionalVersion = version;
 					}
 				}
 
 				var latestVersion = versions.Max();
+				var extension = "";
+				if (RuntimeEnvironment.IsWindows && fileExtensions.TryGetValue(latestVersion.Item1, out extension)) platformFile += extension;
 
 				Console.WriteLine($"{versions.Count:N0} versions available, latest v{latestVersion.Item1}, recommended v{recommendedVersion}, optional v{optionalVersion}");
 
@@ -332,23 +342,25 @@ namespace NFive.PluginManager.Modules
 				"config/database.yml"
 			};
 
-			using (var stream = new MemoryStream(data))
-			using (var reader = ReaderFactory.Open(stream))
+			try
 			{
-				if (reader.ArchiveType == ArchiveType.Tar && RuntimeEnvironment.IsLinux)
+				using (var stream = new MemoryStream(data))
+				using (var reader = ReaderFactory.Open(stream))
 				{
-					stream.Position = 0;
-
-					var tempFile = Path.GetTempFileName();
-
-					using (var file = new FileStream(tempFile, FileMode.Create, FileAccess.Write))
+					if (reader.ArchiveType == ArchiveType.Tar && RuntimeEnvironment.IsLinux)
 					{
-						stream.CopyTo(file);
-					}
+						stream.Position = 0;
 
-					using (var process = new Process
-					{
-						StartInfo =
+						var tempFile = Path.GetTempFileName();
+
+						using (var file = new FileStream(tempFile, FileMode.Create, FileAccess.Write))
+						{
+							stream.CopyTo(file);
+						}
+
+						using (var process = new Process
+						{
+							StartInfo =
 							{
 								FileName = "tar",
 								Arguments = $"xJ -C {path} -f {tempFile}",
@@ -356,29 +368,72 @@ namespace NFive.PluginManager.Modules
 								RedirectStandardInput = false,
 								RedirectStandardOutput = false
 							}
-					})
-					{
-						process.Start();
-						process.WaitForExit();
-					}
-
-					File.Delete(tempFile);
-				}
-				else
-				{
-					while (reader.MoveToNextEntry())
-					{
-						if (reader.Entry.IsDirectory) continue;
-
-						var opts = new ExtractionOptions { ExtractFullPath = true, Overwrite = true, PreserveFileTime = true };
-
-						if (skip.Contains(reader.Entry.Key) && File.Exists(Path.Combine(path, reader.Entry.Key)))
+						})
 						{
-							//opts.Overwrite = false; // TODO: Prompt to overwrite existing config?
+							process.Start();
+							process.WaitForExit();
 						}
 
-						reader.WriteEntryToDirectory(path, opts);
+						File.Delete(tempFile);
 					}
+					else
+					{
+						while (reader.MoveToNextEntry())
+						{
+							if (reader.Entry.IsDirectory) continue;
+
+							var opts = new ExtractionOptions { ExtractFullPath = true, Overwrite = true, PreserveFileTime = true };
+
+							if (skip.Contains(reader.Entry.Key) && File.Exists(Path.Combine(path, reader.Entry.Key)))
+							{
+								//opts.Overwrite = false; // TODO: Prompt to overwrite existing config?
+							}
+
+							reader.WriteEntryToDirectory(path, opts);
+						}
+					}
+				}
+			}
+			catch (InvalidOperationException)
+			{
+				try
+				{
+					if (RuntimeEnvironment.IsWindows)
+					{
+						using (var stream = new MemoryStream(data))
+						{
+							stream.Position = 0;
+
+							var tempFile = Path.GetTempFileName();
+
+							using (var file = new FileStream(tempFile, FileMode.Create, FileAccess.Write))
+							{
+								stream.CopyTo(file);
+							}
+
+							using (var process = new Process
+							{
+								StartInfo =
+								{
+									FileName = "cmd",
+									Arguments = $"/C 7z x {tempFile} -o{path}",
+									UseShellExecute = false,
+									RedirectStandardInput = false,
+									RedirectStandardOutput = false
+								}
+							})
+							{
+								process.Start();
+								process.WaitForExit();
+							}
+
+							File.Delete(tempFile);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error extracting FiveM server archive: {ex.Message}");
 				}
 			}
 
