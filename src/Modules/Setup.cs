@@ -188,20 +188,11 @@ namespace NFive.PluginManager.Modules
 
 			return 0;
 		}
-		private string ServerFileRegexTokens(bool isWindows)
-		{
-			if (isWindows)
-			{
-				return $"({Regex.Escape("server.zip")}|{Regex.Escape("server.7z")})";
-			}
-
-			return Regex.Escape("fx.tar.xz");
-		}
 
 		private async Task InstallFiveM(string path, string source)
 		{
 			var platformName = RuntimeEnvironment.IsWindows ? "Windows" : "Linux";
-			var platformUrl = RuntimeEnvironment.IsWindows ? "build_server_windows" : "build_proot_linux";
+			var platformFile = RuntimeEnvironment.IsWindows ? $"({Regex.Escape("server.zip")}|{Regex.Escape("server.7z")})" : "(fx.tar.xz)";
 			var platformFile = ServerFileRegexTokens(RuntimeEnvironment.IsWindows);
 			var platformPath = RuntimeEnvironment.IsWindows ? Path.Combine(path) : Path.Combine(path, "alpine", "opt", "cfx-server");
 
