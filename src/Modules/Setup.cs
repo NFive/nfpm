@@ -98,34 +98,34 @@ namespace NFive.PluginManager.Modules
 
 				var config = new ConfigGenerator
 				{
-					Hostname = string.IsNullOrWhiteSpace(this.ServerName) ? Input.String("server name", "NFive") : this.ServerName,
-					MaxPlayers = this.MaxPlayers ?? Convert.ToUInt16(Input.Int("server max players", 1, 128, 32)),
-					Locale = string.IsNullOrWhiteSpace(this.Locale) ? Input.String("server locale", "en-US", s =>
-					{
-						if (Regex.IsMatch(s, @"[a-z]{2}-[A-Z]{2}")) return true;
+					//Hostname = string.IsNullOrWhiteSpace(this.ServerName) ? Input.String("server name", "NFive") : this.ServerName,
+					//MaxPlayers = this.MaxPlayers ?? Convert.ToUInt16(Input.Int("server max players", 1, 128, 32)),
+					//Locale = string.IsNullOrWhiteSpace(this.Locale) ? Input.String("server locale", "en-US", s =>
+					//{
+					//	if (Regex.IsMatch(s, @"[a-z]{2}-[A-Z]{2}")) return true;
 
-						Console.Write("Please enter a valid locale (xx-XX format): ");
-						return false;
-					}) : this.Locale,
-					OneSync = this.OneSync ?? Input.Bool("enable OneSync", true),
-					Tags = (string.IsNullOrWhiteSpace(this.Tags) ? Input.String("server tags (separate with space)", "NFive") : this.Tags).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList(),
-					LicenseKey = string.IsNullOrWhiteSpace(this.LicenseKey) ? Input.String("server license key (https://keymaster.fivem.net/)", s =>
-					{
-						if (Regex.IsMatch(s, @"[\d\w]{32}")) return true;
+					//	Console.Write("Please enter a valid locale (xx-XX format): ");
+					//	return false;
+					//}) : this.Locale,
+					//OneSync = this.OneSync ?? Input.Bool("enable OneSync", true),
+					//Tags = (string.IsNullOrWhiteSpace(this.Tags) ? Input.String("server tags (separate with space)", "NFive") : this.Tags).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList(),
+					//LicenseKey = string.IsNullOrWhiteSpace(this.LicenseKey) ? Input.String("server license key (https://keymaster.fivem.net/)", s =>
+					//{
+					//	if (Regex.IsMatch(s, @"[\d\w]{32}")) return true;
 
-						Console.Write("Please enter a valid license key: ");
-						return false;
-					}).ToLowerInvariant() : this.LicenseKey,
-					SteamKey = string.IsNullOrWhiteSpace(this.SteamKey) ? Regex.Replace(Input.String("Steam API license key (https://steamcommunity.com/dev/apikey)", "<disabled>", s =>
-					{
-						if (s == "<disabled>") return true;
-						if (s == "none") return true;
-						if (Regex.IsMatch(s, @"[0-9a-fA-F]{32}")) return true;
+					//	Console.Write("Please enter a valid license key: ");
+					//	return false;
+					//}).ToLowerInvariant() : this.LicenseKey,
+					//SteamKey = string.IsNullOrWhiteSpace(this.SteamKey) ? Regex.Replace(Input.String("Steam API license key (https://steamcommunity.com/dev/apikey)", "<disabled>", s =>
+					//{
+					//	if (s == "<disabled>") return true;
+					//	if (s == "none") return true;
+					//	if (Regex.IsMatch(s, @"[0-9a-fA-F]{32}")) return true;
 
-						Console.Write("Please enter a valid Steam API license key: ");
-						return false;
-					}), "^<disabled>$", "none") : this.SteamKey,
-					RconPassword = string.IsNullOrWhiteSpace(this.RconPassword) ? Regex.Replace(Input.Password("RCON password", "<disabled>"), "^<disabled>$", string.Empty) : this.RconPassword
+					//	Console.Write("Please enter a valid Steam API license key: ");
+					//	return false;
+					//}), "^<disabled>$", "none") : this.SteamKey,
+					//RconPassword = string.IsNullOrWhiteSpace(this.RconPassword) ? Regex.Replace(Input.Password("RCON password", "<disabled>"), "^<disabled>$", string.Empty) : this.RconPassword
 				};
 
 				Directory.CreateDirectory(RuntimeEnvironment.IsWindows ? this.Location : Path.Combine(this.Location, "alpine", "opt", "cfx-server"));
@@ -188,12 +188,21 @@ namespace NFive.PluginManager.Modules
 
 			return 0;
 		}
+		private string ServerFileRegexTokens(bool isWindows)
+		{
+			if (isWindows)
+			{
+				return $"({Regex.Escape("server.zip")}|{Regex.Escape("server.7z")})";
+			}
+
+			return Regex.Escape("fx.tar.xz");
+		}
 
 		private async Task InstallFiveM(string path, string source)
 		{
 			var platformName = RuntimeEnvironment.IsWindows ? "Windows" : "Linux";
 			var platformUrl = RuntimeEnvironment.IsWindows ? "build_server_windows" : "build_proot_linux";
-			var platformFile = RuntimeEnvironment.IsWindows ? "server.zip" : "fx.tar.xz";
+			var platformFile = ServerFileRegexTokens(RuntimeEnvironment.IsWindows);
 			var platformPath = RuntimeEnvironment.IsWindows ? Path.Combine(path) : Path.Combine(path, "alpine", "opt", "cfx-server");
 
 			if (!string.IsNullOrWhiteSpace(source) && File.Exists(source))
@@ -214,15 +223,16 @@ namespace NFive.PluginManager.Modules
 				using (var client = new WebClient())
 				{
 					var page = await client.DownloadStringTaskAsync($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
-
-					for (var match = new Regex($"href=\"\\./(\\d+)-([a-f0-9]{{40}})/{Regex.Escape(platformFile)}\"( class=\"button is-link is-primary)?( class=\"button is-link is-danger)?", RegexOptions.IgnoreCase).Match(page); match.Success; match = match.NextMatch())
+					for (var match = new Regex($"href= *\"\\./(\\d+)-([a-f0-9]{{40}})/{platformFile}\"( class=\"button is-link is-primary)?( class=\"button is-link is-danger)?", RegexOptions.IgnoreCase).Match(page); match.Success; match = match.NextMatch())
 					{
 						var version = uint.Parse(match.Groups[1].Value);
 						versions.Add(new Tuple<uint, string>(version, match.Groups[2].Value));
 
-						if (match.Groups[3].Success) recommendedVersion = version;
-						if (match.Groups[4].Success) optionalVersion = version;
+						if (match.Groups[4].Success) recommendedVersion = version;
+						if (match.Groups[5].Success) optionalVersion = version;
 					}
+
+
 				}
 
 				var latestVersion = versions.Max();
