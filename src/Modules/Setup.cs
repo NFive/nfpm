@@ -215,12 +215,7 @@ namespace NFive.PluginManager.Modules
 
 				using (var client = new WebClient())
 				{
-<<<<<<< HEAD
 					var page = await client.DownloadStringTaskAsync($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
-=======
-					var page = await client.DownloadStringTaskAsync(
-						$"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
->>>>>>> 1c9c4270d215e1de10e0590d8e96375c847900c7
 					for (var match =
 							new Regex(
 								$"href= *\"\\./(\\d+)-([a-f0-9]{{40}})/{platformFileGroupPattern}\"( class=\"button is-link is-primary)?( class=\"button is-link is-danger)?",
