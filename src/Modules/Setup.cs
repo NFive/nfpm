@@ -193,8 +193,10 @@ namespace NFive.PluginManager.Modules
 		{
 			var platformName = RuntimeEnvironment.IsWindows ? "Windows" : "Linux";
 			var platformUrl = RuntimeEnvironment.IsWindows ? "build_server_windows" : "build_proot_linux";
-			var platformFile = RuntimeEnvironment.IsWindows ? $"({Regex.Escape("server.zip")}|{Regex.Escape("server.7z")})" : "(fx.tar.xz)";
+			var platformFileGroupPattern = RuntimeEnvironment.IsWindows ? $"({Regex.Escape("server.zip")}|{Regex.Escape("server.7z")})" : "(fx.tar.xz)";
 			var platformPath = RuntimeEnvironment.IsWindows ? Path.Combine(path) : Path.Combine(path, "alpine", "opt", "cfx-server");
+			var versionFilenames = new Dictionary<uint, string>();
+			string platformFile = null; // wil be provided latest when targetVersion is determined.
 
 			if (!string.IsNullOrWhiteSpace(source) && File.Exists(source))
 			{
@@ -213,11 +215,24 @@ namespace NFive.PluginManager.Modules
 
 				using (var client = new WebClient())
 				{
+<<<<<<< HEAD
 					var page = await client.DownloadStringTaskAsync($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
-					for (var match = new Regex($"href= *\"\\./(\\d+)-([a-f0-9]{{40}})/{platformFile}\"( class=\"button is-link is-primary)?( class=\"button is-link is-danger)?", RegexOptions.IgnoreCase).Match(page); match.Success; match = match.NextMatch())
+=======
+					var page = await client.DownloadStringTaskAsync(
+						$"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
+>>>>>>> 1c9c4270d215e1de10e0590d8e96375c847900c7
+					for (var match =
+							new Regex(
+								$"href= *\"\\./(\\d+)-([a-f0-9]{{40}})/{platformFileGroupPattern}\"( class=\"button is-link is-primary)?( class=\"button is-link is-danger)?",
+								RegexOptions.IgnoreCase).Match(page);
+						match.Success;
+						match = match.NextMatch())
 					{
 						var version = uint.Parse(match.Groups[1].Value);
 						versions.Add(new Tuple<uint, string>(version, match.Groups[2].Value));
+						
+						// Storing filenames by version number we can pull out the correct filename later
+						versionFilenames[version] = match.Groups[3].Value;
 
 						if (match.Groups[4].Success) recommendedVersion = version;
 						if (match.Groups[5].Success) optionalVersion = version;
@@ -230,19 +245,26 @@ namespace NFive.PluginManager.Modules
 
 				Console.WriteLine($"{versions.Count:N0} versions available, latest v{latestVersion.Item1}, recommended v{recommendedVersion}, optional v{optionalVersion}");
 
-				if (string.IsNullOrWhiteSpace(this.FiveMVersion) || ValidateVersion(this.FiveMVersion, versions, recommendedVersion, optionalVersion) == null) this.FiveMVersion = Input.String("FiveM server version", "latest", s =>
-				{
-					if (ValidateVersion(s, versions, recommendedVersion, optionalVersion) != null) return true;
+				if (string.IsNullOrWhiteSpace(this.FiveMVersion) ||
+				    ValidateVersion(this.FiveMVersion, versions, recommendedVersion, optionalVersion) == null)
+					this.FiveMVersion = Input.String("FiveM server version", "latest", s =>
+					{
+						if (ValidateVersion(s, versions, recommendedVersion, optionalVersion) != null) return true;
 
-					Console.Write("Please enter an available version: ");
-					return false;
-				});
+						Console.Write("Please enter an available version: ");
+						return false;
+					});
 
 				var targetVersion = ValidateVersion(this.FiveMVersion, versions, recommendedVersion, optionalVersion);
+				platformFile = versionFilenames[targetVersion.Item1];
 
-				var platformCache = RuntimeEnvironment.IsWindows ? $"fivem_server_{targetVersion.Item1}.zip" : $"fivem_server_{targetVersion.Item1}.tar.xz";
+				var platformCache = RuntimeEnvironment.IsWindows
+					? $"fivem_server_{targetVersion.Item1}{Path.GetExtension(platformFile)}"
+					: $"fivem_server_{targetVersion.Item1}.tar.xz";
 
-				var data = await DownloadCached($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/{targetVersion.Item1}-{targetVersion.Item2}/{platformFile}", $"FiveM {platformName} server", targetVersion.Item1.ToString(), platformCache);
+				var data = await DownloadCached(
+					$"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/{targetVersion.Item1}-{targetVersion.Item2}/{platformFile}",
+					$"FiveM {platformName} server", targetVersion.Item1.ToString(), platformCache);
 				Install(path, $"FiveM {platformName} server", data);
 
 				File.WriteAllText(Path.Combine(platformPath, "version"), targetVersion.Item1.ToString());
@@ -253,13 +275,14 @@ namespace NFive.PluginManager.Modules
 				Console.WriteLine();
 				Console.WriteLine("Reverting to local install");
 
-				if (string.IsNullOrWhiteSpace(source) || !File.Exists(source)) source = Input.String("Local FiveM server archive path", platformFile, s =>
-				{
-					if (File.Exists(s)) return true;
+				if (string.IsNullOrWhiteSpace(source) || !File.Exists(source))
+					source = Input.String("Local FiveM server archive path", platformFile, s =>
+					{
+						if (File.Exists(s)) return true;
 
-					Console.Write("Please enter a local path: ");
-					return false;
-				});
+						Console.Write("Please enter a local path: ");
+						return false;
+					});
 
 				Install(path, $"FiveM {platformName} server", File.ReadAllBytes(source));
 			}
@@ -350,13 +373,13 @@ namespace NFive.PluginManager.Modules
 					using (var process = new Process
 					{
 						StartInfo =
-							{
-								FileName = "tar",
-								Arguments = $"xJ -C {path} -f {tempFile}",
-								UseShellExecute = false,
-								RedirectStandardInput = false,
-								RedirectStandardOutput = false
-							}
+						{
+							FileName = "tar",
+							Arguments = $"xJ -C {path} -f {tempFile}",
+							UseShellExecute = false,
+							RedirectStandardInput = false,
+							RedirectStandardOutput = false
+						}
 					})
 					{
 						process.Start();
@@ -371,7 +394,8 @@ namespace NFive.PluginManager.Modules
 					{
 						if (reader.Entry.IsDirectory) continue;
 
-						var opts = new ExtractionOptions { ExtractFullPath = true, Overwrite = true, PreserveFileTime = true };
+						var opts = new ExtractionOptions
+							{ExtractFullPath = true, Overwrite = true, PreserveFileTime = true};
 
 						if (skip.Contains(reader.Entry.Key) && File.Exists(Path.Combine(path, reader.Entry.Key)))
 						{
