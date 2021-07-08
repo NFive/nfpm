@@ -98,34 +98,34 @@ namespace NFive.PluginManager.Modules
 
 				var config = new ConfigGenerator
 				{
-					//Hostname = string.IsNullOrWhiteSpace(this.ServerName) ? Input.String("server name", "NFive") : this.ServerName,
-					//MaxPlayers = this.MaxPlayers ?? Convert.ToUInt16(Input.Int("server max players", 1, 128, 32)),
-					//Locale = string.IsNullOrWhiteSpace(this.Locale) ? Input.String("server locale", "en-US", s =>
-					//{
-					//	if (Regex.IsMatch(s, @"[a-z]{2}-[A-Z]{2}")) return true;
+					Hostname = string.IsNullOrWhiteSpace(this.ServerName) ? Input.String("server name", "NFive") : this.ServerName,
+					MaxPlayers = this.MaxPlayers ?? Convert.ToUInt16(Input.Int("server max players", 1, 128, 32)),
+					Locale = string.IsNullOrWhiteSpace(this.Locale) ? Input.String("server locale", "en-US", s =>
+					{
+						if (Regex.IsMatch(s, @"[a-z]{2}-[A-Z]{2}")) return true;
 
-					//	Console.Write("Please enter a valid locale (xx-XX format): ");
-					//	return false;
-					//}) : this.Locale,
-					//OneSync = this.OneSync ?? Input.Bool("enable OneSync", true),
-					//Tags = (string.IsNullOrWhiteSpace(this.Tags) ? Input.String("server tags (separate with space)", "NFive") : this.Tags).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList(),
-					//LicenseKey = string.IsNullOrWhiteSpace(this.LicenseKey) ? Input.String("server license key (https://keymaster.fivem.net/)", s =>
-					//{
-					//	if (Regex.IsMatch(s, @"[\d\w]{32}")) return true;
+						Console.Write("Please enter a valid locale (xx-XX format): ");
+						return false;
+					}) : this.Locale,
+					OneSync = this.OneSync ?? Input.Bool("enable OneSync", true),
+					Tags = (string.IsNullOrWhiteSpace(this.Tags) ? Input.String("server tags (separate with space)", "NFive") : this.Tags).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList(),
+					LicenseKey = string.IsNullOrWhiteSpace(this.LicenseKey) ? Input.String("server license key (https://keymaster.fivem.net/)", s =>
+					{
+						if (Regex.IsMatch(s, @"[\d\w]{32}")) return true;
 
-					//	Console.Write("Please enter a valid license key: ");
-					//	return false;
-					//}).ToLowerInvariant() : this.LicenseKey,
-					//SteamKey = string.IsNullOrWhiteSpace(this.SteamKey) ? Regex.Replace(Input.String("Steam API license key (https://steamcommunity.com/dev/apikey)", "<disabled>", s =>
-					//{
-					//	if (s == "<disabled>") return true;
-					//	if (s == "none") return true;
-					//	if (Regex.IsMatch(s, @"[0-9a-fA-F]{32}")) return true;
+						Console.Write("Please enter a valid license key: ");
+						return false;
+					}).ToLowerInvariant() : this.LicenseKey,
+					SteamKey = string.IsNullOrWhiteSpace(this.SteamKey) ? Regex.Replace(Input.String("Steam API license key (https://steamcommunity.com/dev/apikey)", "<disabled>", s =>
+					{
+						if (s == "<disabled>") return true;
+						if (s == "none") return true;
+						if (Regex.IsMatch(s, @"[0-9a-fA-F]{32}")) return true;
 
-					//	Console.Write("Please enter a valid Steam API license key: ");
-					//	return false;
-					//}), "^<disabled>$", "none") : this.SteamKey,
-					//RconPassword = string.IsNullOrWhiteSpace(this.RconPassword) ? Regex.Replace(Input.Password("RCON password", "<disabled>"), "^<disabled>$", string.Empty) : this.RconPassword
+						Console.Write("Please enter a valid Steam API license key: ");
+						return false;
+					}), "^<disabled>$", "none") : this.SteamKey,
+					RconPassword = string.IsNullOrWhiteSpace(this.RconPassword) ? Regex.Replace(Input.Password("RCON password", "<disabled>"), "^<disabled>$", string.Empty) : this.RconPassword
 				};
 
 				Directory.CreateDirectory(RuntimeEnvironment.IsWindows ? this.Location : Path.Combine(this.Location, "alpine", "opt", "cfx-server"));
