@@ -17,6 +17,8 @@ using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Modules
 {
+	using SharpCompress.Archives.SevenZip;
+
 	/// <summary>
 	/// Install and configure a new FiveM server with NFive installed.
 	/// </summary>
@@ -215,7 +217,8 @@ namespace NFive.PluginManager.Modules
 
 				using (var client = new WebClient())
 				{
-					var page = await client.DownloadStringTaskAsync($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
+					var page = await client.DownloadStringTaskAsync(
+						$"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
 					for (var match =
 							new Regex(
 								$"href= *\"\\./(\\d+)-([a-f0-9]{{40}})/{platformFileGroupPattern}\"( class=\"button is-link is-primary)?( class=\"button is-link is-danger)?",
@@ -253,14 +256,19 @@ namespace NFive.PluginManager.Modules
 				var targetVersion = ValidateVersion(this.FiveMVersion, versions, recommendedVersion, optionalVersion);
 				platformFile = versionFilenames[targetVersion.Item1];
 
+				var fileExt = Path.GetExtension(platformFile);
 				var platformCache = RuntimeEnvironment.IsWindows
-					? $"fivem_server_{targetVersion.Item1}{Path.GetExtension(platformFile)}"
+					? $"fivem_server_{targetVersion.Item1}{fileExt}"
 					: $"fivem_server_{targetVersion.Item1}.tar.xz";
 
 				var data = await DownloadCached(
 					$"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/{targetVersion.Item1}-{targetVersion.Item2}/{platformFile}",
 					$"FiveM {platformName} server", targetVersion.Item1.ToString(), platformCache);
-				Install(path, $"FiveM {platformName} server", data);
+
+				Install(path, $"FiveM {platformName} server",
+					data.Item1,
+					fileExt == ".7z" ? data.Item2 : null
+					);
 
 				File.WriteAllText(Path.Combine(platformPath, "version"), targetVersion.Item1.ToString());
 			}
@@ -302,7 +310,7 @@ namespace NFive.PluginManager.Modules
 
 			var data = await DownloadCached($"https://dl.bintray.com/nfive/NFive/{version}/nfive.zip", "NFive", version, $"nfive_{version}.zip");
 
-			Install(path, "NFive", data);
+			Install(path, "NFive", data.Item1);
 		}
 
 		private static async Task<byte[]> Download(string url)
@@ -314,7 +322,7 @@ namespace NFive.PluginManager.Modules
 			}
 		}
 
-		private static async Task<byte[]> DownloadCached(string url, string name, string version, string cacheName)
+		private static async Task<Tuple<byte[], string>> DownloadCached(string url, string name, string version, string cacheName)
 		{
 			var cacheFile = Path.Combine(PathManager.CachePath, cacheName);
 
@@ -322,7 +330,7 @@ namespace NFive.PluginManager.Modules
 			{
 				Console.WriteLine($"Reading {name} v{version} from cache...");
 
-				return File.ReadAllBytes(cacheFile);
+				return new Tuple<byte[], string>(File.ReadAllBytes(cacheFile), cacheFile);
 			}
 
 			Console.WriteLine($"Downloading {name} v{version}...");
@@ -332,10 +340,10 @@ namespace NFive.PluginManager.Modules
 			Directory.CreateDirectory(PathManager.CachePath);
 			File.WriteAllBytes(cacheFile, data);
 
-			return data;
+			return new Tuple<byte[], string>(data, cacheFile);
 		}
 
-		private static void Install(string path, string name, byte[] data)
+		private static void Install(string path, string name, byte[] data, string filename = null)
 		{
 			Console.WriteLine($"Installing {name}...");
 
@@ -351,6 +359,26 @@ namespace NFive.PluginManager.Modules
 				"config/database.yml"
 			};
 
+			if (string.IsNullOrWhiteSpace(filename) == false && SevenZipArchive.IsSevenZipFile(filename))
+				InstallFromSevenZipArchive(path, skip, filename, data); 
+			else
+				InstallFromStream(path, skip, data);
+
+			Console.WriteLine();
+		}
+
+		private static void InstallFromSevenZipArchive(string path, string[] skip, string filename, byte[] data)
+		{
+			using (var stream = new MemoryStream(data))
+			{
+				var archive = SevenZipArchive.Open(stream);
+				var reader = archive.ExtractAllEntries();
+				Extract(reader, path, skip);
+			}
+		}
+
+		private static void InstallFromStream(string path, string[] skip, byte[] data)
+		{
 			using (var stream = new MemoryStream(data))
 			using (var reader = ReaderFactory.Open(stream))
 			{
@@ -385,24 +413,28 @@ namespace NFive.PluginManager.Modules
 				}
 				else
 				{
-					while (reader.MoveToNextEntry())
-					{
-						if (reader.Entry.IsDirectory) continue;
-
-						var opts = new ExtractionOptions
-							{ExtractFullPath = true, Overwrite = true, PreserveFileTime = true};
-
-						if (skip.Contains(reader.Entry.Key) && File.Exists(Path.Combine(path, reader.Entry.Key)))
-						{
-							//opts.Overwrite = false; // TODO: Prompt to overwrite existing config?
-						}
-
-						reader.WriteEntryToDirectory(path, opts);
-					}
+					Extract(reader, path, skip);
 				}
 			}
-
-			Console.WriteLine();
 		}
+
+		private static void Extract(IReader reader, string path, string[] skip)
+		{
+			while (reader.MoveToNextEntry())
+			{
+				if (reader.Entry.IsDirectory) continue;
+
+				var opts = new ExtractionOptions
+					{ ExtractFullPath = true, Overwrite = true, PreserveFileTime = true };
+
+				if (skip.Contains(reader.Entry.Key) && File.Exists(Path.Combine(path, reader.Entry.Key)))
+				{
+					//opts.Overwrite = false; // TODO: Prompt to overwrite existing config?
+				}
+
+				reader.WriteEntryToDirectory(path, opts);
+			}
+		}
+
 	}
 }
