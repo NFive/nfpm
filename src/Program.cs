@@ -85,7 +85,7 @@ namespace NFive.PluginManager
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("An unhandled application error has occured:".DarkRed());
+				Console.WriteLine("An unhandled application error has occurred:".DarkRed());
 				Console.WriteLine(ex.Message.Red());
 				if (ex.InnerException != null) Console.WriteLine(ex.InnerException.Message.Red());
 

@@ -2,7 +2,6 @@ using CommandLine;
 using JetBrains.Annotations;
 using NFive.PluginManager.Extensions;
 using NFive.PluginManager.Utilities;
-using System;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
 
