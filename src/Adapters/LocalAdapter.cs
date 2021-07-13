@@ -50,7 +50,7 @@ namespace NFive.PluginManager.Adapters
 			return await Task.FromResult(new List<Version> { new Version(definition.Version.ToString()) });
 		}
 
-		public Task<string> Cache(Version version) => Task.FromResult(Path.Combine(Path.GetFullPath(this.repo.Path), this.repo.Path));
+		public Task<string> Cache(Version version) => Task.FromResult(Path.GetFullPath(this.repo.Path));
 
 		/// <inheritdoc />
 		/// <summary>
@@ -59,7 +59,7 @@ namespace NFive.PluginManager.Adapters
 		/// <param name="version">The version to download.</param>
 		public async Task Download(Version version)
 		{
-			var src = Path.Combine(Path.GetFullPath(this.repo.Path), this.repo.Path);
+			var src = Path.GetFullPath(this.repo.Path);
 			var dst = Path.Combine(Environment.CurrentDirectory, ConfigurationManager.PluginPath, this.name.Vendor, this.name.Project);
 
 			var path = Path.Combine(Path.GetFullPath(this.repo.Path), ConfigurationManager.DefinitionFile);

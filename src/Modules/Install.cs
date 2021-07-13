@@ -28,6 +28,8 @@ namespace NFive.PluginManager.Modules
 
 		public override async Task<int> Main()
 		{
+			var path = Path.GetFullPath(Environment.CurrentDirectory);
+
 			var definition = LoadDefinition();
 			var graph = LoadGraph();
 
@@ -39,11 +41,20 @@ namespace NFive.PluginManager.Modules
 					var input = plugin;
 
 					// Local install
-					if (Directory.Exists(plugin) && File.Exists(Path.Combine(plugin, ConfigurationManager.DefinitionFile)))
+					if (Directory.Exists(Path.Combine(path, plugin)) && File.Exists(Path.Combine(path, plugin, ConfigurationManager.DefinitionFile)) || Directory.Exists(plugin) && File.Exists(Path.Combine(plugin, ConfigurationManager.DefinitionFile)))
 					{
-						var path = Path.GetFullPath(plugin);
+						if (Directory.Exists(Path.Combine(path, plugin)) && File.Exists(Path.Combine(path, plugin, ConfigurationManager.DefinitionFile)))
+						{
+							var current = new Uri(Environment.CurrentDirectory.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar);
+							var target = new Uri(Path.GetFullPath(Path.Combine(path, plugin)).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar);
+							path = Uri.UnescapeDataString(current.MakeRelativeUri(target).OriginalString.Replace('/', Path.DirectorySeparatorChar));
+						}
+						else
+						{
+							path = Path.GetFullPath(plugin);
+						}
 
-						var pluginDefinition = Plugin.Load(Path.Combine(path, ConfigurationManager.DefinitionFile));
+						var pluginDefinition = Plugin.Load(Path.Combine(Path.GetFullPath(path), ConfigurationManager.DefinitionFile));
 
 						if (definition.Repositories == null) definition.Repositories = new List<Repository>();
 
