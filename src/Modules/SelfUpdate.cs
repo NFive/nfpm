@@ -4,10 +4,11 @@ using NFive.PluginManager.Utilities;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
-using Version = NFive.PluginManager.Adapters.Bintray.Version;
+using Octokit;
 
 namespace NFive.PluginManager.Modules
 {
@@ -27,7 +28,10 @@ namespace NFive.PluginManager.Modules
 			Console.WriteLine("Currently running ", $"{name} {fileVersion}".White());
 			Console.WriteLine("Checking for updates...");
 
-			var version = (await Version.Get("nfive/nfpm/nfpm")).Name;
+			var gitHub = new GitHubClient(new ProductHeaderValue("nfpm"));
+			var release = await gitHub.Repository.Release.GetLatest("NFive", "nfpm");
+			var version = release.TagName;
+			var asset = release.Assets.First(a => a.Name.EndsWith(".exe"));
 
 			if (version == fileVersion)
 			{
@@ -40,7 +44,7 @@ namespace NFive.PluginManager.Modules
 
 			using (var client = new WebClient())
 			{
-				var data = await client.DownloadDataTaskAsync($"https://dl.bintray.com/nfive/nfpm/{version}/nfpm.exe");
+				var data = await client.DownloadDataTaskAsync(asset.BrowserDownloadUrl);
 
 				try
 				{

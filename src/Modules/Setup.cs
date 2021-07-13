@@ -13,12 +13,12 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Octokit;
+using SharpCompress.Archives.SevenZip;
 using Version = NFive.SDK.Core.Plugins.Version;
 
 namespace NFive.PluginManager.Modules
 {
-	using SharpCompress.Archives.SevenZip;
-
 	/// <summary>
 	/// Install and configure a new FiveM server with NFive installed.
 	/// </summary>
@@ -101,7 +101,7 @@ namespace NFive.PluginManager.Modules
 				var config = new ConfigGenerator
 				{
 					Hostname = string.IsNullOrWhiteSpace(this.ServerName) ? Input.String("server name", "NFive") : this.ServerName,
-					MaxPlayers = this.MaxPlayers ?? Convert.ToUInt16(Input.Int("server max players", 1, 128, 32)),
+					MaxPlayers = this.MaxPlayers ?? Convert.ToUInt16(Input.Int("server max players", 1, 1024, 30)),
 					Locale = string.IsNullOrWhiteSpace(this.Locale) ? Input.String("server locale", "en-US", s =>
 					{
 						if (Regex.IsMatch(s, @"[a-z]{2}-[A-Z]{2}")) return true;
@@ -190,15 +190,11 @@ namespace NFive.PluginManager.Modules
 
 			return 0;
 		}
-
 		private async Task InstallFiveM(string path, string source)
 		{
 			var platformName = RuntimeEnvironment.IsWindows ? "Windows" : "Linux";
 			var platformUrl = RuntimeEnvironment.IsWindows ? "build_server_windows" : "build_proot_linux";
-			var platformFileGroupPattern = RuntimeEnvironment.IsWindows ? $"({Regex.Escape("server.zip")}|{Regex.Escape("server.7z")})" : "(fx.tar.xz)";
 			var platformPath = RuntimeEnvironment.IsWindows ? Path.Combine(path) : Path.Combine(path, "alpine", "opt", "cfx-server");
-			var versionFilenames = new Dictionary<uint, string>();
-			string platformFile = null; // wil be provided latest when targetVersion is determined.
 
 			if (!string.IsNullOrWhiteSpace(source) && File.Exists(source))
 			{
@@ -217,34 +213,25 @@ namespace NFive.PluginManager.Modules
 
 				using (var client = new WebClient())
 				{
-					var page = await client.DownloadStringTaskAsync(
-						$"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
-					for (var match =
-							new Regex(
-								$"href= *\"\\./(\\d+)-([a-f0-9]{{40}})/{platformFileGroupPattern}\"( class=\"button is-link is-primary)?( class=\"button is-link is-danger)?",
-								RegexOptions.IgnoreCase).Match(page);
+					var page = await client.DownloadStringTaskAsync($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/");
+					for (var match = new Regex("href= ?\"\\./(\\d+)-([a-f0-9]{40}/(?:server|fx)[a-z0-9\\.]+)\"( class=\"button is-link is-primary)?( class=\"button is-link is-danger)?", RegexOptions.IgnoreCase).Match(page);
 						match.Success;
 						match = match.NextMatch())
 					{
 						var version = uint.Parse(match.Groups[1].Value);
 						versions.Add(new Tuple<uint, string>(version, match.Groups[2].Value));
-						
-						// Storing filenames by version number we can pull out the correct filename later
-						versionFilenames[version] = match.Groups[3].Value;
 
-						if (match.Groups[4].Success) recommendedVersion = version;
-						if (match.Groups[5].Success) optionalVersion = version;
+						if (match.Groups[3].Success) recommendedVersion = version;
+						if (match.Groups[4].Success) optionalVersion = version;
 					}
-
-
 				}
 
 				var latestVersion = versions.Max();
 
 				Console.WriteLine($"{versions.Count:N0} versions available, latest v{latestVersion.Item1}, recommended v{recommendedVersion}, optional v{optionalVersion}");
 
-				if (string.IsNullOrWhiteSpace(this.FiveMVersion) ||
-				    ValidateVersion(this.FiveMVersion, versions, recommendedVersion, optionalVersion) == null)
+				if (string.IsNullOrWhiteSpace(this.FiveMVersion) || ValidateVersion(this.FiveMVersion, versions, recommendedVersion, optionalVersion) == null)
+				{
 					this.FiveMVersion = Input.String("FiveM server version", "latest", s =>
 					{
 						if (ValidateVersion(s, versions, recommendedVersion, optionalVersion) != null) return true;
@@ -252,23 +239,16 @@ namespace NFive.PluginManager.Modules
 						Console.Write("Please enter an available version: ");
 						return false;
 					});
+				}
 
 				var targetVersion = ValidateVersion(this.FiveMVersion, versions, recommendedVersion, optionalVersion);
-				platformFile = versionFilenames[targetVersion.Item1];
 
-				var fileExt = Path.GetExtension(platformFile);
-				var platformCache = RuntimeEnvironment.IsWindows
-					? $"fivem_server_{targetVersion.Item1}{fileExt}"
-					: $"fivem_server_{targetVersion.Item1}.tar.xz";
+				var fileExt = Path.GetExtension(targetVersion.Item2);
+				if (targetVersion.Item2.EndsWith($".tar{fileExt}")) fileExt = $".tar{fileExt}";
 
-				var data = await DownloadCached(
-					$"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/{targetVersion.Item1}-{targetVersion.Item2}/{platformFile}",
-					$"FiveM {platformName} server", targetVersion.Item1.ToString(), platformCache);
+				var data = await DownloadCached($"https://runtime.fivem.net/artifacts/fivem/{platformUrl}/master/{targetVersion.Item1}-{targetVersion.Item2}", $"FiveM {platformName} server", targetVersion.Item1.ToString(), $"fivem_server_{targetVersion.Item1}{fileExt}");
 
-				Install(path, $"FiveM {platformName} server",
-					data.Item1,
-					fileExt == ".7z" ? data.Item2 : null
-					);
+				Install(path, $"FiveM {platformName} server", data);
 
 				File.WriteAllText(Path.Combine(platformPath, "version"), targetVersion.Item1.ToString());
 			}
@@ -279,13 +259,15 @@ namespace NFive.PluginManager.Modules
 				Console.WriteLine("Reverting to local install");
 
 				if (string.IsNullOrWhiteSpace(source) || !File.Exists(source))
-					source = Input.String("Local FiveM server archive path", platformFile, s =>
+				{
+					source = Input.String("Local FiveM server archive path", null, s =>
 					{
 						if (File.Exists(s)) return true;
 
 						Console.Write("Please enter a local path: ");
 						return false;
 					});
+				}
 
 				Install(path, $"FiveM {platformName} server", File.ReadAllBytes(source));
 			}
@@ -306,11 +288,60 @@ namespace NFive.PluginManager.Modules
 		{
 			Console.WriteLine("Finding latest NFive version...");
 
-			var version = (await Adapters.Bintray.Version.Get("nfive/NFive/NFive")).Name;
+			var gitHub = new GitHubClient(new ProductHeaderValue("nfpm"));
+			var release = await gitHub.Repository.Release.GetLatest("NFive", "NFive");
+			var version = release.TagName;
+			var asset = release.Assets.First(a => a.Name.EndsWith(".zip"));
 
-			var data = await DownloadCached($"https://dl.bintray.com/nfive/NFive/{version}/nfive.zip", "NFive", version, $"nfive_{version}.zip");
+			var data = await DownloadCached(asset.BrowserDownloadUrl, "NFive", version, $"nfive_{version}.zip");
 
-			Install(path, "NFive", data.Item1);
+			Install(path, "NFive", data);
+		}
+
+		private static void Install(string path, string name, byte[] data)
+		{
+			Console.WriteLine($"Installing {name}...");
+
+			Directory.CreateDirectory(path);
+
+			var skip = new[]
+			{
+				"server.cfg",
+				"server-tls.crt",
+				"server-tls.key",
+				"__resource.lua",
+				"fxmanifest.lua",
+				"nfive.yml",
+				"nfive.lock",
+				"config/nfive.yml",
+				"config/database.yml"
+			};
+
+			using (var stream = new MemoryStream(data))
+			{
+				var sevenZip = SevenZipArchive.IsSevenZipFile(stream);
+				stream.Position = 0;
+
+				using (var archive = sevenZip ? SevenZipArchive.Open(stream) : null)
+				using (var reader = sevenZip ? archive.ExtractAllEntries() : ReaderFactory.Open(stream))
+				{
+					while (reader.MoveToNextEntry())
+					{
+						if (reader.Entry.IsDirectory) continue;
+
+						var opts = new ExtractionOptions { ExtractFullPath = true, Overwrite = true, PreserveFileTime = true };
+
+						if (skip.Contains(reader.Entry.Key) && File.Exists(Path.Combine(path, reader.Entry.Key)))
+						{
+							opts.Overwrite = false; // TODO: Prompt to overwrite existing config?
+						}
+
+						reader.WriteEntryToDirectory(path, opts);
+					}
+				}
+			}
+
+			Console.WriteLine();
 		}
 
 		private static async Task<byte[]> Download(string url)
@@ -322,7 +353,7 @@ namespace NFive.PluginManager.Modules
 			}
 		}
 
-		private static async Task<Tuple<byte[], string>> DownloadCached(string url, string name, string version, string cacheName)
+		private static async Task<byte[]> DownloadCached(string url, string name, string version, string cacheName)
 		{
 			var cacheFile = Path.Combine(PathManager.CachePath, cacheName);
 
@@ -330,7 +361,7 @@ namespace NFive.PluginManager.Modules
 			{
 				Console.WriteLine($"Reading {name} v{version} from cache...");
 
-				return new Tuple<byte[], string>(File.ReadAllBytes(cacheFile), cacheFile);
+				return File.ReadAllBytes(cacheFile);
 			}
 
 			Console.WriteLine($"Downloading {name} v{version}...");
@@ -340,101 +371,7 @@ namespace NFive.PluginManager.Modules
 			Directory.CreateDirectory(PathManager.CachePath);
 			File.WriteAllBytes(cacheFile, data);
 
-			return new Tuple<byte[], string>(data, cacheFile);
+			return data;
 		}
-
-		private static void Install(string path, string name, byte[] data, string filename = null)
-		{
-			Console.WriteLine($"Installing {name}...");
-
-			Directory.CreateDirectory(path);
-
-			var skip = new[]
-			{
-				"server.cfg",
-				"fxmanifest.lua",
-				"nfive.yml",
-				"nfive.lock",
-				"config/nfive.yml",
-				"config/database.yml"
-			};
-
-			if (string.IsNullOrWhiteSpace(filename) == false && SevenZipArchive.IsSevenZipFile(filename))
-				InstallFromSevenZipArchive(path, skip, filename, data); 
-			else
-				InstallFromStream(path, skip, data);
-
-			Console.WriteLine();
-		}
-
-		private static void InstallFromSevenZipArchive(string path, string[] skip, string filename, byte[] data)
-		{
-			using (var stream = new MemoryStream(data))
-			{
-				var archive = SevenZipArchive.Open(stream);
-				var reader = archive.ExtractAllEntries();
-				Extract(reader, path, skip);
-			}
-		}
-
-		private static void InstallFromStream(string path, string[] skip, byte[] data)
-		{
-			using (var stream = new MemoryStream(data))
-			using (var reader = ReaderFactory.Open(stream))
-			{
-				if (reader.ArchiveType == ArchiveType.Tar && RuntimeEnvironment.IsLinux)
-				{
-					stream.Position = 0;
-
-					var tempFile = Path.GetTempFileName();
-
-					using (var file = new FileStream(tempFile, FileMode.Create, FileAccess.Write))
-					{
-						stream.CopyTo(file);
-					}
-
-					using (var process = new Process
-					{
-						StartInfo =
-						{
-							FileName = "tar",
-							Arguments = $"xJ -C {path} -f {tempFile}",
-							UseShellExecute = false,
-							RedirectStandardInput = false,
-							RedirectStandardOutput = false
-						}
-					})
-					{
-						process.Start();
-						process.WaitForExit();
-					}
-
-					File.Delete(tempFile);
-				}
-				else
-				{
-					Extract(reader, path, skip);
-				}
-			}
-		}
-
-		private static void Extract(IReader reader, string path, string[] skip)
-		{
-			while (reader.MoveToNextEntry())
-			{
-				if (reader.Entry.IsDirectory) continue;
-
-				var opts = new ExtractionOptions
-					{ ExtractFullPath = true, Overwrite = true, PreserveFileTime = true };
-
-				if (skip.Contains(reader.Entry.Key) && File.Exists(Path.Combine(path, reader.Entry.Key)))
-				{
-					//opts.Overwrite = false; // TODO: Prompt to overwrite existing config?
-				}
-
-				reader.WriteEntryToDirectory(path, opts);
-			}
-		}
-
 	}
 }
