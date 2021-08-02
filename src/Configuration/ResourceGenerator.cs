@@ -50,8 +50,15 @@ namespace NFive.PluginManager.Configuration
 		/// </value>
 		public static IEnumerable<string> DefaultClientScripts => new List<string>
 		{
-			"NFive.Client.net.dll"
-		};
+			"DotNetZip.dll",
+			"Newtonsoft.Json.dll",
+			"NGettext.dll",
+			"System.ComponentModel.DataAnnotations.dll",
+
+			"NFive.Client.net.dll",
+			"NFive.SDK.Core.net.dll",
+			"NFive.SDK.Client.net.dll"
+        };
 
 		/// <summary>
 		/// Gets the default client files.
@@ -61,14 +68,6 @@ namespace NFive.PluginManager.Configuration
 		/// </value>
 		public static IEnumerable<string> DefaultClientFiles => new List<string>
 		{
-			"DotNetZip.dll",
-			"Newtonsoft.Json.dll",
-			"NGettext.dll",
-			"System.ComponentModel.DataAnnotations.dll",
-
-			"NFive.SDK.Core.net.dll",
-			"NFive.SDK.Client.net.dll",
-
 			"index.html"
 		};
 
@@ -97,6 +96,10 @@ namespace NFive.PluginManager.Configuration
 			output.AppendLine();
 
 			output.AppendLine("client_scripts {");
+			output.AppendLine("\t-- NFive");
+			foreach (var file in DefaultClientScripts) output.AppendLine($"\t'{file}',");
+			output.AppendLine();
+
 			foreach (var plugin in graph.Plugins.Where(d => d.Client?.Include?.Count > 0 || d.Client?.Main?.Count > 0))
 			{
 				output.AppendLine($"\t-- {plugin.Name}@{plugin.Version}");
@@ -104,8 +107,6 @@ namespace NFive.PluginManager.Configuration
 				if (plugin.Client?.Main != null) foreach (var file in plugin.Client.Main) output.AppendLine($"\t'{Path.Combine(ConfigurationManager.PluginPath, plugin.Name.Vendor, plugin.Name.Project, file).Replace(Path.DirectorySeparatorChar, '/')}.net.dll',");
 				output.AppendLine();
 			}
-			output.AppendLine("\t-- NFive");
-			foreach (var file in DefaultClientScripts) output.AppendLine($"\t'{file}',");
 			output.AppendLine("}");
 			output.AppendLine();
 
